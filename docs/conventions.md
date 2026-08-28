@@ -47,8 +47,8 @@ Respuesta:
 Tabla `counters` (ver [schema.md](schema.md)):
 ```sql
 CREATE TABLE IF NOT EXISTS counters (
-    anio         INTEGER NOT NULL,
-    consecutivo  INTEGER NOT NULL DEFAULT 0,
+    anio         INT NOT NULL,
+    consecutivo  INT NOT NULL DEFAULT 0,
     PRIMARY KEY (anio)
 );
 ```

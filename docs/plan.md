@@ -14,16 +14,16 @@
 | Componente | Tecnología | Justificación |
 |---|---|---|
 | Backend | Go | Rendimiento, simplicidad, stdlib potente |
-| Base de datos | SQLite (via `modernc.org/sqlite`) | Un solo archivo, sin servidor, fácil respaldo |
+| Base de datos | MySQL | Base de datos robusta, estándar de la industria |
 | HTTP Server | `net/http` stdlib | Go 1.22+ tiene routing por métodos |
 | JSON | `encoding/json` stdlib | Suficiente para este alcance |
 | Frontend | (Por definir) | SPA moderna |
 
 **Decisiones clave:**
 - Dinero en centavos (ENTEROS, no floats): $150.50 = `15050`
-- IDs auto-incrementales (`INTEGER PRIMARY KEY AUTOINCREMENT`)
-- Timestamps en ISO-8601 via SQLite `datetime('now')`
-- Sin dependencias externas innecesarias
+- IDs auto-incrementales (`INT AUTO_INCREMENT PRIMARY KEY`)
+- Timestamps via MySQL `CURRENT_TIMESTAMP`
+- Conexión a MySQL via `.env` (host, port, user, pass, dbname)
 
 ---
 
@@ -50,6 +50,7 @@ Ver [models.md](models.md) para los structs Go.
 
 ```
 motek/
+├── .env.example         # Variables de entorno (DB_HOST, DB_PORT, etc.)
 ├── backend/
 │   ├── main.go           # Inicialización DB, arranque del servidor
 │   ├── routes.go         # Todas las rutas HTTP
@@ -93,6 +94,4 @@ motek/
 
 | Paquete | Propósito | Fase |
 |---|---|---|
-| `modernc.org/sqlite` | Driver SQLite puro en Go (sin CGO) | 1 |
-
-**Única dependencia del proyecto.** Todo lo demás es stdlib de Go.
+| `go-sql-driver/mysql` | Driver MySQL para Go | 1 |

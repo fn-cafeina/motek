@@ -4,47 +4,50 @@
 
 ```sql
 CREATE TABLE IF NOT EXISTS clientes (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre     TEXT NOT NULL,
-    telefono   TEXT NOT NULL DEFAULT '',
-    email      TEXT NOT NULL DEFAULT '',
-    direccion  TEXT NOT NULL DEFAULT '',
-    notas      TEXT NOT NULL DEFAULT '',
-    creado_en  TEXT NOT NULL DEFAULT (datetime('now'))
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    nombre     VARCHAR(255) NOT NULL,
+    telefono   VARCHAR(50) NOT NULL DEFAULT '',
+    email      VARCHAR(255) NOT NULL DEFAULT '',
+    direccion  VARCHAR(255) NOT NULL DEFAULT '',
+    notas      TEXT NOT NULL,
+    creado_en  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS motos (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    cliente_id  INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
-    marca       TEXT NOT NULL DEFAULT '',
-    modelo      TEXT NOT NULL DEFAULT '',
-    anio        INTEGER NOT NULL DEFAULT 0,
-    placa       TEXT NOT NULL DEFAULT '',
-    color       TEXT NOT NULL DEFAULT '',
-    vin         TEXT NOT NULL DEFAULT '',
-    kilometraje INTEGER NOT NULL DEFAULT 0,
-    creado_en   TEXT NOT NULL DEFAULT (datetime('now'))
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id  INT NOT NULL,
+    marca       VARCHAR(100) NOT NULL DEFAULT '',
+    modelo      VARCHAR(100) NOT NULL DEFAULT '',
+    anio        INT NOT NULL DEFAULT 0,
+    placa       VARCHAR(20) NOT NULL DEFAULT '',
+    color       VARCHAR(50) NOT NULL DEFAULT '',
+    vin         VARCHAR(50) NOT NULL DEFAULT '',
+    kilometraje INT NOT NULL DEFAULT 0,
+    creado_en   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ordenes_trabajo (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    cliente_id      INTEGER NOT NULL REFERENCES clientes(id) ON DELETE RESTRICT,
-    moto_id         INTEGER NOT NULL REFERENCES motos(id) ON DELETE RESTRICT,
-    descripcion     TEXT NOT NULL DEFAULT '',
-    diagnostico     TEXT NOT NULL DEFAULT '',
-    estado          TEXT NOT NULL DEFAULT 'recibido',
-    fecha_recibido  TEXT NOT NULL DEFAULT (datetime('now')),
-    fecha_entrega   TEXT NOT NULL DEFAULT '',
-    total_mano_obra INTEGER NOT NULL DEFAULT 0,
-    notas           TEXT NOT NULL DEFAULT '',
-    creado_en       TEXT NOT NULL DEFAULT (datetime('now')),
-    actualizado_en  TEXT NOT NULL DEFAULT (datetime('now'))
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id      INT NOT NULL,
+    moto_id         INT NOT NULL,
+    descripcion     TEXT NOT NULL,
+    diagnostico     TEXT NOT NULL,
+    estado          VARCHAR(30) NOT NULL DEFAULT 'recibido',
+    fecha_recibido  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_entrega   DATETIME NULL,
+    total_mano_obra INT NOT NULL DEFAULT 0,
+    notas           TEXT NOT NULL,
+    creado_en       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (moto_id) REFERENCES motos(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX IF NOT EXISTS idx_ordenes_estado ON ordenes_trabajo(estado);
-CREATE INDEX IF NOT EXISTS idx_ordenes_cliente ON ordenes_trabajo(cliente_id);
-CREATE INDEX IF NOT EXISTS idx_ordenes_moto ON ordenes_trabajo(moto_id);
-CREATE INDEX IF NOT EXISTS idx_motos_cliente ON motos(cliente_id);
+CREATE INDEX idx_ordenes_estado ON ordenes_trabajo(estado);
+CREATE INDEX idx_ordenes_cliente ON ordenes_trabajo(cliente_id);
+CREATE INDEX idx_ordenes_moto ON ordenes_trabajo(moto_id);
+CREATE INDEX idx_motos_cliente ON motos(cliente_id);
 ```
 
 ---
@@ -53,32 +56,34 @@ CREATE INDEX IF NOT EXISTS idx_motos_cliente ON motos(cliente_id);
 
 ```sql
 CREATE TABLE IF NOT EXISTS repuestos (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    codigo           TEXT NOT NULL UNIQUE,
-    nombre           TEXT NOT NULL DEFAULT '',
-    descripcion      TEXT NOT NULL DEFAULT '',
-    categoria        TEXT NOT NULL DEFAULT '',
-    precio_compra    INTEGER NOT NULL DEFAULT 0,
-    precio_venta     INTEGER NOT NULL DEFAULT 0,
-    stock            INTEGER NOT NULL DEFAULT 0,
-    stock_minimo     INTEGER NOT NULL DEFAULT 5,
-    ubicacion        TEXT NOT NULL DEFAULT '',
-    creado_en        TEXT NOT NULL DEFAULT (datetime('now')),
-    actualizado_en   TEXT NOT NULL DEFAULT (datetime('now'))
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    codigo           VARCHAR(50) NOT NULL UNIQUE,
+    nombre           VARCHAR(255) NOT NULL DEFAULT '',
+    descripcion      TEXT NOT NULL,
+    categoria        VARCHAR(100) NOT NULL DEFAULT '',
+    precio_compra    INT NOT NULL DEFAULT 0,
+    precio_venta     INT NOT NULL DEFAULT 0,
+    stock            INT NOT NULL DEFAULT 0,
+    stock_minimo     INT NOT NULL DEFAULT 5,
+    ubicacion        VARCHAR(100) NOT NULL DEFAULT '',
+    creado_en        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS orden_repuestos (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    orden_id         INTEGER NOT NULL REFERENCES ordenes_trabajo(id) ON DELETE CASCADE,
-    repuesto_id      INTEGER NOT NULL REFERENCES repuestos(id),
-    cantidad         INTEGER NOT NULL DEFAULT 1,
-    precio_unitario  INTEGER NOT NULL DEFAULT 0,
-    subtotal         INTEGER NOT NULL DEFAULT 0
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    orden_id         INT NOT NULL,
+    repuesto_id      INT NOT NULL,
+    cantidad         INT NOT NULL DEFAULT 1,
+    precio_unitario  INT NOT NULL DEFAULT 0,
+    subtotal         INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE CASCADE,
+    FOREIGN KEY (repuesto_id) REFERENCES repuestos(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_repuestos_codigo ON repuestos(codigo);
-CREATE INDEX IF NOT EXISTS idx_repuestos_categoria ON repuestos(categoria);
-CREATE INDEX IF NOT EXISTS idx_orden_repuestos_orden ON orden_repuestos(orden_id);
+CREATE INDEX idx_repuestos_codigo ON repuestos(codigo);
+CREATE INDEX idx_repuestos_categoria ON repuestos(categoria);
+CREATE INDEX idx_orden_repuestos_orden ON orden_repuestos(orden_id);
 ```
 
 ---
@@ -87,39 +92,41 @@ CREATE INDEX IF NOT EXISTS idx_orden_repuestos_orden ON orden_repuestos(orden_id
 
 ```sql
 CREATE TABLE IF NOT EXISTS counters (
-    anio         INTEGER NOT NULL,
-    consecutivo  INTEGER NOT NULL DEFAULT 0,
+    anio         INT NOT NULL,
+    consecutivo  INT NOT NULL DEFAULT 0,
     PRIMARY KEY (anio)
 );
 
 CREATE TABLE IF NOT EXISTS facturas (
-    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
-    orden_id             INTEGER NOT NULL REFERENCES ordenes_trabajo(id) ON DELETE RESTRICT,
-    numero               TEXT NOT NULL UNIQUE,
-    subtotal_mano_obra   INTEGER NOT NULL DEFAULT 0,
-    subtotal_repuestos   INTEGER NOT NULL DEFAULT 0,
-    total                INTEGER NOT NULL DEFAULT 0,
-    estado               TEXT NOT NULL DEFAULT 'pendiente',
-    fecha_emision        TEXT NOT NULL DEFAULT (datetime('now')),
-    fecha_vencimiento    TEXT NOT NULL DEFAULT '',
-    notas                TEXT NOT NULL DEFAULT '',
-    creado_en            TEXT NOT NULL DEFAULT (datetime('now')),
-    actualizado_en       TEXT NOT NULL DEFAULT (datetime('now'))
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
+    orden_id             INT NOT NULL,
+    numero               VARCHAR(20) NOT NULL UNIQUE,
+    subtotal_mano_obra   INT NOT NULL DEFAULT 0,
+    subtotal_repuestos   INT NOT NULL DEFAULT 0,
+    total                INT NOT NULL DEFAULT 0,
+    estado               VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+    fecha_emision        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_vencimiento    DATETIME NULL,
+    notas                TEXT NOT NULL,
+    creado_en            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS pagos (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    factura_id  INTEGER NOT NULL REFERENCES facturas(id) ON DELETE CASCADE,
-    monto       INTEGER NOT NULL DEFAULT 0,
-    metodo      TEXT NOT NULL DEFAULT 'efectivo',
-    fecha       TEXT NOT NULL DEFAULT (datetime('now')),
-    notas       TEXT NOT NULL DEFAULT '',
-    creado_en   TEXT NOT NULL DEFAULT (datetime('now'))
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    factura_id  INT NOT NULL,
+    monto       INT NOT NULL DEFAULT 0,
+    metodo      VARCHAR(30) NOT NULL DEFAULT 'efectivo',
+    fecha       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    notas       TEXT NOT NULL,
+    creado_en   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_facturas_estado ON facturas(estado);
-CREATE INDEX IF NOT EXISTS idx_facturas_orden ON facturas(orden_id);
-CREATE INDEX IF NOT EXISTS idx_pagos_factura ON pagos(factura_id);
+CREATE INDEX idx_facturas_estado ON facturas(estado);
+CREATE INDEX idx_facturas_orden ON facturas(orden_id);
+CREATE INDEX idx_pagos_factura ON pagos(factura_id);
 ```
 
 ---
@@ -128,19 +135,22 @@ CREATE INDEX IF NOT EXISTS idx_pagos_factura ON pagos(factura_id);
 
 ```sql
 CREATE TABLE IF NOT EXISTS citas (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
-    cliente_id     INTEGER NOT NULL REFERENCES clientes(id),
-    moto_id        INTEGER NOT NULL REFERENCES motos(id),
-    orden_id       INTEGER REFERENCES ordenes_trabajo(id),
-    titulo         TEXT NOT NULL DEFAULT '',
-    fecha_inicio   TEXT NOT NULL,
-    fecha_fin      TEXT NOT NULL,
-    estado         TEXT NOT NULL DEFAULT 'programada',
-    notas          TEXT NOT NULL DEFAULT '',
-    creado_en      TEXT NOT NULL DEFAULT (datetime('now')),
-    actualizado_en TEXT NOT NULL DEFAULT (datetime('now'))
+    id             INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id     INT NOT NULL,
+    moto_id        INT NOT NULL,
+    orden_id       INT NULL,
+    titulo         VARCHAR(255) NOT NULL DEFAULT '',
+    fecha_inicio   DATETIME NOT NULL,
+    fecha_fin      DATETIME NOT NULL,
+    estado         VARCHAR(20) NOT NULL DEFAULT 'programada',
+    notas          TEXT NOT NULL,
+    creado_en      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    FOREIGN KEY (moto_id) REFERENCES motos(id),
+    FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_citas_fecha ON citas(fecha_inicio, fecha_fin);
-CREATE INDEX IF NOT EXISTS idx_citas_estado ON citas(estado);
+CREATE INDEX idx_citas_fecha ON citas(fecha_inicio, fecha_fin);
+CREATE INDEX idx_citas_estado ON citas(estado);
 ```
