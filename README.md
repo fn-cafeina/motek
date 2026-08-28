@@ -1,2 +1,2 @@
-# motek
-Sistema para taller mecanico especializado en motos
+# Motek
+Sistema para taller mecanico especializado en motos.
