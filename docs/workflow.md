@@ -4,7 +4,12 @@
 
 ## 1. Funcionalidades por fase
 
-### Fase 1: Core (Clientes, Motos y Órdenes)
+### Fase 1: Core (Auth, Clientes, Motos y Órdenes)
+
+**Auth:**
+- Login con email + password (retorna token)
+- Logout
+- Ver usuario actual
 
 **Clientes:**
 - Registro completo (nombre, teléfono, email, dirección, notas)
@@ -40,7 +45,6 @@
 ### Fase 3: Facturación
 
 - Generar factura desde una orden de trabajo
-- Número consecutivo: `FAC-YYYY-NNNN`
 - Subtotales: mano de obra + repuestos
 - Estados: `pendiente` | `parcial` | `pagada` | `cancelada`
 - Registro de pagos con método (efectivo, transferencia, tarjeta)
@@ -48,49 +52,31 @@
 
 ---
 
-### Fase 4: Agenda + Reportes
-
-**Agenda / Citas:**
-- Programar citas por fecha/hora
-- Asociar cliente, moto y opcionalmente una orden existente
-- Estados: `programada` | `confirmada` | `completada` | `cancelada`
-- Filtros por rango de fechas y estado
-
-**Dashboard / Reportes:**
-- Resumen: órdenes del mes, ingresos, pendientes
-- Órdenes por mes (conteo y estados)
-- Ingresos por mes
-- Servicios más solicitados
-- Clientes más activos
-
----
-
 ## 2. Flujo de Trabajo Típico
 
-1. **Registrar cliente** → Crear contacto con datos básicos
-2. **Registrar moto** → Asociar moto al cliente (marca, placa, kilometraje)
-3. **Crear orden de trabajo** → Seleccionar cliente + moto, describir trabajo
-4. **Diagnosticar** → Agregar diagnóstico, estimar fecha de entrega
-5. **Agregar repuestos** → Seleccionar piezas del inventario (auto-descuenta stock)
-6. **Avanzar estado** → Recibido → En progreso → Esperando repuestos → Terminado → Entregado
-7. **Facturar** → Generar factura desde la orden (calcula totales automáticamente)
-8. **Cobrar** → Registrar pago(s) con método
-9. **Consultar reportes** → Ver métricas del mes
+1. **Login** → Autenticarse con email + password
+2. **Registrar cliente** → Crear contacto con datos básicos
+3. **Registrar moto** → Asociar moto al cliente (marca, placa, kilometraje)
+4. **Crear orden de trabajo** → Seleccionar cliente + moto, describir trabajo
+5. **Diagnosticar** → Agregar diagnóstico, estimar fecha de entrega
+6. **Agregar repuestos** → Seleccionar piezas del inventario (auto-descuenta stock)
+7. **Avanzar estado** → Recibido → En progreso → Esperando repuestos → Terminado → Entregado
+8. **Facturar** → Generar factura desde la orden (calcula totales automáticamente)
+9. **Cobrar** → Registrar pago(s) con método
 
 ---
 
 ## 3. Diagrama de Relaciones
 
 ```
-Cliente (1) ──── (N) Moto
-   │                  │
-   │                  │
-   └──── (N) OrdenTrabajo (N) ──── (N) OrdenRepuesto (N) ──── (1) Repuesto
-              │
-              │
-         (1) Factura (1) ──── (N) Pago
-
-Cliente (1) ──── (N) Cita (N) ──── (1) Moto
-                      │
-                      └──── (0..1) OrdenTrabajo
+User (1) ──── (N) Cliente
+                 │
+                 │
+                 └──── (N) Moto
+                          │
+                          │
+Cliente (1) ──── (N) OrdenTrabajo (N) ──── (N) OrdenRepuesto (N) ──── (1) Repuesto
+                          │
+                          │
+                     (1) Factura (1) ──── (N) Pago
 ```

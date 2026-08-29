@@ -10,8 +10,9 @@
 | 201 | Created (POST exitoso) |
 | 204 | No Content (DELETE exitoso) |
 | 400 | Bad Request (validación fallida) |
+| 401 | Unauthorized (token inválido o ausente) |
 | 404 | Not Found (recurso no existe) |
-| 409 | Conflict (ej: código de repuesto duplicado) |
+| 409 | Conflict (ej: email de usuario duplicado) |
 | 500 | Internal Server Error |
 
 ---
@@ -42,18 +43,12 @@ Respuesta:
 
 ---
 
-## 4. Generación de números consecutivos
+## 4. Autenticación
 
-Tabla `counters` (ver [schema.md](schema.md)):
-```sql
-CREATE TABLE IF NOT EXISTS counters (
-    anio         INT NOT NULL,
-    consecutivo  INT NOT NULL DEFAULT 0,
-    PRIMARY KEY (anio)
-);
-```
-
-Formato: `FAC-YYYY-NNNN` (ej: FAC-2026-0001)
+- Login retorna un token en el body
+- Token se envía en header: `Authorization: Bearer <token>`
+- Sin token → 401
+- Token inválido → 401
 
 ---
 
@@ -61,11 +56,12 @@ Formato: `FAC-YYYY-NNNN` (ej: FAC-2026-0001)
 
 | Campo | Regla |
 |---|---|
+| `user.email` | Requerido, formato válido, único |
+| `user.password` | Requerido, mínimo 6 caracteres |
 | `cliente.nombre` | Requerido, no vacío |
 | `moto.marca` | Requerido |
 | `orden.descripcion` | Requerido |
 | `repuesto.codigo` | Requerido, único |
 | `repuesto.precio_venta` | >= 0 |
 | `repuesto.stock` | >= 0 |
-| `factura.numero` | Requerido, único |
 | `pago.monto` | > 0 |

@@ -2,10 +2,9 @@
 
 ## 1. Descripción del sistema
 
-**Motek** es un sistema web para la gestión integral de un taller mecánico especializado en motocicletas. Permite administrar clientes, registrar motos, gestionar órdenes de trabajo, controlar inventario de repuestos, facturar servicios y agendar citas.
+**Motek** es un sistema web para la gestión integral de un taller mecánico especializado en motocicletas. Permite administrar clientes, registrar motos, gestionar órdenes de trabajo, controlar inventario de repuestos y facturar servicios.
 
-**Usuario:** Propietario único del taller (single-user)
-**Taller:** Una sola sucursal
+**Usuario:** Propietario del taller (single-user con login básico)
 
 ---
 
@@ -17,13 +16,13 @@
 | Base de datos | MySQL | Base de datos robusta, estándar de la industria |
 | HTTP Server | `net/http` stdlib | Go 1.22+ tiene routing por métodos |
 | JSON | `encoding/json` stdlib | Suficiente para este alcance |
-| Frontend | (Por definir) | SPA moderna |
 
 **Decisiones clave:**
 - Dinero en centavos (ENTEROS, no floats): $150.50 = `15050`
 - IDs auto-incrementales (`INT AUTO_INCREMENT PRIMARY KEY`)
 - Timestamps via MySQL `CURRENT_TIMESTAMP`
 - Conexión a MySQL via `.env` (host, port, user, pass, dbname)
+- Login básico con password hasheado en BD
 
 ---
 
@@ -31,11 +30,10 @@
 
 | Fase | Nombre | Tablas | Endpoints | Descripción |
 |---|---|---|---|---|
-| 1 | Core | 3 | ~15 | Clientes, motos, órdenes de trabajo |
+| 1 | Core | 4 | ~18 | Auth, clientes, motos, órdenes de trabajo |
 | 2 | Inventario | 2 | ~9 | Repuestos, stock, alertas |
-| 3 | Facturación | 2 | ~8 | Facturas, pagos |
-| 4 | Agenda + Reportes | 1 | ~12 | Citas, dashboard, métricas |
-| **Total** | | **8** | **~44** | |
+| 3 | Facturación | 1 | ~7 | Facturas, pagos |
+| **Total** | | **7** | **~34** | |
 
 **Cada fase es independiente y usable por sí misma.**
 
@@ -56,25 +54,9 @@ motek/
 │   ├── routes.go         # Todas las rutas HTTP
 │   ├── db.go             # Conexión y migraciones
 │   ├── models.go         # Todas las structs
-│   ├── middleware.go      # CORS, logging, etc.
-│   │
-│   ├── clients/
-│   │   ├── handlers.go
-│   │   └── repository.go
-│   ├── orders/
-│   │   ├── handlers.go
-│   │   └── repository.go
-│   ├── inventory/
-│   │   ├── handlers.go
-│   │   └── repository.go
-│   ├── billing/
-│   │   ├── handlers.go
-│   │   └── repository.go
-│   ├── agenda/
-│   │   ├── handlers.go
-│   │   └── repository.go
-│   └── reports/
-│       └── handlers.go
+│   ├── handlers.go       # Todos los handlers
+│   ├── middleware.go      # Auth, CORS, logging, etc.
+│   └── .env              # Variables de entorno (no commit)
 │
 ├── docs/
 │   ├── plan.md           # Este archivo
@@ -83,6 +65,8 @@ motek/
 │   ├── models.md         # Structs Go
 │   ├── conventions.md    # Convenciones HTTP y validaciones
 │   └── workflow.md       # Funcionalidades y flujos
+├── go.mod
+├── go.sum
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -95,3 +79,4 @@ motek/
 | Paquete | Propósito | Fase |
 |---|---|---|
 | `go-sql-driver/mysql` | Driver MySQL para Go | 1 |
+| `golang.org/x/crypto` | Bcrypt para passwords | 1 |
