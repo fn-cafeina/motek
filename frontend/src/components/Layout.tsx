@@ -22,15 +22,15 @@ export function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
       <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950">
-        <div className="flex items-center justify-between px-4 py-2.5">
+        <div className="flex items-center justify-between px-4 pt-[max(10px,env(safe-area-inset-top))] pb-2.5 ps-4 pe-4">
           <Link to="/" className="text-base font-bold tracking-tight">
             <span className="text-amber-500">Mo</span>tek
           </Link>
           <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-zinc-400 sm:inline">{user?.email}</span>
+            <span className="hidden text-sm text-zinc-400 sm:inline">{user?.email}</span>
             <button
               onClick={handleLogout}
-              className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               Salir
             </button>
@@ -38,7 +38,7 @@ export function Layout() {
         </div>
       </header>
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-2 py-1.5 sm:hidden">
+      <nav className="flex gap-1 overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-2 py-1.5 ps-2 pe-2 sm:hidden">
         {NAV.map((item) => {
           const active = location.pathname.startsWith(item.to)
           return (
@@ -56,7 +56,7 @@ export function Layout() {
       </nav>
 
       <div className="flex flex-1">
-        <aside className="hidden w-48 shrink-0 border-r border-zinc-800 sm:block">
+        <aside className="hidden w-48 shrink-0 border-s-0 border-e border-zinc-800 sm:block">
           <nav className="sticky top-[41px] flex flex-col gap-0.5 p-3 text-xs">
             {NAV.map((item) => {
               const active = location.pathname.startsWith(item.to)
@@ -77,7 +77,7 @@ export function Layout() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 p-4 sm:p-5">
+        <main className="min-w-0 flex-1 p-4 pb-[max(16px,env(safe-area-inset-bottom))] sm:p-5">
           <Outlet />
         </main>
       </div>
