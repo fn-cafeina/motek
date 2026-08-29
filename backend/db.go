@@ -85,10 +85,6 @@ func migrate() error {
 			FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
 			FOREIGN KEY (moto_id) REFERENCES motos(id) ON DELETE CASCADE
 		)`,
-		`CREATE INDEX IF NOT EXISTS idx_ordenes_estado ON ordenes_trabajo(estado)`,
-		`CREATE INDEX IF NOT EXISTS idx_ordenes_cliente ON ordenes_trabajo(cliente_id)`,
-		`CREATE INDEX IF NOT EXISTS idx_ordenes_moto ON ordenes_trabajo(moto_id)`,
-		`CREATE INDEX IF NOT EXISTS idx_motos_cliente ON motos(cliente_id)`,
 		`CREATE TABLE IF NOT EXISTS repuestos (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			codigo VARCHAR(50) NOT NULL UNIQUE,
@@ -113,9 +109,6 @@ func migrate() error {
 			FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE CASCADE,
 			FOREIGN KEY (repuesto_id) REFERENCES repuestos(id)
 		)`,
-		`CREATE INDEX IF NOT EXISTS idx_repuestos_codigo ON repuestos(codigo)`,
-		`CREATE INDEX IF NOT EXISTS idx_repuestos_categoria ON repuestos(categoria)`,
-		`CREATE INDEX IF NOT EXISTS idx_orden_repuestos_orden ON orden_repuestos(orden_id)`,
 		`CREATE TABLE IF NOT EXISTS facturas (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			orden_id INT NOT NULL,
@@ -140,9 +133,6 @@ func migrate() error {
 			creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE
 		)`,
-		`CREATE INDEX IF NOT EXISTS idx_facturas_estado ON facturas(estado)`,
-		`CREATE INDEX IF NOT EXISTS idx_facturas_orden ON facturas(orden_id)`,
-		`CREATE INDEX IF NOT EXISTS idx_pagos_factura ON pagos(factura_id)`,
 	}
 
 	for _, q := range queries {
