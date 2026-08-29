@@ -4,9 +4,8 @@ Sistema para taller mecánico especializado en motocicletas.
 
 ## Tech Stack
 
-- Go (net/http stdlib)
+- Go (`net/http` stdlib, bcrypt, JWT)
 - MySQL
-- JWT para autenticación
 
 ## Inicio rápido
 
@@ -14,7 +13,7 @@ Sistema para taller mecánico especializado en motocicletas.
 2. Configurar variables de entorno:
    ```bash
    cp .env.example .env
-   # Editar .env con tus credenciales de MySQL
+   # Editar .env con tus credenciales de MySQL y JWT_SECRET
    ```
 3. Crear la base de datos:
    ```sql
@@ -25,12 +24,22 @@ Sistema para taller mecánico especializado en motocicletas.
    cd backend
    go build . && ./motek
    ```
+   El servidor inicia en `http://localhost:8080` (migraciones y conexión a MySQL se ejecutan al arrancar).
+
+## Tests
+
+```bash
+cd backend
+go test ./...
+```
+
+Requiere una base `motek_test` accesible con las mismas credenciales de `.env`. 41 tests (auth, clientes, motos, órdenes, inventario, facturación), `go vet` limpio.
 
 ## Endpoints
 
 ### Auth
 - `POST /api/auth/register` - Crear usuario
-- `POST /api/auth/login` - Login
+- `POST /api/auth/login` - Login (retorna JWT)
 - `GET /api/auth/me` - Usuario actual (requiere token)
 
 ### Clientes
@@ -62,7 +71,7 @@ Sistema para taller mecánico especializado en motocicletas.
 - `PUT /api/repuestos/{id}` - Editar
 - `DELETE /api/repuestos/{id}` - Eliminar
 - `GET /api/ordenes/{id}/repuestos` - Repuestos de una orden
-- `POST /api/ordenes/{id}/repuestos` - Agregar repuesto a orden
+- `POST /api/ordenes/{id}/repuestos` - Agregar repuesto a orden (auto-descuenta stock)
 - `DELETE /api/ordenes/{id}/repuestos/{rid}` - Quitar repuesto
 - `POST /api/repuestos/{id}/stock` - Ajustar stock
 - `GET /api/alertas/stock` - Alertas de stock bajo
@@ -83,23 +92,27 @@ Todos los endpoints (excepto login y register) requieren header:
 ```
 Authorization: Bearer <token>
 ```
+Logout es client-side: borrar el token (JWT stateless).
 
 ## Estructura del proyecto
 
 ```
-backend/
-├── main.go              # Entry point
-├── db.go                # Conexión y migraciones
-├── models.go            # Structs
-├── routes.go            # Rutas HTTP
-├── middleware.go         # Auth y CORS
-├── token.go             # JWT
-├── handlers.go          # Handlers comunes
-├── handlers_auth.go     # Auth handlers
-├── handlers_clientes.go # Clientes CRUD
-├── handlers_motos.go    # Motos CRUD
-├── handlers_ordenes.go  # Órdenes CRUD
-├── handlers_inventario.go # Inventario
-├── handlers_facturacion.go # Facturación
-└── handlers_test.go     # Tests
+.
+├── backend/
+│   ├── main.go                      # Entry point
+│   ├── db.go                        # Conexión y migraciones
+│   ├── models.go                    # Structs
+│   ├── routes.go                    # Rutas HTTP
+│   ├── middleware.go                # Auth y CORS
+│   ├── token.go                     # JWT
+│   ├── handlers.go                  # Handlers comunes
+│   ├── handlers_auth.go             # Auth
+│   ├── handlers_clientes.go         # Clientes CRUD
+│   ├── handlers_motos.go            # Motos CRUD
+│   ├── handlers_ordenes.go          # Órdenes
+│   ├── handlers_inventario.go       # Inventario
+│   └── handlers_facturacion.go      # Facturación
+├── .env.example
+├── .gitignore
+└── README.md
 ```
