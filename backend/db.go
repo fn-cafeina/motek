@@ -29,6 +29,9 @@ func initDB() error {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+
 	if err = migrate(); err != nil {
 		return fmt.Errorf("error running migrations: %w", err)
 	}
