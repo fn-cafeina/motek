@@ -4,8 +4,8 @@ Sistema para taller mecánico especializado en motocicletas.
 
 ## Tech Stack
 
-- Go (`net/http` stdlib, bcrypt, JWT)
-- MySQL
+- Go (`net/http` stdlib, bcrypt, JWT) + MySQL (backend `http://localhost:8080`)
+- Vite + React + TypeScript + Tailwind CSS (frontend `http://localhost:5173`)
 
 ## Inicio rápido
 
@@ -25,6 +25,14 @@ Sistema para taller mecánico especializado en motocicletas.
    go build . && ./motek
    ```
    El servidor inicia en `http://localhost:8080` (migraciones y conexión a MySQL se ejecutan al arrancar).
+
+5. Frontend (en otra terminal):
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   App en `http://localhost:5173`. Variable `VITE_API_URL` en `frontend/.env.example` (default `http://localhost:8080`).
 
 ## Tests
 
@@ -112,6 +120,14 @@ Logout es client-side: borrar el token (JWT stateless).
 │   ├── handlers_ordenes.go          # Órdenes
 │   ├── handlers_inventario.go       # Inventario
 │   └── handlers_facturacion.go      # Facturación
+├── frontend/
+│   ├── src/
+│   │   ├── main.tsx
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── vite-env.d.ts
+│   ├── vite.config.ts
+│   └── .env.example                 # VITE_API_URL
 ├── .env.example
 ├── .gitignore
 └── README.md
