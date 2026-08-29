@@ -7,7 +7,7 @@ import (
 )
 
 func listRepuestosHandler(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT id, codigo, nombre, descripcion, categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion, creado_en, actualizado_en FROM repuestos"
+	query := "SELECT id, codigo, nombre, COALESCE(descripcion, ''), categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion, creado_en, actualizado_en FROM repuestos"
 	args := []interface{}{}
 
 	if q := r.URL.Query().Get("q"); q != "" {
@@ -90,7 +90,7 @@ func getRepuestoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var rp Repuesto
-	err = db.QueryRow("SELECT id, codigo, nombre, descripcion, categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion, creado_en, actualizado_en FROM repuestos WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, codigo, nombre, COALESCE(descripcion, ''), categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion, creado_en, actualizado_en FROM repuestos WHERE id = ?", id).
 		Scan(&rp.ID, &rp.Codigo, &rp.Nombre, &rp.Descripcion, &rp.Categoria, &rp.PrecioCompra, &rp.PrecioVenta, &rp.Stock, &rp.StockMinimo, &rp.Ubicacion, &rp.CreadoEn, &rp.ActualizadoEn)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "repuesto no encontrado")

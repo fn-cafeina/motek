@@ -8,7 +8,7 @@ import (
 )
 
 func listOrdenesHandler(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT id, cliente_id, moto_id, descripcion, diagnostico, estado, fecha_recibido, fecha_entrega, total_mano_obra, notas, creado_en, actualizado_en FROM ordenes_trabajo"
+	query := "SELECT id, cliente_id, moto_id, descripcion, COALESCE(diagnostico, ''), estado, fecha_recibido, fecha_entrega, total_mano_obra, COALESCE(notas, ''), creado_en, actualizado_en FROM ordenes_trabajo"
 	args := []interface{}{}
 
 	if estado := r.URL.Query().Get("estado"); estado != "" {
@@ -79,7 +79,7 @@ func getOrdenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var o OrdenTrabajo
-	err = db.QueryRow("SELECT id, cliente_id, moto_id, descripcion, diagnostico, estado, fecha_recibido, fecha_entrega, total_mano_obra, notas, creado_en, actualizado_en FROM ordenes_trabajo WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, cliente_id, moto_id, descripcion, COALESCE(diagnostico, ''), estado, fecha_recibido, fecha_entrega, total_mano_obra, COALESCE(notas, ''), creado_en, actualizado_en FROM ordenes_trabajo WHERE id = ?", id).
 		Scan(&o.ID, &o.ClienteID, &o.MotoID, &o.Descripcion, &o.Diagnostico, &o.Estado, &o.FechaRecibido, &o.FechaEntrega, &o.TotalManoObra, &o.Notas, &o.CreadoEn, &o.ActualizadoEn)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "orden no encontrada")

@@ -8,7 +8,7 @@ import (
 )
 
 func listFacturasHandler(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, notas, creado_en, actualizado_en FROM facturas"
+	query := "SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, COALESCE(notas, ''), creado_en, actualizado_en FROM facturas"
 	args := []interface{}{}
 
 	if estado := r.URL.Query().Get("estado"); estado != "" {
@@ -92,7 +92,7 @@ func createFacturaHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := result.LastInsertId()
 
 	var f Factura
-	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, notas, creado_en, actualizado_en FROM facturas WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, COALESCE(notas, ''), creado_en, actualizado_en FROM facturas WHERE id = ?", id).
 		Scan(&f.ID, &f.OrdenID, &f.SubtotalManoObra, &f.SubtotalRepuestos, &f.Total, &f.Estado, &f.FechaEmision, &f.FechaVencimiento, &f.Notas, &f.CreadoEn, &f.ActualizadoEn)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "error obteniendo factura")
@@ -110,7 +110,7 @@ func getFacturaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var f Factura
-	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, notas, creado_en, actualizado_en FROM facturas WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, COALESCE(notas, ''), creado_en, actualizado_en FROM facturas WHERE id = ?", id).
 		Scan(&f.ID, &f.OrdenID, &f.SubtotalManoObra, &f.SubtotalRepuestos, &f.Total, &f.Estado, &f.FechaEmision, &f.FechaVencimiento, &f.Notas, &f.CreadoEn, &f.ActualizadoEn)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "factura no encontrada")
@@ -144,7 +144,7 @@ func updateFacturaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var f Factura
-	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, notas, creado_en, actualizado_en FROM facturas WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado, fecha_emision, fecha_vencimiento, COALESCE(notas, ''), creado_en, actualizado_en FROM facturas WHERE id = ?", id).
 		Scan(&f.ID, &f.OrdenID, &f.SubtotalManoObra, &f.SubtotalRepuestos, &f.Total, &f.Estado, &f.FechaEmision, &f.FechaVencimiento, &f.Notas, &f.CreadoEn, &f.ActualizadoEn)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "error obteniendo factura")
@@ -189,7 +189,7 @@ func listPagosHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id, factura_id, monto, metodo, fecha, notas, creado_en FROM pagos WHERE factura_id = ?", facturaID)
+	rows, err := db.Query("SELECT id, factura_id, monto, metodo, fecha, COALESCE(notas, ''), creado_en FROM pagos WHERE factura_id = ?", facturaID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "error consultando pagos")
 		return
@@ -281,7 +281,7 @@ func createPagoHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := result.LastInsertId()
 
 	var p Pago
-	err = db.QueryRow("SELECT id, factura_id, monto, metodo, fecha, notas, creado_en FROM pagos WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, factura_id, monto, metodo, fecha, COALESCE(notas, ''), creado_en FROM pagos WHERE id = ?", id).
 		Scan(&p.ID, &p.FacturaID, &p.Monto, &p.Metodo, &p.Fecha, &p.Notas, &p.CreadoEn)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "error obteniendo pago")
@@ -305,7 +305,7 @@ func deletePagoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var p Pago
-	err = db.QueryRow("SELECT id, factura_id, monto, metodo, fecha, notas, creado_en FROM pagos WHERE id = ? AND factura_id = ?", pagoID, facturaID).
+	err = db.QueryRow("SELECT id, factura_id, monto, metodo, fecha, COALESCE(notas, ''), creado_en FROM pagos WHERE id = ? AND factura_id = ?", pagoID, facturaID).
 		Scan(&p.ID, &p.FacturaID, &p.Monto, &p.Metodo, &p.Fecha, &p.Notas, &p.CreadoEn)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "pago no encontrado")

@@ -7,7 +7,7 @@ import (
 )
 
 func listClientesHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, nombre, telefono, email, direccion, notas, creado_en FROM clientes ORDER BY id DESC")
+	rows, err := db.Query("SELECT id, nombre, telefono, email, direccion, COALESCE(notas, ''), creado_en FROM clientes ORDER BY id DESC")
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "error consultando clientes")
 		return
@@ -60,7 +60,7 @@ func getClienteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var c Cliente
-	err = db.QueryRow("SELECT id, nombre, telefono, email, direccion, notas, creado_en FROM clientes WHERE id = ?", id).
+	err = db.QueryRow("SELECT id, nombre, telefono, email, direccion, COALESCE(notas, ''), creado_en FROM clientes WHERE id = ?", id).
 		Scan(&c.ID, &c.Nombre, &c.Telefono, &c.Email, &c.Direccion, &c.Notas, &c.CreadoEn)
 	if err != nil {
 		respondError(w, http.StatusNotFound, "cliente no encontrado")
