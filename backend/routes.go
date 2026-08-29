@@ -53,5 +53,17 @@ func setupRoutes() http.Handler {
 	mux.HandleFunc("POST /api/repuestos/{id}/stock", authMiddleware(adjustStockHandler))
 	mux.HandleFunc("GET /api/alertas/stock", authMiddleware(alertasStockHandler))
 
+	// Facturas (protected)
+	mux.HandleFunc("GET /api/facturas", authMiddleware(listFacturasHandler))
+	mux.HandleFunc("POST /api/facturas", authMiddleware(createFacturaHandler))
+	mux.HandleFunc("GET /api/facturas/{id}", authMiddleware(getFacturaHandler))
+	mux.HandleFunc("PUT /api/facturas/{id}", authMiddleware(updateFacturaHandler))
+	mux.HandleFunc("PATCH /api/facturas/{id}/cancelar", authMiddleware(cancelFacturaHandler))
+
+	// Pagos (protected)
+	mux.HandleFunc("GET /api/facturas/{id}/pagos", authMiddleware(listPagosHandler))
+	mux.HandleFunc("POST /api/facturas/{id}/pagos", authMiddleware(createPagoHandler))
+	mux.HandleFunc("DELETE /api/facturas/{id}/pagos/{pid}", authMiddleware(deletePagoHandler))
+
 	return mux
 }

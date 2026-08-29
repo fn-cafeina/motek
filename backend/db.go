@@ -113,6 +113,33 @@ func migrate() error {
 		`CREATE INDEX IF NOT EXISTS idx_repuestos_codigo ON repuestos(codigo)`,
 		`CREATE INDEX IF NOT EXISTS idx_repuestos_categoria ON repuestos(categoria)`,
 		`CREATE INDEX IF NOT EXISTS idx_orden_repuestos_orden ON orden_repuestos(orden_id)`,
+		`CREATE TABLE IF NOT EXISTS facturas (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			orden_id INT NOT NULL,
+			subtotal_mano_obra INT NOT NULL DEFAULT 0,
+			subtotal_repuestos INT NOT NULL DEFAULT 0,
+			total INT NOT NULL DEFAULT 0,
+			estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+			fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			fecha_vencimiento DATETIME NULL,
+			notas TEXT,
+			creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			actualizado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE RESTRICT
+		)`,
+		`CREATE TABLE IF NOT EXISTS pagos (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			factura_id INT NOT NULL,
+			monto INT NOT NULL DEFAULT 0,
+			metodo VARCHAR(30) NOT NULL DEFAULT 'efectivo',
+			fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			notas TEXT,
+			creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (factura_id) REFERENCES facturas(id) ON DELETE CASCADE
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_facturas_estado ON facturas(estado)`,
+		`CREATE INDEX IF NOT EXISTS idx_facturas_orden ON facturas(orden_id)`,
+		`CREATE INDEX IF NOT EXISTS idx_pagos_factura ON pagos(factura_id)`,
 	}
 
 	for _, q := range queries {

@@ -79,3 +79,27 @@ type OrdenRepuesto struct {
 	PrecioUnitario int64 `json:"precio_unitario"`
 	Subtotal      int64 `json:"subtotal"`
 }
+
+type Factura struct {
+	ID                int64      `json:"id"`
+	OrdenID           int64      `json:"orden_id"`
+	SubtotalManoObra  int64      `json:"subtotal_mano_obra"`
+	SubtotalRepuestos int64      `json:"subtotal_repuestos"`
+	Total             int64      `json:"total"`
+	Estado            string     `json:"estado"`
+	FechaEmision      time.Time  `json:"fecha_emision"`
+	FechaVencimiento  *time.Time `json:"fecha_vencimiento"`
+	Notas             string     `json:"notas"`
+	CreadoEn          time.Time  `json:"creado_en"`
+	ActualizadoEn     time.Time  `json:"actualizado_en"`
+}
+
+type Pago struct {
+	ID        int64     `json:"id"`
+	FacturaID int64     `json:"factura_id"`
+	Monto     int64     `json:"monto"`
+	Metodo    string    `json:"metodo"`
+	Fecha     time.Time `json:"fecha"`
+	Notas     string    `json:"notas"`
+	CreadoEn  time.Time `json:"creado_en"`
+}
