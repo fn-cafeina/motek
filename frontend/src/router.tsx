@@ -6,9 +6,9 @@ import { Register } from "./pages/Register"
 
 function Placeholder({ title }: { title: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-      <h1 className="text-lg font-semibold">{title}</h1>
-      <p className="mt-1 text-sm text-stone-500">Contenido próximamente</p>
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      <h1 className="text-sm font-semibold text-zinc-100">{title}</h1>
+      <p className="mt-1 text-xs text-zinc-500">Contenido próximamente</p>
     </div>
   )
 }

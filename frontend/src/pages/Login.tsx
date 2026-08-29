@@ -1,26 +1,8 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router"
 import { ApiError } from "../api/client"
+import { AuthCard } from "../components/AuthCard"
 import { useAuth } from "../contexts/AuthContext"
-
-function AuthCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <span className="text-2xl font-bold tracking-tight">
-            <span className="text-amber-600">Mo</span>tek
-          </span>
-          <p className="mt-1 text-sm text-stone-500">Taller especializado en motocicletas</p>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h1 className="mb-6 text-lg font-semibold">{title}</h1>
-          {children}
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function Login() {
   const { login } = useAuth()
@@ -47,37 +29,37 @@ export function Login() {
   return (
     <AuthCard title="Iniciar sesión">
       <form onSubmit={onSubmit}>
-        {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
-        <label className="mb-3 block">
-          <span className="text-sm font-medium text-stone-700">Email</span>
+        {error && <p className="mb-3 rounded-md bg-red-950/50 px-3 py-2 text-sm text-red-400">{error}</p>}
+        <label className="mb-2.5 block">
+          <span className="text-sm font-medium text-zinc-300">Email</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+            className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-0"
           />
         </label>
-        <label className="mb-4 block">
-          <span className="text-sm font-medium text-stone-700">Contraseña</span>
+        <label className="mb-3.5 block">
+          <span className="text-sm font-medium text-zinc-300">Contraseña</span>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="mt-1 w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+            className="mt-1 w-full rounded-md border border-zinc-700 bg-zinc-800 px-2.5 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-0"
           />
         </label>
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+          className="w-full rounded-md bg-amber-500 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-50"
         >
           {loading ? "..." : "Entrar"}
         </button>
-        <p className="mt-4 text-center text-sm text-stone-500">
+        <p className="mt-3.5 text-center text-sm text-zinc-400">
           ¿Sin cuenta?{" "}
-          <Link to="/register" className="font-medium text-amber-600 hover:underline">
+          <Link to="/register" className="font-medium text-amber-500 hover:text-amber-400">
             Registrarse
           </Link>
         </p>
