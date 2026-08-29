@@ -55,3 +55,27 @@ type LoginRequest struct {
 type LoginResponse struct {
 	Token string `json:"token"`
 }
+
+type Repuesto struct {
+	ID            int64     `json:"id"`
+	Codigo        string    `json:"codigo"`
+	Nombre        string    `json:"nombre"`
+	Descripcion   string    `json:"descripcion"`
+	Categoria     string    `json:"categoria"`
+	PrecioCompra  int64     `json:"precio_compra"`
+	PrecioVenta   int64     `json:"precio_venta"`
+	Stock         int       `json:"stock"`
+	StockMinimo   int       `json:"stock_minimo"`
+	Ubicacion     string    `json:"ubicacion"`
+	CreadoEn      time.Time `json:"creado_en"`
+	ActualizadoEn time.Time `json:"actualizado_en"`
+}
+
+type OrdenRepuesto struct {
+	ID            int64 `json:"id"`
+	OrdenID       int64 `json:"orden_id"`
+	RepuestoID    int64 `json:"repuesto_id"`
+	Cantidad      int   `json:"cantidad"`
+	PrecioUnitario int64 `json:"precio_unitario"`
+	Subtotal      int64 `json:"subtotal"`
+}

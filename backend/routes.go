@@ -37,5 +37,21 @@ func setupRoutes() http.Handler {
 	mux.HandleFunc("PATCH /api/ordenes/{id}/estado", authMiddleware(updateEstadoOrdenHandler))
 	mux.HandleFunc("DELETE /api/ordenes/{id}", authMiddleware(deleteOrdenHandler))
 
+	// Repuestos (protected)
+	mux.HandleFunc("GET /api/repuestos", authMiddleware(listRepuestosHandler))
+	mux.HandleFunc("POST /api/repuestos", authMiddleware(createRepuestoHandler))
+	mux.HandleFunc("GET /api/repuestos/{id}", authMiddleware(getRepuestoHandler))
+	mux.HandleFunc("PUT /api/repuestos/{id}", authMiddleware(updateRepuestoHandler))
+	mux.HandleFunc("DELETE /api/repuestos/{id}", authMiddleware(deleteRepuestoHandler))
+
+	// Repuestos en ordenes (protected)
+	mux.HandleFunc("GET /api/ordenes/{id}/repuestos", authMiddleware(listOrdenRepuestosHandler))
+	mux.HandleFunc("POST /api/ordenes/{id}/repuestos", authMiddleware(addOrdenRepuestoHandler))
+	mux.HandleFunc("DELETE /api/ordenes/{id}/repuestos/{rid}", authMiddleware(removeOrdenRepuestoHandler))
+
+	// Stock (protected)
+	mux.HandleFunc("POST /api/repuestos/{id}/stock", authMiddleware(adjustStockHandler))
+	mux.HandleFunc("GET /api/alertas/stock", authMiddleware(alertasStockHandler))
+
 	return mux
 }

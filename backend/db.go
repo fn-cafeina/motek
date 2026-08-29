@@ -86,6 +86,33 @@ func migrate() error {
 		`CREATE INDEX IF NOT EXISTS idx_ordenes_cliente ON ordenes_trabajo(cliente_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_ordenes_moto ON ordenes_trabajo(moto_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_motos_cliente ON motos(cliente_id)`,
+		`CREATE TABLE IF NOT EXISTS repuestos (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			codigo VARCHAR(50) NOT NULL UNIQUE,
+			nombre VARCHAR(255) NOT NULL DEFAULT '',
+			descripcion TEXT,
+			categoria VARCHAR(100) NOT NULL DEFAULT '',
+			precio_compra INT NOT NULL DEFAULT 0,
+			precio_venta INT NOT NULL DEFAULT 0,
+			stock INT NOT NULL DEFAULT 0,
+			stock_minimo INT NOT NULL DEFAULT 5,
+			ubicacion VARCHAR(100) NOT NULL DEFAULT '',
+			creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			actualizado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS orden_repuestos (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			orden_id INT NOT NULL,
+			repuesto_id INT NOT NULL,
+			cantidad INT NOT NULL DEFAULT 1,
+			precio_unitario INT NOT NULL DEFAULT 0,
+			subtotal INT NOT NULL DEFAULT 0,
+			FOREIGN KEY (orden_id) REFERENCES ordenes_trabajo(id) ON DELETE CASCADE,
+			FOREIGN KEY (repuesto_id) REFERENCES repuestos(id)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_repuestos_codigo ON repuestos(codigo)`,
+		`CREATE INDEX IF NOT EXISTS idx_repuestos_categoria ON repuestos(categoria)`,
+		`CREATE INDEX IF NOT EXISTS idx_orden_repuestos_orden ON orden_repuestos(orden_id)`,
 	}
 
 	for _, q := range queries {
