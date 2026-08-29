@@ -126,3 +126,53 @@ func TestLoginHandlerInvalidCredentials(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
 	}
 }
+
+func TestMeHandler(t *testing.T) {
+	defer cleanupTestDB(t)
+
+	// Register
+	regBody, _ := json.Marshal(map[string]string{"email": "me@test.com", "password": "password123"})
+	regReq, _ := http.NewRequest("POST", "/api/auth/register", bytes.NewBuffer(regBody))
+	regReq.Header.Set("Content-Type", "application/json")
+	regRR := httptest.NewRecorder()
+	http.HandlerFunc(registerHandler).ServeHTTP(regRR, regReq)
+
+	// Login
+	loginBody, _ := json.Marshal(map[string]string{"email": "me@test.com", "password": "password123"})
+	loginReq, _ := http.NewRequest("POST", "/api/auth/login", bytes.NewBuffer(loginBody))
+	loginReq.Header.Set("Content-Type", "application/json")
+	loginRR := httptest.NewRecorder()
+	http.HandlerFunc(loginHandler).ServeHTTP(loginRR, loginReq)
+
+	var loginResp map[string]string
+	json.Unmarshal(loginRR.Body.Bytes(), &loginResp)
+
+	// Me (needs middleware to set context)
+	req, _ := http.NewRequest("GET", "/api/auth/me", nil)
+	req.Header.Set("Authorization", "Bearer "+loginResp["token"])
+
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(authMiddleware(meHandler)).ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	var response User
+	json.Unmarshal(rr.Body.Bytes(), &response)
+
+	if response.Email != "me@test.com" {
+		t.Errorf("handler returned unexpected email: got %v", response.Email)
+	}
+}
+
+func TestMeHandlerNoToken(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/api/auth/me", nil)
+
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(authMiddleware(meHandler)).ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusUnauthorized {
+		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusUnauthorized)
+	}
+}
