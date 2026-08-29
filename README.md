@@ -12,8 +12,10 @@ Sistema para taller mecánico especializado en motocicletas.
 1. Clonar el repositorio
 2. Configurar variables de entorno:
    ```bash
-   cp .env.example .env
-   # Editar .env con tus credenciales de MySQL y JWT_SECRET
+   cp backend/.env.example backend/.env
+   # Editar backend/.env con tus credenciales de MySQL y JWT_SECRET
+   cp frontend/.env.example frontend/.env
+   # Ajustar VITE_API_URL si el backend no está en http://localhost:8080
    ```
 3. Crear la base de datos:
    ```sql
@@ -41,7 +43,7 @@ cd backend
 go test ./...
 ```
 
-Requiere una base `motek_test` accesible con las mismas credenciales de `.env`. 41 tests (auth, clientes, motos, órdenes, inventario, facturación), `go vet` limpio.
+Requiere una base `motek_test` accesible con las mismas credenciales de `backend/.env`. 41 tests (auth, clientes, motos, órdenes, inventario, facturación), `go vet` limpio.
 
 ## Endpoints
 
@@ -119,7 +121,9 @@ Logout es client-side: borrar el token (JWT stateless).
 │   ├── handlers_motos.go            # Motos CRUD
 │   ├── handlers_ordenes.go          # Órdenes
 │   ├── handlers_inventario.go       # Inventario
-│   └── handlers_facturacion.go      # Facturación
+│   ├── handlers_facturacion.go      # Facturación
+│   ├── .env.example
+│   └── .gitignore
 ├── frontend/
 │   ├── src/
 │   │   ├── main.tsx
@@ -127,8 +131,8 @@ Logout es client-side: borrar el token (JWT stateless).
 │   │   ├── index.css
 │   │   └── vite-env.d.ts
 │   ├── vite.config.ts
-│   └── .env.example                 # VITE_API_URL
-├── .env.example
+│   ├── .env.example                 # VITE_API_URL
+│   └── .gitignore
 ├── .gitignore
 └── README.md
 ```

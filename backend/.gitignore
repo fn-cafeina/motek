@@ -1,0 +1,11 @@
+# Binaries
+motek
+
+# Test binary
+*.test
+
+# Go coverage
+*.out
+
+# Environment
+.env

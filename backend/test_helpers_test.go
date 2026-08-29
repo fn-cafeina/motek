@@ -11,7 +11,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	_ = godotenv.Load("../.env")
+	_ = godotenv.Load(".env")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USER"),
