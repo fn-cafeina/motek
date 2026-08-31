@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -19,6 +20,11 @@ func main() {
 
 	mux := setupRoutes()
 
-	log.Println("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", corsMiddleware(mux)))
+	port := os.Getenv("SERVER_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server running on :%s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, corsMiddleware(mux)))
 }
