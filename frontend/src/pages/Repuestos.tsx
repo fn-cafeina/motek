@@ -1,0 +1,564 @@
+import { useEffect, useMemo, useState } from "react"
+import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, RotateCw, Search, Trash2 } from "lucide-react"
+import { api, ApiError } from "../api/client"
+import type { Repuesto } from "../api/types"
+import { Card } from "../components/Card"
+import { ConfirmDialog } from "../components/ConfirmDialog"
+import { Dialog } from "../components/Dialog"
+import { Field } from "../components/Field"
+import { inputClassName } from "../components/inputStyles"
+import { formatMoney } from "../lib/format"
+
+type FormState = {
+  codigo: string
+  nombre: string
+  descripcion: string
+  categoria: string
+  precio_compra: string
+  precio_venta: string
+  stock: string
+  stock_minimo: string
+  ubicacion: string
+}
+
+const emptyForm: FormState = {
+  codigo: "",
+  nombre: "",
+  descripcion: "",
+  categoria: "",
+  precio_compra: "",
+  precio_venta: "",
+  stock: "0",
+  stock_minimo: "5",
+  ubicacion: "",
+}
+
+export function Repuestos() {
+  const [items, setItems] = useState<Repuesto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [q, setQ] = useState("")
+  const [soloBajo, setSoloBajo] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editing, setEditing] = useState<Repuesto | null>(null)
+  const [form, setForm] = useState<FormState>(emptyForm)
+  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [confirm, setConfirm] = useState<Repuesto | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [stockTarget, setStockTarget] = useState<Repuesto | null>(null)
+  const [stockDelta, setStockDelta] = useState("")
+  const [stockError, setStockError] = useState<string | null>(null)
+  const [stockSaving, setStockSaving] = useState(false)
+
+  async function fetchData(params: string) {
+    const data = await api<Repuesto[]>(`/api/repuestos${params}`)
+    setItems(data ?? [])
+  }
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      const params = new URLSearchParams()
+      if (q.trim()) params.set("q", q.trim())
+      if (soloBajo) params.set("bajo_stock", "true")
+      const qs = params.toString()
+      await fetchData(qs ? `?${qs}` : "")
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Error cargando repuestos")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api<Repuesto[]>("/api/repuestos")
+        if (!cancelled) setItems(data ?? [])
+      } catch (e) {
+        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando repuestos")
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (soloBajo && q.trim()) {
+      return items.filter((r) => r.stock <= r.stock_minimo && [r.nombre, r.codigo].some((v) => v.toLowerCase().includes(q.trim().toLowerCase())))
+    }
+    return items
+  }, [items, q, soloBajo])
+
+  function openCreate() {
+    setEditing(null)
+    setForm(emptyForm)
+    setFieldError(null)
+    setDialogOpen(true)
+  }
+
+  function openEdit(r: Repuesto) {
+    setEditing(r)
+    setForm({
+      codigo: r.codigo,
+      nombre: r.nombre,
+      descripcion: r.descripcion,
+      categoria: r.categoria,
+      precio_compra: r.precio_compra ? String(r.precio_compra) : "",
+      precio_venta: r.precio_venta ? String(r.precio_venta) : "",
+      stock: String(r.stock),
+      stock_minimo: String(r.stock_minimo),
+      ubicacion: r.ubicacion,
+    })
+    setFieldError(null)
+    setDialogOpen(true)
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.codigo.trim()) {
+      setFieldError("Código es requerido")
+      return
+    }
+    setFieldError(null)
+    setSaving(true)
+    const body = {
+      codigo: form.codigo.trim(),
+      nombre: form.nombre,
+      descripcion: form.descripcion,
+      categoria: form.categoria,
+      precio_compra: form.precio_compra ? Number(form.precio_compra) : 0,
+      precio_venta: form.precio_venta ? Number(form.precio_venta) : 0,
+      stock: form.stock ? Number(form.stock) : 0,
+      stock_minimo: form.stock_minimo ? Number(form.stock_minimo) : 0,
+      ubicacion: form.ubicacion,
+    }
+    try {
+      if (editing) await api(`/api/repuestos/${editing.id}`, { method: "PUT", body })
+      else await api("/api/repuestos", { method: "POST", body })
+      setDialogOpen(false)
+      setEditing(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Error guardando repuesto")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function onDelete() {
+    if (!confirm) return
+    setDeleting(true)
+    try {
+      await api(`/api/repuestos/${confirm.id}`, { method: "DELETE" })
+      setConfirm(null)
+      await load()
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Error eliminando repuesto")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function openStock(r: Repuesto) {
+    setStockTarget(r)
+    setStockDelta("")
+    setStockError(null)
+  }
+
+  async function onAdjustStock(e: React.FormEvent) {
+    e.preventDefault()
+    if (!stockTarget) return
+    const delta = Number(stockDelta)
+    if (!delta) {
+      setStockError("Ingresá una cantidad")
+      return
+    }
+    setStockError(null)
+    setStockSaving(true)
+    try {
+      const res = await api<{ stock: number }>(`/api/repuestos/${stockTarget.id}/stock`, {
+        method: "POST",
+        body: { cantidad: delta },
+      })
+      setStockTarget(null)
+      setItems((prev) => prev.map((r) => (r.id === stockTarget.id ? { ...r, stock: res.stock } : r)))
+    } catch (e) {
+      setStockError(e instanceof ApiError ? e.message : "Error ajustando stock")
+    } finally {
+      setStockSaving(false)
+    }
+  }
+
+  const showSearch = !loading && items.length > 0
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="flex items-baseline gap-2 text-sm font-semibold text-zinc-100">
+          Repuestos
+          {!loading && items.length > 0 && (
+            <span role="status" className="text-xs font-normal text-zinc-500">
+              {filtered.length}
+            </span>
+          )}
+        </h1>
+        <button
+          onClick={openCreate}
+          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+        >
+          <Plus className="h-3.5 w-3.5" /> Nuevo
+        </button>
+      </div>
+
+      {error && items.length > 0 && (
+        <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">
+          {error}
+        </p>
+      )}
+
+      {showSearch && (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por nombre o código"
+              inputMode="search"
+              className="w-full rounded-md border border-zinc-800 bg-zinc-900 py-1.5 pl-8 pr-2.5 text-base text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:text-xs"
+            />
+          </div>
+          <button
+            onClick={() => { setSoloBajo((v) => !v); void load() }}
+            aria-pressed={soloBajo}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+              soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
+          </button>
+        </div>
+      )}
+
+      <Card className="overflow-hidden border-zinc-800 p-0">
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
+            <Loader2 className="h-4 w-4 animate-spin" /> Cargando repuestos...
+          </div>
+        ) : error && items.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-sm font-medium text-zinc-200">No se pudieron cargar los repuestos</p>
+            <p className="mt-1 text-xs text-zinc-500">{error}</p>
+            <button
+              onClick={load}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+            >
+              <RotateCw className="h-3.5 w-3.5" /> Reintentar
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-200">
+              <PackagePlus className="h-4 w-4 text-zinc-500" />
+              {q || soloBajo ? "Sin resultados" : "Aún no hay repuestos"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              {q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Agregá tu primer repuesto al inventario."}
+            </p>
+            {!q && !soloBajo && (
+              <button
+                onClick={openCreate}
+                className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              >
+                <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-zinc-800 text-zinc-500">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Repuesto</th>
+                    <th className="px-3 py-2 font-medium">Categoría</th>
+                    <th className="px-3 py-2 text-right font-medium">P. venta</th>
+                    <th className="px-3 py-2 text-right font-medium">Stock</th>
+                    <th className="w-28 px-3 py-2 text-right font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {filtered.map((r) => (
+                    <tr key={r.id} className="hover:bg-zinc-800/40">
+                      <td className="px-3 py-2.5">
+                        <div className="font-medium text-zinc-100">{r.nombre || r.codigo}</div>
+                        <div className="truncate text-xs text-zinc-500">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-zinc-400">{r.categoria || "—"}</td>
+                      <td className="px-3 py-2.5 text-right text-zinc-300">{formatMoney(r.precio_venta)}</td>
+                      <td className="px-3 py-2.5 text-right">
+                        <span className={r.stock <= r.stock_minimo ? "font-semibold text-red-400" : "text-zinc-300"}>
+                          {r.stock}
+                        </span>
+                        <span className="text-zinc-500"> / {r.stock_minimo}</span>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openStock(r)}
+                            aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          >
+                            <PackagePlus className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEdit(r)}
+                            aria-label={`Editar ${r.nombre || r.codigo}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setConfirm(r)}
+                            aria-label={`Eliminar ${r.nombre || r.codigo}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className="divide-y divide-zinc-800 sm:hidden">
+              {filtered.map((r) => (
+                <li key={r.id} className="px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-zinc-100">{r.nombre || r.codigo}</div>
+                      <div className="truncate text-xs text-zinc-500">
+                        {r.codigo}{r.categoria ? ` · ${r.categoria}` : ""}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-zinc-200">{formatMoney(r.precio_venta)}</div>
+                      <div className={r.stock <= r.stock_minimo ? "text-xs font-semibold text-red-400" : "text-xs text-zinc-500"}>
+                        {r.stock} / {r.stock_minimo}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex justify-end gap-1.5">
+                    <button
+                      onClick={() => openStock(r)}
+                      aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10"
+                    >
+                      <PackagePlus className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => openEdit(r)}
+                      aria-label={`Editar ${r.nombre || r.codigo}`}
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setConfirm(r)}
+                      aria-label={`Eliminar ${r.nombre || r.codigo}`}
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </Card>
+
+      <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => setDialogOpen(false)}>
+        <form onSubmit={onSubmit} noValidate className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Código *" id="rep-codigo" error={fieldError ?? undefined}>
+              <input
+                id="rep-codigo"
+                value={form.codigo}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, codigo: e.target.value }))
+                  if (fieldError) setFieldError(null)
+                }}
+                autoFocus
+                className={inputClassName(!!fieldError)}
+                placeholder="FIL-001"
+              />
+            </Field>
+            <Field label="Nombre" id="rep-nombre">
+              <input
+                id="rep-nombre"
+                value={form.nombre}
+                onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+                className={inputClassName()}
+                placeholder="Filtro de aceite"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Categoría" id="rep-categoria">
+              <input
+                id="rep-categoria"
+                value={form.categoria}
+                onChange={(e) => setForm((p) => ({ ...p, categoria: e.target.value }))}
+                className={inputClassName()}
+                placeholder="Mantenimiento"
+              />
+            </Field>
+            <Field label="Ubicación" id="rep-ubicacion">
+              <input
+                id="rep-ubicacion"
+                value={form.ubicacion}
+                onChange={(e) => setForm((p) => ({ ...p, ubicacion: e.target.value }))}
+                className={inputClassName()}
+                placeholder="Estante A1"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Precio compra" id="rep-compra">
+              <input
+                id="rep-compra"
+                value={form.precio_compra}
+                inputMode="numeric"
+                onChange={(e) => setForm((p) => ({ ...p, precio_compra: e.target.value }))}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Precio venta" id="rep-venta">
+              <input
+                id="rep-venta"
+                value={form.precio_venta}
+                inputMode="numeric"
+                onChange={(e) => setForm((p) => ({ ...p, precio_venta: e.target.value }))}
+                className={inputClassName()}
+              />
+            </Field>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Stock inicial" id="rep-stock">
+              <input
+                id="rep-stock"
+                value={form.stock}
+                inputMode="numeric"
+                onChange={(e) => setForm((p) => ({ ...p, stock: e.target.value }))}
+                className={inputClassName()}
+              />
+            </Field>
+            <Field label="Stock mínimo" id="rep-minimo">
+              <input
+                id="rep-minimo"
+                value={form.stock_minimo}
+                inputMode="numeric"
+                onChange={(e) => setForm((p) => ({ ...p, stock_minimo: e.target.value }))}
+                className={inputClassName()}
+              />
+            </Field>
+          </div>
+          <Field label="Descripción" id="rep-descripcion">
+            <textarea
+              id="rep-descripcion"
+              value={form.descripcion}
+              onChange={(e) => setForm((p) => ({ ...p, descripcion: e.target.value }))}
+              rows={2}
+              className={inputClassName()}
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setDialogOpen(false)}
+              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              aria-busy={saving}
+              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+            >
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {editing ? "Guardar" : "Crear"}
+            </button>
+          </div>
+        </form>
+      </Dialog>
+
+      <Dialog
+        open={!!stockTarget}
+        title={stockTarget ? `Ajustar stock: ${stockTarget.nombre || stockTarget.codigo}` : "Ajustar stock"}
+        onClose={() => setStockTarget(null)}
+      >
+        <form onSubmit={onAdjustStock} noValidate className="space-y-3">
+          <p className="text-xs text-zinc-400">
+            Stock actual: <span className="font-semibold text-zinc-200">{stockTarget?.stock ?? 0}</span>
+            {" · "}Mínimo: <span className="text-zinc-200">{stockTarget?.stock_minimo ?? 0}</span>
+          </p>
+          {stockError && (
+            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
+              {stockError}
+            </p>
+          )}
+          <Field label="Cantidad (positivo suma, negativo resta)" id="rep-delta">
+            <input
+              id="rep-delta"
+              value={stockDelta}
+              inputMode="numeric"
+              autoFocus
+              onChange={(e) => {
+                setStockDelta(e.target.value)
+                if (stockError) setStockError(null)
+              }}
+              className={inputClassName(!!stockError)}
+              placeholder="0"
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setStockTarget(null)}
+              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={stockSaving}
+              aria-busy={stockSaving}
+              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+            >
+              {stockSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              Ajustar
+            </button>
+          </div>
+        </form>
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!confirm}
+        title="¿Eliminar repuesto?"
+        description={confirm ? `${confirm.nombre || confirm.codigo} será eliminado.` : undefined}
+        onClose={() => !deleting && setConfirm(null)}
+        onConfirm={onDelete}
+      />
+    </div>
+  )
+}

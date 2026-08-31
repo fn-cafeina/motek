@@ -89,3 +89,45 @@ export type Pago = {
   notas: string
   creado_en: string
 }
+
+export type OrdenEstado =
+  | "recibido"
+  | "en_progreso"
+  | "esperando_repuestos"
+  | "terminado"
+  | "entregado"
+
+export type FacturaEstado = "pendiente" | "parcial" | "pagada" | "cancelada"
+
+export type AlertaStock = {
+  id: number
+  codigo: string
+  nombre: string
+  stock: number
+  stock_minimo: number
+}
+
+export const ORDEN_ESTADOS: { value: OrdenEstado; label: string }[] = [
+  { value: "recibido", label: "Recibido" },
+  { value: "en_progreso", label: "En progreso" },
+  { value: "esperando_repuestos", label: "Esperando repuestos" },
+  { value: "terminado", label: "Terminado" },
+  { value: "entregado", label: "Entregado" },
+]
+
+export function ordenEstadoLabel(estado: string): string {
+  return ORDEN_ESTADOS.find((e) => e.value === estado)?.label ?? estado
+}
+
+export const FACTURA_ESTADOS: { value: FacturaEstado; label: string }[] = [
+  { value: "pendiente", label: "Pendiente" },
+  { value: "parcial", label: "Parcial" },
+  { value: "pagada", label: "Pagada" },
+  { value: "cancelada", label: "Cancelada" },
+]
+
+export function facturaEstadoLabel(estado: string): string {
+  return FACTURA_ESTADOS.find((e) => e.value === estado)?.label ?? estado
+}
+
+export const PAGO_METODOS = ["efectivo", "transferencia", "tarjeta"] as const

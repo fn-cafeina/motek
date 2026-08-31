@@ -7,6 +7,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { MotosManager } from "../components/MotosManager"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
@@ -208,7 +209,8 @@ export function Clientes() {
                       </td>
                       <td className="px-3 py-2.5 text-zinc-400">{c.telefono || "—"}</td>
                       <td className="px-3 py-2.5">
-                        <div className="flex justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <MotosManager cliente={c} />
                           <button
                             onClick={() => openEdit(c)}
                             aria-label={`Editar ${c.nombre}`}
@@ -236,6 +238,7 @@ export function Clientes() {
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
                     <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
+                    <div className="mt-2"><MotosManager cliente={c} /></div>
                   </div>
                   <div className="flex shrink-0 gap-1">
                     <button
