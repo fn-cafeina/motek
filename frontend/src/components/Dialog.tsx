@@ -11,9 +11,16 @@ type DialogProps = {
 
 export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const justOpened = useRef(false)
+
+  useEffect(() => {
+    if (open) justOpened.current = true
+  }, [open])
 
   useEffect(() => {
     if (!open) return
+    if (!justOpened.current) return
+    justOpened.current = false
 
     const previouslyFocused = document.activeElement as HTMLElement | null
     const panel = panelRef.current
@@ -27,8 +34,15 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
       )
     }
 
-    const firstFocusable = focusables()[0]
-    firstFocusable?.focus()
+    focusables()[0]?.focus()
+
+    return () => {
+      previouslyFocused?.focus()
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -36,8 +50,12 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
         onClose()
         return
       }
-      if (e.key !== "Tab" || !panel) return
-      const items = focusables()
+      if (e.key !== "Tab" || !panelRef.current) return
+      const items = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      )
       if (items.length === 0) return
       const first = items[0]
       const last = items[items.length - 1]
@@ -56,7 +74,6 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
     return () => {
       document.body.style.overflow = previousOverflow
       document.removeEventListener("keydown", onKeyDown)
-      previouslyFocused?.focus()
     }
   }, [open, onClose])
 
