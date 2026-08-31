@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, Outlet, useNavigate, useLocation } from "react-router"
-import { useAuth } from "../contexts/AuthContext"
+import { useAuth } from "../contexts/authContext"
 import { ConfirmDialog } from "./ConfirmDialog"
 
 const NAV = [

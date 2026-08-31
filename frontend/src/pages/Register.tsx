@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
-import { Field, inputClassName } from "../components/Field"
-import { useAuth } from "../contexts/AuthContext"
+import { Field } from "../components/Field"
+import { inputClassName } from "../components/inputStyles"
+import { useAuth } from "../contexts/authContext"
 
 function strength(password: string): { label: string; width: string; color: string } {
   if (password.length < 6) return { label: "Débil", width: "w-1/3", color: "bg-red-500" }

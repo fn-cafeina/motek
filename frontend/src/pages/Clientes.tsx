@@ -5,7 +5,8 @@ import type { Cliente } from "../api/types"
 import { Card } from "../components/Card"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
-import { Field, inputClassName } from "../components/Field"
+import { Field } from "../components/Field"
+import { inputClassName } from "../components/inputStyles"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
@@ -24,12 +25,16 @@ export function Clientes() {
   const [confirm, setConfirm] = useState<Cliente | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  async function fetchClientes() {
+    const data = await api<Cliente[]>("/api/clientes")
+    setClientes(data ?? [])
+  }
+
   async function load() {
     setLoading(true)
     setError(null)
     try {
-      const data = await api<Cliente[]>("/api/clientes")
-      setClientes(data ?? [])
+      await fetchClientes()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error cargando clientes")
     } finally {
@@ -38,7 +43,20 @@ export function Clientes() {
   }
 
   useEffect(() => {
-    load()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const data = await api<Cliente[]>("/api/clientes")
+        if (!cancelled) setClientes(data ?? [])
+      } catch (e) {
+        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando clientes")
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const filtered = useMemo(() => {
