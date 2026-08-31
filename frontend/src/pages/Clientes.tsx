@@ -8,11 +8,14 @@ import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { MotosManager } from "../components/MotosManager"
+import { useToast } from "../components/toastContext"
+import { buttonClassName } from "../components/buttonStyles"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
 
 export function Clientes() {
+  const toast = useToast()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -90,12 +93,14 @@ export function Clientes() {
     }
     setFieldError(null)
     setSaving(true)
+    const isEdit = !!editing
     try {
       if (editing) await api(`/api/clientes/${editing.id}`, { method: "PUT", body: form })
       else await api("/api/clientes", { method: "POST", body: form })
       setDialogOpen(false)
       setEditing(null)
       setForm(emptyForm)
+      toast.success(isEdit ? "Cliente actualizado" : "Cliente creado")
       await load()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error guardando cliente")
@@ -110,6 +115,7 @@ export function Clientes() {
     try {
       await api(`/api/clientes/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
+      toast.success("Cliente eliminado")
       await load()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error eliminando cliente")
@@ -133,7 +139,7 @@ export function Clientes() {
         </h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className={buttonClassName("primary")}
         >
           <Plus className="h-3.5 w-3.5" /> Nuevo
         </button>
@@ -169,7 +175,7 @@ export function Clientes() {
             <p className="mt-1 text-xs text-zinc-500">{error}</p>
             <button
               onClick={load}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <RotateCw className="h-3.5 w-3.5" /> Reintentar
             </button>
@@ -183,7 +189,7 @@ export function Clientes() {
             {!q && (
               <button
                 onClick={openCreate}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+                className={"mt-4 " + buttonClassName("primary")}
               >
                 <Plus className="h-3.5 w-3.5" /> Nuevo cliente
               </button>
@@ -344,7 +350,7 @@ export function Clientes() {
               type="submit"
               disabled={saving}
               aria-busy={saving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}

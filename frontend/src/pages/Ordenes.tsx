@@ -8,6 +8,8 @@ import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { useToast } from "../components/toastContext"
+import { buttonClassName } from "../components/buttonStyles"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
 
 type FormState = {
@@ -29,6 +31,7 @@ const emptyForm: FormState = {
 }
 
 export function Ordenes() {
+  const toast = useToast()
   const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [motos, setMotos] = useState<Moto[]>([])
@@ -146,6 +149,7 @@ export function Ordenes() {
     }
     setFieldError(null)
     setSaving(true)
+    const isEdit = !!editing
     try {
       if (editing) {
         await api(`/api/ordenes/${editing.id}`, {
@@ -172,6 +176,7 @@ export function Ordenes() {
       }
       setDialogOpen(false)
       setEditing(null)
+      toast.success(isEdit ? "Orden actualizada" : "Orden creada")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error guardando orden")
@@ -183,6 +188,7 @@ export function Ordenes() {
   async function onChangeEstado(o: OrdenTrabajo, estado: OrdenEstado) {
     try {
       await api(`/api/ordenes/${o.id}/estado`, { method: "PATCH", body: { estado } })
+      toast.success("Estado actualizado")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error actualizando estado")
@@ -195,6 +201,7 @@ export function Ordenes() {
     try {
       await api(`/api/ordenes/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
+      toast.success("Orden eliminada")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error eliminando orden")
@@ -236,6 +243,7 @@ export function Ordenes() {
       setRepuestos(updated ?? [])
       setAddRepId("")
       setAddRepCant("1")
+      toast.success("Repuesto agregado")
       await Promise.all([
         api<Repuesto[]>("/api/repuestos").then((r) => setAllRepuestos(r ?? [])),
       ])
@@ -252,6 +260,7 @@ export function Ordenes() {
       await api(`/api/ordenes/${detail.id}/repuestos/${line.repuesto_id}`, { method: "DELETE" })
       const updated = await api<OrdenRepuesto[]>(`/api/ordenes/${detail.id}/repuestos`)
       setRepuestos(updated ?? [])
+      toast.success("Repuesto quitado")
       const reps = await api<Repuesto[]>("/api/repuestos")
       setAllRepuestos(reps ?? [])
     } catch (e) {
@@ -279,7 +288,7 @@ export function Ordenes() {
         </h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className={buttonClassName("primary")}
         >
           <Plus className="h-3.5 w-3.5" /> Nueva
         </button>
@@ -319,7 +328,7 @@ export function Ordenes() {
             <p className="mt-1 text-xs text-zinc-500">{error}</p>
             <button
               onClick={load}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <RotateCw className="h-3.5 w-3.5" /> Reintentar
             </button>
@@ -330,7 +339,7 @@ export function Ordenes() {
             <p className="mt-1 text-xs text-zinc-500">Creá tu primera orden de trabajo.</p>
             <button
               onClick={openCreate}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <Plus className="h-3.5 w-3.5" /> Nueva orden
             </button>
@@ -555,7 +564,7 @@ export function Ordenes() {
               type="submit"
               disabled={saving}
               aria-busy={saving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}

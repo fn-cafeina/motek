@@ -6,6 +6,7 @@ import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
+import { useToast } from "../components/toastContext"
 
 function strength(password: string): { label: string; width: string; color: string } {
   if (password.length < 6) return { label: "Débil", width: "w-1/3", color: "bg-red-500" }
@@ -20,6 +21,7 @@ function strength(password: string): { label: string; width: string; color: stri
 
 export function Register() {
   const { register } = useAuth()
+  const toast = useToast()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -57,6 +59,7 @@ export function Register() {
     setLoading(true)
     try {
       await register(email.trim(), password)
+      toast.success("Cuenta creada")
       navigate("/")
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Error al registrarse")

@@ -9,9 +9,12 @@ import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { useToast } from "../components/toastContext"
+import { buttonClassName } from "../components/buttonStyles"
 import { formatFecha, formatMoney } from "../lib/format"
 
 export function Facturas() {
+  const toast = useToast()
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -100,6 +103,7 @@ export function Facturas() {
       await api<Factura>("/api/facturas", { method: "POST", body: { orden_id: Number(ordenSel) } })
       setCreateOpen(false)
       setOrdenSel("")
+      toast.success("Factura creada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
       setCreateError(e instanceof ApiError ? e.message : "Error creando factura")
@@ -153,6 +157,7 @@ export function Facturas() {
       const updated = (facturasData ?? []).find((x) => x.id === detail.id)
       if (updated) setDetail(updated)
       setPagoMonto("")
+      toast.success("Pago registrado")
     } catch (e) {
       setPagoError(e instanceof ApiError ? e.message : "Error registrando pago")
     } finally {
@@ -172,6 +177,7 @@ export function Facturas() {
       setFacturas(facturasData ?? [])
       const updated = (facturasData ?? []).find((x) => x.id === detail.id)
       if (updated) setDetail(updated)
+      toast.success("Pago eliminado")
     } catch (e) {
       setPagoError(e instanceof ApiError ? e.message : "Error eliminando pago")
     }
@@ -183,6 +189,7 @@ export function Facturas() {
     try {
       await api(`/api/facturas/${cancelTarget.id}/cancelar`, { method: "PATCH", body: {} })
       setCancelTarget(null)
+      toast.success("Factura cancelada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error cancelando factura")
@@ -214,6 +221,7 @@ export function Facturas() {
       setEditOpen(false)
       const updated = await api<Factura>(`/api/facturas/${detail.id}`)
       setDetail(updated)
+      toast.success("Factura actualizada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
       setEditError(e instanceof ApiError ? e.message : "Error actualizando factura")
@@ -233,7 +241,7 @@ export function Facturas() {
         </h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className={buttonClassName("primary")}
         >
           <Plus className="h-3.5 w-3.5" /> Nueva
         </button>
@@ -272,7 +280,7 @@ export function Facturas() {
             <p className="mt-1 text-xs text-zinc-500">{error}</p>
             <button
               onClick={load}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <RotateCw className="h-3.5 w-3.5" /> Reintentar
             </button>
@@ -283,7 +291,7 @@ export function Facturas() {
             <p className="mt-1 text-xs text-zinc-500">Creá una factura desde una orden de trabajo.</p>
             <button
               onClick={openCreate}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <Plus className="h-3.5 w-3.5" /> Nueva factura
             </button>
@@ -400,7 +408,7 @@ export function Facturas() {
               type="submit"
               disabled={creating}
               aria-busy={creating}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {creating && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Crear
@@ -557,7 +565,7 @@ export function Facturas() {
             <button
               type="submit"
               disabled={editSaving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {editSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Guardar

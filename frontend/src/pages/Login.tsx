@@ -6,9 +6,11 @@ import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
+import { useToast } from "../components/toastContext"
 
 export function Login() {
   const { login } = useAuth()
+  const toast = useToast()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -43,6 +45,7 @@ export function Login() {
     setLoading(true)
     try {
       await login(email.trim(), password)
+      toast.success("Sesión iniciada")
       navigate("/")
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Error al iniciar sesión")

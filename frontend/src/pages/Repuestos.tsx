@@ -7,6 +7,8 @@ import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { useToast } from "../components/toastContext"
+import { buttonClassName } from "../components/buttonStyles"
 import { formatMoney } from "../lib/format"
 
 type FormState = {
@@ -34,6 +36,7 @@ const emptyForm: FormState = {
 }
 
 export function Repuestos() {
+  const toast = useToast()
   const [items, setItems] = useState<Repuesto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -128,6 +131,7 @@ export function Repuestos() {
     }
     setFieldError(null)
     setSaving(true)
+    const isEdit = !!editing
     const body = {
       codigo: form.codigo.trim(),
       nombre: form.nombre,
@@ -144,6 +148,7 @@ export function Repuestos() {
       else await api("/api/repuestos", { method: "POST", body })
       setDialogOpen(false)
       setEditing(null)
+      toast.success(isEdit ? "Repuesto actualizado" : "Repuesto creado")
       await load()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error guardando repuesto")
@@ -158,6 +163,7 @@ export function Repuestos() {
     try {
       await api(`/api/repuestos/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
+      toast.success("Repuesto eliminado")
       await load()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error eliminando repuesto")
@@ -188,6 +194,7 @@ export function Repuestos() {
         body: { cantidad: delta },
       })
       setStockTarget(null)
+      toast.success("Stock ajustado")
       setItems((prev) => prev.map((r) => (r.id === stockTarget.id ? { ...r, stock: res.stock } : r)))
     } catch (e) {
       setStockError(e instanceof ApiError ? e.message : "Error ajustando stock")
@@ -211,7 +218,7 @@ export function Repuestos() {
         </h1>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+          className={buttonClassName("primary")}
         >
           <Plus className="h-3.5 w-3.5" /> Nuevo
         </button>
@@ -258,7 +265,7 @@ export function Repuestos() {
             <p className="mt-1 text-xs text-zinc-500">{error}</p>
             <button
               onClick={load}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <RotateCw className="h-3.5 w-3.5" /> Reintentar
             </button>
@@ -275,7 +282,7 @@ export function Repuestos() {
             {!q && !soloBajo && (
               <button
                 onClick={openCreate}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+                className={"mt-4 " + buttonClassName("primary")}
               >
                 <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
               </button>
@@ -493,7 +500,7 @@ export function Repuestos() {
               type="submit"
               disabled={saving}
               aria-busy={saving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
@@ -543,7 +550,7 @@ export function Repuestos() {
               type="submit"
               disabled={stockSaving}
               aria-busy={stockSaving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {stockSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Ajustar

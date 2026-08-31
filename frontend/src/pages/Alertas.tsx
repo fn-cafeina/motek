@@ -6,8 +6,11 @@ import { Card } from "../components/Card"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { useToast } from "../components/toastContext"
+import { buttonClassName } from "../components/buttonStyles"
 
 export function Alertas() {
+  const toast = useToast()
   const [items, setItems] = useState<AlertaStock[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +66,7 @@ export function Alertas() {
       })
       setTarget(null)
       setDelta("")
+      toast.success("Stock actualizado")
       if (res.stock > target.stock_minimo) await load()
       else setItems((prev) => prev.map((a) => (a.id === target.id ? { ...a, stock: res.stock } : a)))
     } catch (e) {
@@ -104,7 +108,7 @@ export function Alertas() {
             <p className="mt-1 text-xs text-zinc-500">{error}</p>
             <button
               onClick={load}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+              className={"mt-4 " + buttonClassName("primary")}
             >
               <RotateCw className="h-3.5 w-3.5" /> Reintentar
             </button>
@@ -214,7 +218,7 @@ export function Alertas() {
               type="submit"
               disabled={saving}
               aria-busy={saving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Surtir

@@ -7,6 +7,8 @@ import { Dialog } from "./Dialog"
 import { Field } from "./Field"
 import { inputClassName } from "./inputStyles"
 import { Empty } from "./Empty"
+import { useToast } from "./toastContext"
+import { buttonClassName } from "./buttonStyles"
 
 type MotoForm = {
   marca: string
@@ -29,6 +31,7 @@ const emptyForm: MotoForm = {
 }
 
 export function MotosManager({ cliente }: { cliente: Cliente }) {
+  const toast = useToast()
   const [listOpen, setListOpen] = useState(false)
   const [motos, setMotos] = useState<Moto[]>([])
   const [loading, setLoading] = useState(false)
@@ -89,6 +92,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     }
     setFieldError(null)
     setSaving(true)
+    const isEdit = !!editing
     const body = {
       marca: form.marca.trim(),
       modelo: form.modelo,
@@ -103,6 +107,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       else await api(`/api/clientes/${cliente.id}/motos`, { method: "POST", body })
       setDialogOpen(false)
       setEditing(null)
+      toast.success(isEdit ? "Moto actualizada" : "Moto creada")
       await loadMotos()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error guardando moto")
@@ -117,6 +122,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     try {
       await api(`/api/motos/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
+      toast.success("Moto eliminada")
       await loadMotos()
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error eliminando moto")
@@ -151,7 +157,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
             action={
               <button
                 onClick={openCreate}
-                className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+                className={buttonClassName("primary")}
               >
                 <Plus className="h-3.5 w-3.5" /> Nueva moto
               </button>
@@ -193,7 +199,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
             <div className="mt-3 flex justify-end">
               <button
                 onClick={openCreate}
-                className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+                className={buttonClassName("primary")}
               >
                 <Plus className="h-3.5 w-3.5" /> Nueva moto
               </button>
@@ -290,7 +296,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
               type="submit"
               disabled={saving}
               aria-busy={saving}
-              className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+              className={buttonClassName("primary")}
             >
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
