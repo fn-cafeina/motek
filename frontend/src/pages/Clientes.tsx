@@ -1,44 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
-import { Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, RotateCw, Search, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Cliente } from "../api/types"
 import { Card } from "../components/Card"
 import { ConfirmDialog } from "../components/ConfirmDialog"
+import { Dialog } from "../components/Dialog"
 import { Field, inputClassName } from "../components/Field"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
-
-function Dialog({
-  open,
-  title,
-  onClose,
-  children,
-}: {
-  open: boolean
-  title: string
-  onClose: () => void
-  children: React.ReactNode
-}) {
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-      <div role="dialog" aria-modal="true" className="w-full max-w-lg rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
-          <button
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
-}
 
 export function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -137,7 +107,9 @@ export function Clientes() {
         <h1 className="flex items-baseline gap-2 text-sm font-semibold text-zinc-100">
           Clientes
           {!loading && clientes.length > 0 && (
-            <span className="text-xs font-normal text-zinc-500">{filtered.length}</span>
+            <span role="status" className="text-xs font-normal text-zinc-500">
+              {q.trim() ? `${filtered.length} de ${clientes.length}` : clientes.length}
+            </span>
           )}
         </h1>
         <button
@@ -148,7 +120,7 @@ export function Clientes() {
         </button>
       </div>
 
-      {error && (
+      {error && clientes.length > 0 && (
         <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">
           {error}
         </p>
@@ -171,6 +143,17 @@ export function Clientes() {
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
             <Loader2 className="h-4 w-4 animate-spin" /> Cargando clientes...
+          </div>
+        ) : error && clientes.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-sm font-medium text-zinc-200">No se pudieron cargar los clientes</p>
+            <p className="mt-1 text-xs text-zinc-500">{error}</p>
+            <button
+              onClick={load}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400"
+            >
+              <RotateCw className="h-3.5 w-3.5" /> Reintentar
+            </button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center">
@@ -211,14 +194,14 @@ export function Clientes() {
                           <button
                             onClick={() => openEdit(c)}
                             aria-label={`Editar ${c.nombre}`}
-                            className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => setConfirm(c)}
                             aria-label={`Eliminar ${c.nombre}`}
-                            className="rounded-md p-1.5 text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -240,14 +223,14 @@ export function Clientes() {
                     <button
                       onClick={() => openEdit(c)}
                       aria-label={`Editar ${c.nombre}`}
-                      className="rounded-md bg-zinc-800 p-2 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirm(c)}
                       aria-label={`Eliminar ${c.nombre}`}
-                      className="rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -298,16 +281,16 @@ export function Clientes() {
             </Field>
           </div>
 
-          {!showMore ? (
-            <button
-              type="button"
-              onClick={() => setShowMore(true)}
-              className="text-xs text-zinc-500 hover:text-zinc-300"
-            >
-              + Más datos
-            </button>
-          ) : (
-            <>
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+          >
+            {showMore ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {showMore ? "Menos datos" : "Más datos"}
+          </button>
+          {showMore && (
+            <div className="motek-enter space-y-3">
               <Field label="Dirección" id="cliente-direccion">
                 <input
                   id="cliente-direccion"
@@ -325,7 +308,7 @@ export function Clientes() {
                   className={inputClassName()}
                 />
               </Field>
-            </>
+            </div>
           )}
 
           <div className="flex justify-end gap-2 pt-2">

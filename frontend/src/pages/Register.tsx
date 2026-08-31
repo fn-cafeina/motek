@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
+import { Field, inputClassName } from "../components/Field"
 import { useAuth } from "../contexts/AuthContext"
 
 function strength(password: string): { label: string; width: string; color: string } {
@@ -74,33 +75,43 @@ export function Register() {
             {error}
           </p>
         )}
-        <label htmlFor="register-email" className="mb-2 block">
-          <span className="text-xs font-medium tracking-wide text-zinc-400">Email</span>
-          <input
-            ref={emailRef}
-            id="register-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
-            }}
-            onBlur={validate}
-            required
-            aria-invalid={emailInvalid}
-            aria-describedby={emailInvalid ? "register-email-error" : undefined}
-            className={`mt-1 w-full rounded-md border bg-zinc-800 px-2.5 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 ${emailInvalid ? "border-red-500 focus:border-red-500 focus-visible:ring-red-500" : "border-zinc-700 focus:border-amber-500"}`}
-          />
-          {emailInvalid && (
-            <p id="register-email-error" className="mt-1 text-xs text-red-400">
-              {fieldErrors.email}
-            </p>
-          )}
-        </label>
-        <label htmlFor="register-pass" className="mb-2.5 block">
-          <span className="text-xs font-medium tracking-wide text-zinc-400">Contraseña</span>
-          <div className="relative mt-1">
+        <div className="mb-2">
+          <Field label="Email" id="register-email" error={emailInvalid ? fieldErrors.email : undefined}>
+            <input
+              ref={emailRef}
+              id="register-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+              }}
+              onBlur={validate}
+              required
+              aria-invalid={emailInvalid}
+              aria-describedby={emailInvalid ? "register-email-error" : undefined}
+              className={inputClassName(emailInvalid)}
+            />
+          </Field>
+        </div>
+        <div className="mb-2.5">
+          <Field
+            label="Contraseña"
+            id="register-pass"
+            error={passInvalid ? fieldErrors.password : undefined}
+            rightSlot={
+              <button
+                type="button"
+                onClick={() => setShowPass((v) => !v)}
+                aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                aria-pressed={showPass}
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              >
+                {showPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              </button>
+            }
+          >
             <input
               ref={passRef}
               id="register-pass"
@@ -115,23 +126,10 @@ export function Register() {
               minLength={6}
               aria-invalid={passInvalid}
               aria-describedby={passInvalid ? "register-pass-error" : "register-pass-hint"}
-              className={`w-full rounded-md border bg-zinc-800 px-2.5 py-1.5 pr-9 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 ${passInvalid ? "border-red-500 focus:border-red-500 focus-visible:ring-red-500" : "border-zinc-700 focus:border-amber-500"}`}
+              className={inputClassName(passInvalid)}
             />
-            <button
-              type="button"
-              onClick={() => setShowPass((v) => !v)}
-              aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
-              aria-pressed={showPass}
-              className="absolute inset-y-0 right-0 flex items-center px-2 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-            >
-              {showPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            </button>
-          </div>
-          {passInvalid ? (
-            <p id="register-pass-error" className="mt-1 text-xs text-red-400">
-              {fieldErrors.password}
-            </p>
-          ) : (
+          </Field>
+          {!passInvalid && (
             <p id="register-pass-hint" className="mt-1 text-xs text-zinc-500">
               Mínimo 6 caracteres
             </p>
@@ -144,7 +142,7 @@ export function Register() {
               <span className="text-xs text-zinc-500">{pwStrength.label}</span>
             </div>
           )}
-        </label>
+        </div>
         <button
           type="submit"
           disabled={loading}

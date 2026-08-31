@@ -1,5 +1,7 @@
+import { useState } from "react"
 import { Link, Outlet, useNavigate, useLocation } from "react-router"
 import { useAuth } from "../contexts/AuthContext"
+import { ConfirmDialog } from "./ConfirmDialog"
 
 const NAV = [
   { to: "/clientes", label: "Clientes" },
@@ -13,6 +15,7 @@ export function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [confirmLogout, setConfirmLogout] = useState(false)
 
   function handleLogout() {
     logout()
@@ -29,7 +32,7 @@ export function Layout() {
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-zinc-400 sm:inline">{user?.email}</span>
             <button
-              onClick={handleLogout}
+              onClick={() => setConfirmLogout(true)}
               className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
               Salir
@@ -37,23 +40,6 @@ export function Layout() {
           </div>
         </div>
       </header>
-
-      <nav className="flex gap-1 overflow-x-auto border-b border-zinc-800 bg-zinc-950 px-2 py-1.5 ps-2 pe-2 sm:hidden">
-        {NAV.map((item) => {
-          const active = location.pathname.startsWith(item.to)
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={`whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                active ? "bg-amber-500 text-zinc-900" : "text-zinc-500 hover:text-zinc-200"
-              }`}
-            >
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
 
       <div className="flex flex-1">
         <aside className="hidden w-48 shrink-0 border-s-0 border-e border-zinc-800 sm:block">
@@ -77,10 +63,41 @@ export function Layout() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 p-4 pb-[max(16px,env(safe-area-inset-bottom))] sm:p-5">
+        <main className="min-w-0 flex-1 p-4 pb-[max(76px,env(safe-area-inset-bottom))] sm:p-5 sm:pb-5">
           <Outlet />
         </main>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-800 bg-zinc-950 px-2 pb-[max(4px,env(safe-area-inset-bottom))] pt-1.5 sm:hidden">
+        <div className="flex gap-1 overflow-x-auto">
+          {NAV.map((item) => {
+            const active = location.pathname.startsWith(item.to)
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex-1 whitespace-nowrap rounded-md px-2 py-2 text-center text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                  active ? "bg-amber-500 text-zinc-900" : "text-zinc-500 hover:text-zinc-200"
+                }`}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title="¿Salir de Motek?"
+        description={user ? `Cerrarás la sesión de ${user.email}.` : "Cerrarás tu sesión."}
+        confirmLabel="Salir"
+        onConfirm={() => {
+          setConfirmLogout(false)
+          handleLogout()
+        }}
+        onClose={() => setConfirmLogout(false)}
+      />
     </div>
   )
 }
