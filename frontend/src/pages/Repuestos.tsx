@@ -223,11 +223,7 @@ export function Repuestos() {
   const showSearch = !loading && items.length > 0
   const empty = filtered.length === 0
     ? {
-        title: (
-          <>
-            <PackagePlus className="h-4 w-4 text-zinc-500" /> {q || soloBajo ? "Sin resultados" : "Aún no hay repuestos"}
-          </>
-        ),
+        title: q || soloBajo ? "Sin resultados" : "Aún no hay repuestos",
         description: q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Agregá tu primer repuesto al inventario.",
         action: !q && !soloBajo ? (
           <button onClick={openCreate} className={buttonClassName("primary")}>
