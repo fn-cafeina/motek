@@ -7,9 +7,10 @@ type DialogProps = {
   onClose: () => void
   children: ReactNode
   maxWidth?: string
+  dismissible?: boolean
 }
 
-export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }: DialogProps) {
+export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", dismissible = true }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const justOpened = useRef(false)
 
@@ -46,6 +47,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
+        if (!dismissible) return
         e.stopPropagation()
         onClose()
         return
@@ -81,9 +83,9 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[var(--z-dialog)] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (dismissible && e.target === e.currentTarget) onClose()
       }}
     >
       <div
@@ -91,19 +93,20 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`motek-dialog-enter w-full ${maxWidth} rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl shadow-black/50 ring-1 ring-white/[0.06]`}
+        className={`motek-dialog-enter flex max-h-[calc(100vh-2rem)] w-full ${maxWidth} flex-col rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-black/50 ring-1 ring-white/[0.06]`}
       >
-        <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
           <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
           <button
             onClick={onClose}
+            disabled={!dismissible}
             aria-label="Cerrar"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto p-4">{children}</div>
       </div>
     </div>
   )

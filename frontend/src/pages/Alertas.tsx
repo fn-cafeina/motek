@@ -3,6 +3,7 @@ import { Loader2, PackagePlus, RotateCw } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { AlertaStock } from "../api/types"
 import { Dialog } from "../components/Dialog"
+import { Form, FormActions } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { DataCard, EmptyCheckIcon, InlineError, PageHeader } from "../components/PageShell"
@@ -169,9 +170,9 @@ export function Alertas() {
       <Dialog
         open={!!target}
         title={target ? `Surtir: ${target.nombre || target.codigo}` : "Surtir"}
-        onClose={() => (saving ? undefined : setTarget(null))}
+        dismissible={!saving} onClose={() => setTarget(null)}
       >
-        <form onSubmit={onSubmit} noValidate className="space-y-3">
+        <Form onSubmit={onSubmit}>
           <p className="text-xs text-zinc-400">
             Stock actual: <span className="font-semibold text-red-400">{target?.stock ?? 0}</span>
             {" · "}Mínimo: <span className="text-zinc-200">{target?.stock_minimo ?? 0}</span>
@@ -193,7 +194,7 @@ export function Alertas() {
               placeholder="10"
             />
           </Field>
-          <div className="flex justify-end gap-2 pt-1">
+          <FormActions>
             <button type="button" onClick={() => setTarget(null)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
@@ -201,8 +202,8 @@ export function Alertas() {
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Surtir
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
     </>
   )

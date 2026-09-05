@@ -4,6 +4,7 @@ import { api, ApiError } from "../api/client"
 import type { Repuesto } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
+import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
@@ -376,9 +377,9 @@ export function Repuestos() {
         </DataCard>
       </PageStack>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
-        <form onSubmit={onSubmit} noValidate className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+      <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
+        <Form onSubmit={onSubmit}>
+          <FormGrid>
             <Field label="Código *" id="rep-codigo" error={fieldError ?? undefined}>
               <input
                 id="rep-codigo"
@@ -401,8 +402,8 @@ export function Repuestos() {
                 placeholder="Filtro de aceite"
               />
             </Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          </FormGrid>
+          <FormGrid>
             <Field label="Categoría" id="rep-categoria">
               <input
                 id="rep-categoria"
@@ -421,8 +422,8 @@ export function Repuestos() {
                 placeholder="Estante A1"
               />
             </Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          </FormGrid>
+          <FormGrid>
             <Field label="Precio compra" id="rep-compra">
               <input
                 id="rep-compra"
@@ -441,8 +442,8 @@ export function Repuestos() {
                 className={inputClassName()}
               />
             </Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          </FormGrid>
+          <FormGrid>
             <Field label="Stock inicial" id="rep-stock">
               <input
                 id="rep-stock"
@@ -461,7 +462,7 @@ export function Repuestos() {
                 className={inputClassName()}
               />
             </Field>
-          </div>
+          </FormGrid>
           <Field label="Descripción" id="rep-descripcion">
             <textarea
               id="rep-descripcion"
@@ -471,7 +472,7 @@ export function Repuestos() {
               className={inputClassName()}
             />
           </Field>
-          <div className="flex justify-end gap-2 pt-2">
+          <FormActions>
             <button type="button" onClick={() => setDialogOpen(false)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
@@ -479,8 +480,8 @@ export function Repuestos() {
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <Dialog
@@ -488,7 +489,7 @@ export function Repuestos() {
         title={stockTarget ? `Ajustar stock: ${stockTarget.nombre || stockTarget.codigo}` : "Ajustar stock"}
         onClose={() => setStockTarget(null)}
       >
-        <form onSubmit={onAdjustStock} noValidate className="space-y-3">
+        <Form onSubmit={onAdjustStock}>
           <p className="text-xs text-zinc-400">
             Stock actual: <span className="font-semibold text-zinc-200">{stockTarget?.stock ?? 0}</span>
             {" · "}Mínimo: <span className="text-zinc-200">{stockTarget?.stock_minimo ?? 0}</span>
@@ -512,7 +513,7 @@ export function Repuestos() {
               placeholder="0"
             />
           </Field>
-          <div className="flex justify-end gap-2 pt-1">
+          <FormActions>
             <button type="button" onClick={() => setStockTarget(null)} disabled={stockSaving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
@@ -520,8 +521,8 @@ export function Repuestos() {
               {stockSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Ajustar
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <ConfirmDialog

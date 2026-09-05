@@ -4,6 +4,7 @@ import { api, ApiError } from "../api/client"
 import type { Cliente } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
+import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { MotosManager } from "../components/MotosManager"
@@ -242,8 +243,8 @@ export function Clientes() {
       </DataCard>
       </PageStack>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
-        <form onSubmit={onSubmit} noValidate className="space-y-3">
+      <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
+        <Form onSubmit={onSubmit}>
           <Field label="Nombre *" id="cliente-nombre" error={fieldError ?? undefined}>
             <input
               id="cliente-nombre"
@@ -260,7 +261,7 @@ export function Clientes() {
               autoFocus
             />
           </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <FormGrid>
             <Field label="Teléfono" id="cliente-telefono">
               <input
                 id="cliente-telefono"
@@ -282,7 +283,7 @@ export function Clientes() {
                 placeholder="juan@mail.com"
               />
             </Field>
-          </div>
+          </FormGrid>
 
           <button
             type="button"
@@ -314,7 +315,7 @@ export function Clientes() {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <FormActions>
             <button type="button" onClick={() => setDialogOpen(false)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
@@ -322,8 +323,8 @@ export function Clientes() {
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <ConfirmDialog

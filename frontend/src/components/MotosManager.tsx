@@ -4,6 +4,7 @@ import { api, ApiError } from "../api/client"
 import type { Cliente, Moto } from "../api/types"
 import { ConfirmDialog } from "./ConfirmDialog"
 import { Dialog } from "./Dialog"
+import { Form, FormActions, FormGrid } from "./ui/Form"
 import { Field } from "./Field"
 import { inputClassName } from "./inputStyles"
 import { Empty } from "./Empty"
@@ -208,9 +209,9 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         )}
       </Dialog>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
-        <form onSubmit={onSubmit} noValidate className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
+      <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
+        <Form onSubmit={onSubmit}>
+          <FormGrid>
             <Field label="Marca *" id="moto-marca" error={fieldError ?? undefined}>
               <input
                 id="moto-marca"
@@ -233,8 +234,8 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
                 placeholder="CB190R"
               />
             </Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          </FormGrid>
+          <FormGrid cols={3}>
             <Field label="Año" id="moto-anio">
               <input
                 id="moto-anio"
@@ -263,8 +264,8 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
                 placeholder="Negro"
               />
             </Field>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          </FormGrid>
+          <FormGrid>
             <Field label="VIN" id="moto-vin">
               <input
                 id="moto-vin"
@@ -283,8 +284,8 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
                 placeholder="15000"
               />
             </Field>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
+          </FormGrid>
+          <FormActions>
             <button
               type="button"
               onClick={() => setDialogOpen(false)}
@@ -302,8 +303,8 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <ConfirmDialog

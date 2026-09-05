@@ -364,7 +364,7 @@ export function Facturas() {
         </DataCard>
       </PageStack>
 
-      <Dialog open={createOpen} title="Nueva factura" onClose={() => (creating ? undefined : setCreateOpen(false))}>
+      <Dialog open={createOpen} title="Nueva factura" dismissible={!creating} onClose={() => setCreateOpen(false)}>
         <form onSubmit={onCreate} noValidate className="space-y-3">
           {createError && (
             <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{createError}</p>
@@ -522,7 +522,7 @@ export function Facturas() {
         )}
       </Dialog>
 
-      <Dialog open={editOpen} title="Editar factura" onClose={() => (editSaving ? undefined : setEditOpen(false))}>
+      <Dialog open={editOpen} title="Editar factura" dismissible={!editSaving} onClose={() => setEditOpen(false)}>
         <form onSubmit={onEdit} noValidate className="space-y-3">
           {editError && (
             <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{editError}</p>

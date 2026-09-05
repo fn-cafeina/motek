@@ -450,7 +450,7 @@ export function Ordenes() {
         </DataCard>
       </PageStack>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
+      <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           {!editing ? (
             <div className="grid gap-3 sm:grid-cols-2">
