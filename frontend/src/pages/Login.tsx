@@ -9,6 +9,10 @@ import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
 import { useToast } from "../components/toastContext"
 
+function isValidEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+}
+
 export function Login() {
   const { login } = useAuth()
   const toast = useToast()
@@ -18,6 +22,7 @@ export function Login() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const passRef = useRef<HTMLInputElement>(null)
@@ -25,7 +30,7 @@ export function Login() {
   function validate(): boolean {
     const next: typeof fieldErrors = {}
     if (!email.trim()) next.email = "Ingresá tu email"
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Email inválido"
+    else if (!isValidEmail(email.trim())) next.email = "Email inválido"
     if (!password) next.password = "Ingresá tu contraseña"
     setFieldErrors(next)
     if (next.email) {
@@ -42,6 +47,7 @@ export function Login() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    setSubmitted(true)
     if (!validate()) return
     setLoading(true)
     try {
@@ -71,14 +77,19 @@ export function Login() {
             <input
               ref={emailRef}
               id="login-email"
+              name="email"
               type="email"
               autoComplete="email"
+              spellCheck={false}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value)
-                if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+                if (submitted && fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+                if (error) setError("")
               }}
-              onBlur={validate}
+              onBlur={() => {
+                if (submitted) validate()
+              }}
               required
               aria-invalid={emailInvalid}
               aria-describedby={emailInvalid ? "login-email-error" : undefined}
@@ -106,12 +117,17 @@ export function Login() {
             <input
               ref={passRef}
               id="login-pass"
+              name="password"
               type={showPass ? "text" : "password"}
               autoComplete="current-password"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
-                if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+                if (submitted && fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+                if (error) setError("")
               }}
               required
               aria-invalid={passInvalid}
@@ -132,7 +148,7 @@ export function Login() {
         <p className="mt-2.5 text-center text-xs text-zinc-400">
           ¿Sin cuenta?{" "}
           <Link to="/register" className="font-medium text-amber-500 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-            Registrarse
+            Registrate
           </Link>
         </p>
       </form>

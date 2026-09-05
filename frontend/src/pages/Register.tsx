@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Check, Eye, EyeOff, Loader2, X } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
@@ -9,15 +9,17 @@ import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
 import { useToast } from "../components/toastContext"
 
-function strength(password: string): { label: string; width: string; color: string } {
-  if (password.length < 6) return { label: "Débil", width: "w-1/3", color: "bg-red-500" }
-  const hasUpper = /[A-Z]/.test(password)
-  const hasNum = /\d/.test(password)
-  const hasSym = /[^A-Za-z0-9]/.test(password)
-  const score = [hasUpper, hasNum, hasSym].filter(Boolean).length + (password.length >= 10 ? 1 : 0)
-  if (score <= 1) return { label: "Débil", width: "w-1/3", color: "bg-red-500" }
-  if (score === 2) return { label: "Media", width: "w-2/3", color: "bg-amber-500" }
-  return { label: "Fuerte", width: "w-full", color: "bg-zinc-400" }
+function isValidEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+}
+
+type PwReq = { label: string; ok: boolean }
+function pwRequirements(password: string): PwReq[] {
+  return [
+    { label: "Mínimo 6 caracteres", ok: password.length >= 6 },
+    { label: "Al menos 8 para más seguridad", ok: password.length >= 8 },
+    { label: "Una letra y un número", ok: /[A-Za-z]/.test(password) && /\d/.test(password) },
+  ]
 }
 
 export function Register() {
@@ -29,16 +31,15 @@ export function Register() {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState("")
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const passRef = useRef<HTMLInputElement>(null)
 
-  const pwStrength = useMemo(() => (password ? strength(password) : null), [password])
-
   function validate(): boolean {
     const next: typeof fieldErrors = {}
     if (!email.trim()) next.email = "Ingresá tu email"
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Email inválido"
+    else if (!isValidEmail(email.trim())) next.email = "Email inválido"
     if (!password) next.password = "Ingresá tu contraseña"
     else if (password.length < 6) next.password = "Mínimo 6 caracteres"
     setFieldErrors(next)
@@ -56,6 +57,7 @@ export function Register() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
+    setSubmitted(true)
     if (!validate()) return
     setLoading(true)
     try {
@@ -71,6 +73,8 @@ export function Register() {
 
   const emailInvalid = !!fieldErrors.email
   const passInvalid = !!fieldErrors.password
+  const reqs = pwRequirements(password)
+  const showReqs = password.length > 0
 
   return (
     <AuthCard title="Crear cuenta">
@@ -85,14 +89,19 @@ export function Register() {
             <input
               ref={emailRef}
               id="register-email"
+              name="email"
               type="email"
               autoComplete="email"
+              spellCheck={false}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value)
-                if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+                if (submitted && fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+                if (error) setError("")
               }}
-              onBlur={validate}
+              onBlur={() => {
+                if (submitted) validate()
+              }}
               required
               aria-invalid={emailInvalid}
               aria-describedby={emailInvalid ? "register-email-error" : undefined}
@@ -120,32 +129,36 @@ export function Register() {
             <input
               ref={passRef}
               id="register-pass"
+              name="password"
               type={showPass ? "text" : "password"}
               autoComplete="new-password"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value)
-                if (fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+                if (submitted && fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+                if (error) setError("")
               }}
               required
-              minLength={6}
               aria-invalid={passInvalid}
               aria-describedby={passInvalid ? "register-pass-error" : "register-pass-hint"}
               className={inputClassName(passInvalid)}
             />
           </Field>
-          {!passInvalid && (
-            <p id="register-pass-hint" className="mt-1 text-xs text-zinc-400">
-              Mínimo 6 caracteres
+          <ul id="register-pass-hint" className="mt-2 space-y-1" aria-live="polite">
+            {reqs.map((r) => (
+              <li key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-emerald-400" : "text-zinc-500"}`}>
+                {r.ok ? <Check className="h-3 w-3 shrink-0" aria-hidden /> : <X className="h-3 w-3 shrink-0" aria-hidden />}
+                {r.label}
+              </li>
+            ))}
+          </ul>
+          {showReqs && !passInvalid && (
+            <p className="sr-only" aria-live="polite">
+              {reqs.filter((r) => r.ok).length} de {reqs.length} requisitos cumplidos
             </p>
-          )}
-          {pwStrength && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-800">
-                <div className={`h-full rounded-full transition-all ${pwStrength.color} ${pwStrength.width}`} />
-              </div>
-              <span className="text-xs text-zinc-400">{pwStrength.label}</span>
-            </div>
           )}
         </div>
         <button
@@ -158,9 +171,9 @@ export function Register() {
           {loading ? "Creando cuenta..." : "Registrarse"}
         </button>
         <p className="mt-2.5 text-center text-xs text-zinc-400">
-          ¿Ya tienes cuenta?{" "}
+          ¿Ya tenés cuenta?{" "}
           <Link to="/login" className="font-medium text-amber-500 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
-            Iniciar sesión
+            Iniciá sesión
           </Link>
         </p>
       </form>
