@@ -8,10 +8,7 @@ import { buttonClassName } from "../components/buttonStyles"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
 import { useToast } from "../components/toastContext"
-
-function isValidEmail(v: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-}
+import { isValidEmail } from "../lib/validate"
 
 function pwHint(password: string): { label: string; ok: boolean } {
   return { label: "Mínimo 6 caracteres", ok: password.length >= 6 }
@@ -34,7 +31,7 @@ export function Register() {
   function validate(): boolean {
     const next: typeof fieldErrors = {}
     if (!email.trim()) next.email = "Ingresá tu email"
-    else if (!isValidEmail(email.trim())) next.email = "Email inválido"
+    else if (!isValidEmail(email)) next.email = "Email inválido"
     if (!password) next.password = "Ingresá tu contraseña"
     else if (password.length < 6) next.password = "Mínimo 6 caracteres"
     setFieldErrors(next)

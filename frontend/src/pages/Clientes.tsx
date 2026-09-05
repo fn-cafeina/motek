@@ -14,6 +14,7 @@ import { SearchInput } from "../components/ui/SearchInput"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { isValidEmail } from "../lib/validate"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
@@ -92,7 +93,7 @@ export function Clientes() {
       setFieldError("Nombre es requerido")
       return
     }
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    if (form.email && !isValidEmail(form.email)) {
       setFieldError("Email inválido")
       return
     }
