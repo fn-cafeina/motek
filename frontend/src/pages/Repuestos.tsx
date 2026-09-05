@@ -51,6 +51,7 @@ export function Repuestos() {
   const [editing, setEditing] = useState<Repuesto | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [fieldError, setFieldError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Repuesto | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -105,6 +106,7 @@ export function Repuestos() {
     setEditing(null)
     setForm(emptyForm)
     setFieldError(null)
+    setSubmitError(null)
     setDialogOpen(true)
   }
 
@@ -122,6 +124,7 @@ export function Repuestos() {
       ubicacion: r.ubicacion,
     })
     setFieldError(null)
+    setSubmitError(null)
     setDialogOpen(true)
   }
 
@@ -147,6 +150,7 @@ export function Repuestos() {
       }
     }
     setFieldError(null)
+    setSubmitError(null)
     setSaving(true)
     const isEdit = !!editing
     const body = {
@@ -168,7 +172,9 @@ export function Repuestos() {
       toast.success(isEdit ? "Repuesto actualizado" : "Repuesto creado")
       await load()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error guardando repuesto")
+      const msg = e instanceof ApiError ? e.message : "Error guardando repuesto"
+      setSubmitError(msg)
+      toast.error(msg)
     } finally {
       setSaving(false)
     }
@@ -376,6 +382,11 @@ export function Repuestos() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
+          {submitError && (
+            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
+              {submitError}
+            </p>
+          )}
           <FormGrid>
             <Field label="Código *" id="rep-codigo" error={fieldError ?? undefined}>
               <input
