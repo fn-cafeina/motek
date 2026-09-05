@@ -135,7 +135,7 @@ export function Register() {
             />
           </Field>
           {!passInvalid && (
-            <p id="register-pass-hint" className="mt-1 text-xs text-zinc-500">
+            <p id="register-pass-hint" className="mt-1 text-xs text-zinc-400">
               Mínimo 6 caracteres
             </p>
           )}
@@ -144,7 +144,7 @@ export function Register() {
               <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-800">
                 <div className={`h-full rounded-full transition-all ${pwStrength.color} ${pwStrength.width}`} />
               </div>
-              <span className="text-xs text-zinc-500">{pwStrength.label}</span>
+              <span className="text-xs text-zinc-400">{pwStrength.label}</span>
             </div>
           )}
         </div>

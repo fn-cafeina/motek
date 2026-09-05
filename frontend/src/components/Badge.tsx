@@ -7,7 +7,7 @@ const TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
   amber: "bg-amber-500/15 text-amber-500 border-amber-500/30",
   green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   red: "bg-red-500/15 text-red-400 border-red-500/30",
-  zinc: "bg-zinc-700/40 text-zinc-300 border-zinc-600/40",
+  zinc: "bg-zinc-800 text-zinc-400 border-zinc-700",
   blue: "bg-sky-500/15 text-sky-400 border-sky-500/30",
 }
 

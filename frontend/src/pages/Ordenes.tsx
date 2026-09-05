@@ -348,7 +348,7 @@ export function Ordenes() {
                           <button onClick={() => openDetail(o)} className="block truncate text-left font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
                             {o.descripcion}
                           </button>
-                          <div className="text-xs text-zinc-500">{formatFecha(o.fecha_recibido)}</div>
+                          <div className="text-xs text-zinc-400">{formatFecha(o.fecha_recibido)}</div>
                         </td>
                         <td className="px-3 py-2.5 text-zinc-300">{cliente?.nombre ?? `#${o.cliente_id}`}</td>
                         <td className="px-3 py-2.5 text-zinc-400">
@@ -481,7 +481,7 @@ export function Ordenes() {
                     <option key={m.id} value={m.id}>{m.marca} {m.modelo}{m.anio ? ` (${m.anio})` : ""}</option>
                   ))}
                 </select>
-                {!form.cliente_id && <p className="mt-1 text-xs text-zinc-500">Elegí un cliente para listar sus motos.</p>}
+                {!form.cliente_id && <p className="mt-1 text-xs text-zinc-400">Elegí un cliente para listar sus motos.</p>}
               </Field>
             </div>
           ) : (
@@ -572,7 +572,7 @@ export function Ordenes() {
             <div>
               <p className="mb-1.5 text-xs font-medium tracking-wide text-zinc-400">Repuestos</p>
               {repuestos.length === 0 ? (
-                <p className="py-3 text-center text-xs text-zinc-500">Sin repuestos en esta orden.</p>
+                <p className="py-3 text-center text-xs text-zinc-400">Sin repuestos en esta orden.</p>
               ) : (
                 <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
                   {repuestos.map((line) => {

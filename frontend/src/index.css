@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  --color-motek-amber: #f59e0b;
+  --color-motek-border: #27272a;
+  --color-motek-surface: #18181b;
+  --color-motek-bg: #09090b;
+}
+
+:root { color-scheme: dark; }
+
 .scrollbar-none {
   scrollbar-width: none;
 }

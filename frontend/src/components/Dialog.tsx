@@ -81,7 +81,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -91,14 +91,14 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`motek-dialog-enter w-full ${maxWidth} rounded-xl border border-zinc-800 bg-zinc-900 p-4`}
+        className={`motek-dialog-enter w-full ${maxWidth} rounded-xl border border-zinc-800 bg-zinc-900 p-4 shadow-2xl shadow-black/50 ring-1 ring-white/[0.06]`}
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
           >
             <X className="h-4 w-4" />
           </button>

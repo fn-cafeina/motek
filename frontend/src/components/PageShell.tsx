@@ -13,10 +13,10 @@ export function PageHeader({
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <h1 className="flex items-baseline gap-2 text-base font-semibold text-zinc-100">
+      <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-zinc-100">
         {title}
         {count !== undefined && count !== null && count !== "" && (
-          <span role="status" className="text-xs font-normal text-zinc-500">
+          <span role="status" className="text-xs font-normal text-zinc-400">
             {count}
           </span>
         )}
@@ -61,13 +61,13 @@ export function DataCard({
   return (
     <Card className="overflow-hidden border-zinc-800 p-0">
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
-          <Loader2 className="h-4 w-4 animate-spin" /> {loadingText}
+        <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-400">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {loadingText}
         </div>
       ) : error && empty ? (
         <div className="p-8 text-center">
           <p className="text-sm font-medium text-zinc-200">{errorTitle}</p>
-          <p className="mt-1 text-xs text-zinc-500">{error}</p>
+          <p className="mt-1 text-xs text-zinc-400">{error}</p>
           <button onClick={onRetry} className={"mt-4 " + buttonClassName("primary")}>
             <RotateCw className="h-3.5 w-3.5" /> Reintentar
           </button>
@@ -76,7 +76,7 @@ export function DataCard({
         <div className="p-8 text-center">
           {empty.icon ?? null}
           <p className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-200">{empty.title}</p>
-          {empty.description && <p className="mt-1 text-xs text-zinc-500">{empty.description}</p>}
+          {empty.description && <p className="mt-1 text-xs text-zinc-400">{empty.description}</p>}
           {empty.action && <div className="mt-4 flex justify-center">{empty.action}</div>}
         </div>
       ) : (

@@ -417,15 +417,15 @@ export function Facturas() {
 
             <div className="grid grid-cols-3 gap-2 rounded-lg border border-zinc-800 p-3 text-center">
               <div>
-                <p className="text-[11px] text-zinc-500">Mano de obra</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-400">Mano de obra</p>
                 <p className="text-sm font-medium text-zinc-100">{formatMoney(detail.subtotal_mano_obra)}</p>
               </div>
               <div>
-                <p className="text-[11px] text-zinc-500">Repuestos</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-400">Repuestos</p>
                 <p className="text-sm font-medium text-zinc-100">{formatMoney(detail.subtotal_repuestos)}</p>
               </div>
               <div>
-                <p className="text-[11px] text-zinc-500">Total</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-400">Total</p>
                 <p className="text-sm font-semibold text-amber-400">{formatMoney(detail.total)}</p>
               </div>
             </div>
@@ -445,11 +445,11 @@ export function Facturas() {
             )}
 
             {pagosLoading ? (
-              <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-500">
+              <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-400">
                 <Loader2 className="h-4 w-4 animate-spin" /> Cargando pagos...
               </div>
             ) : pagos.length === 0 ? (
-              <p className="py-3 text-center text-xs text-zinc-500">Sin pagos registrados.</p>
+              <p className="py-3 text-center text-xs text-zinc-400">Sin pagos registrados.</p>
             ) : (
               <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
                 {pagos.map((p) => (
