@@ -6,7 +6,7 @@ import { ORDEN_ESTADOS } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName, selectClassName } from "../components/inputStyles"
+import { inlineSelectClassName, inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
@@ -370,7 +370,7 @@ export function Ordenes() {
                           disabled={estadoUpdatingId === o.id}
                           aria-label={`Cambiar estado de ${o.descripcion}`}
                           aria-busy={estadoUpdatingId === o.id}
-                          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
+                          className={inlineSelectClassName()}
                         >
                           {ORDEN_ESTADOS.map((e) => (
                             <option key={e.value} value={e.value}>{e.label}</option>
@@ -427,7 +427,7 @@ export function Ordenes() {
                         disabled={estadoUpdatingId === o.id}
                         aria-label={`Cambiar estado`}
                         aria-busy={estadoUpdatingId === o.id}
-                        className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
+                        className={inlineSelectClassName()}
                       >
                         {ORDEN_ESTADOS.map((e) => (
                           <option key={e.value} value={e.value}>{e.label}</option>
