@@ -54,6 +54,7 @@ export function Ordenes() {
   const [addRepCant, setAddRepCant] = useState("1")
   const [repError, setRepError] = useState<string | null>(null)
   const [repSaving, setRepSaving] = useState(false)
+  const [estadoUpdatingId, setEstadoUpdatingId] = useState<number | null>(null)
 
   const clienteMap = useMemo(() => buildMap(clientes), [clientes])
   const motoMap = useMemo(() => buildMap(motos), [motos])
@@ -182,12 +183,18 @@ export function Ordenes() {
   }
 
   async function onChangeEstado(o: OrdenTrabajo, estado: OrdenEstado) {
+    setEstadoUpdatingId(o.id)
+    setError(null)
     try {
       await api(`/api/ordenes/${o.id}/estado`, { method: "PATCH", body: { estado } })
       toast.success("Estado actualizado")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error actualizando estado")
+      const msg = e instanceof ApiError ? e.message : "Error actualizando estado"
+      setError(msg)
+      toast.error(msg)
+    } finally {
+      setEstadoUpdatingId(null)
     }
   }
 
@@ -360,8 +367,10 @@ export function Ordenes() {
                         <select
                           value={o.estado}
                           onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
+                          disabled={estadoUpdatingId === o.id}
                           aria-label={`Cambiar estado de ${o.descripcion}`}
-                          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          aria-busy={estadoUpdatingId === o.id}
+                          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                         >
                           {ORDEN_ESTADOS.map((e) => (
                             <option key={e.value} value={e.value}>{e.label}</option>
@@ -415,8 +424,10 @@ export function Ordenes() {
                       <select
                         value={o.estado}
                         onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
+                        disabled={estadoUpdatingId === o.id}
                         aria-label={`Cambiar estado`}
-                        className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        aria-busy={estadoUpdatingId === o.id}
+                        className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500 disabled:opacity-60"
                       >
                         {ORDEN_ESTADOS.map((e) => (
                           <option key={e.value} value={e.value}>{e.label}</option>
