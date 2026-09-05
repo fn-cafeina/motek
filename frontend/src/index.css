@@ -97,5 +97,16 @@
 }
 
 .motek-toast-exit {
-  animation: motek-toast-exit 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: motek-toast-exit var(--duration-fast) var(--ease-exit) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motek-enter,
+  .motek-enter-2,
+  .motek-dialog-enter,
+  .motek-press,
+  .motek-toast-exit {
+    animation: none !important;
+    transition: none !important;
+  }
 }
