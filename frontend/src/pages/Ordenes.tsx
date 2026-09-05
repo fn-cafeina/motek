@@ -449,7 +449,7 @@ export function Ordenes() {
           </>
       </DataCard>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           {!editing ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -535,7 +535,8 @@ export function Ordenes() {
             <button
               type="button"
               onClick={() => setDialogOpen(false)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+              disabled={saving}
+              className={buttonClassName("secondary")}
             >
               Cancelar
             </button>
@@ -654,6 +655,7 @@ export function Ordenes() {
 
       <ConfirmDialog
         open={!!confirm}
+        busy={deleting}
         title="¿Eliminar orden?"
         description={confirm ? `${confirm.descripcion} será eliminada.` : undefined}
         confirmLabel="Eliminar"

@@ -363,7 +363,7 @@ export function Facturas() {
           </>
       </DataCard>
 
-      <Dialog open={createOpen} title="Nueva factura" onClose={() => setCreateOpen(false)}>
+      <Dialog open={createOpen} title="Nueva factura" onClose={() => (creating ? undefined : setCreateOpen(false))}>
         <form onSubmit={onCreate} noValidate className="space-y-3">
           {createError && (
             <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{createError}</p>
@@ -385,7 +385,8 @@ export function Facturas() {
             <button
               type="button"
               onClick={() => setCreateOpen(false)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+              disabled={creating}
+              className={buttonClassName("secondary")}
             >
               Cancelar
             </button>
@@ -511,7 +512,7 @@ export function Facturas() {
               <button
                 onClick={() => openEdit(detail)}
                 disabled={detail.estado === "cancelada"}
-                className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 disabled:opacity-50"
+                className={buttonClassName("secondary")}
               >
                 Editar notas / vencimiento
               </button>
@@ -520,7 +521,7 @@ export function Facturas() {
         )}
       </Dialog>
 
-      <Dialog open={editOpen} title="Editar factura" onClose={() => setEditOpen(false)}>
+      <Dialog open={editOpen} title="Editar factura" onClose={() => (editSaving ? undefined : setEditOpen(false))}>
         <form onSubmit={onEdit} noValidate className="space-y-3">
           {editError && (
             <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{editError}</p>
@@ -544,7 +545,7 @@ export function Facturas() {
             />
           </Field>
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setEditOpen(false)} className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700">
+            <button type="button" onClick={() => setEditOpen(false)} disabled={editSaving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
             <button
@@ -561,6 +562,7 @@ export function Facturas() {
 
       <ConfirmDialog
         open={!!cancelTarget}
+        busy={cancelSaving}
         title="¿Cancelar factura?"
         description={cancelTarget ? `La factura #${cancelTarget.id} quedará cancelada de forma irreversible.` : undefined}
         confirmLabel="Cancelar factura"

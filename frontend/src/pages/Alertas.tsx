@@ -82,10 +82,7 @@ export function Alertas() {
         title="Alertas de stock"
         count={!loading && items.length > 0 ? items.length : undefined}
         action={
-          <button
-            onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-          >
+          <button onClick={load} className={buttonClassName("secondary")}>
             <RotateCw className="h-3.5 w-3.5" /> Actualizar
           </button>
         }
@@ -171,7 +168,7 @@ export function Alertas() {
       <Dialog
         open={!!target}
         title={target ? `Surtir: ${target.nombre || target.codigo}` : "Surtir"}
-        onClose={() => setTarget(null)}
+        onClose={() => (saving ? undefined : setTarget(null))}
       >
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           <p className="text-xs text-zinc-400">
@@ -196,19 +193,10 @@ export function Alertas() {
             />
           </Field>
           <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => setTarget(null)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
-            >
+            <button type="button" onClick={() => setTarget(null)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              aria-busy={saving}
-              className={buttonClassName("primary")}
-            >
+            <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Surtir
             </button>

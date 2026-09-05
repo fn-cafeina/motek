@@ -91,6 +91,10 @@ export function Clientes() {
       setFieldError("Nombre es requerido")
       return
     }
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setFieldError("Email inválido")
+      return
+    }
     setFieldError(null)
     setSaving(true)
     const isEdit = !!editing
@@ -247,13 +251,16 @@ export function Clientes() {
           </>
       </DataCard>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           <Field label="Nombre *" id="cliente-nombre" error={fieldError ?? undefined}>
             <input
               id="cliente-nombre"
               value={form.nombre}
-              onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
+              onChange={(e) => {
+                setForm((p) => ({ ...p, nombre: e.target.value }))
+                if (fieldError) setFieldError(null)
+              }}
               required
               aria-invalid={!!fieldError}
               aria-describedby={fieldError ? "cliente-nombre-error" : undefined}
@@ -317,19 +324,10 @@ export function Clientes() {
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setDialogOpen(false)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
-            >
+            <button type="button" onClick={() => setDialogOpen(false)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              aria-busy={saving}
-              className={buttonClassName("primary")}
-            >
+            <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
@@ -341,6 +339,7 @@ export function Clientes() {
         open={!!confirm}
         title="¿Eliminar cliente?"
         description={confirm ? `${confirm.nombre} será eliminado.` : undefined}
+        busy={deleting}
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />

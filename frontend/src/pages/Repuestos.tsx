@@ -126,6 +126,21 @@ export function Repuestos() {
       setFieldError("Código es requerido")
       return
     }
+    for (const [key, val] of [
+      ["precio_compra", form.precio_compra],
+      ["precio_venta", form.precio_venta],
+      ["stock", form.stock],
+      ["stock_minimo", form.stock_minimo],
+    ] as const) {
+      if (val && Number.isNaN(Number(val))) {
+        setFieldError(`${key} debe ser un número`)
+        return
+      }
+      if (val && Number(val) < 0) {
+        setFieldError(`${key} no puede ser negativo`)
+        return
+      }
+    }
     setFieldError(null)
     setSaving(true)
     const isEdit = !!editing
@@ -367,7 +382,7 @@ export function Repuestos() {
           </>
       </DataCard>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Código *" id="rep-codigo" error={fieldError ?? undefined}>
@@ -463,19 +478,10 @@ export function Repuestos() {
             />
           </Field>
           <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setDialogOpen(false)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
-            >
+            <button type="button" onClick={() => setDialogOpen(false)} disabled={saving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              aria-busy={saving}
-              className={buttonClassName("primary")}
-            >
+            <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
@@ -513,19 +519,10 @@ export function Repuestos() {
             />
           </Field>
           <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => setStockTarget(null)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
-            >
+            <button type="button" onClick={() => setStockTarget(null)} disabled={stockSaving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={stockSaving}
-              aria-busy={stockSaving}
-              className={buttonClassName("primary")}
-            >
+            <button type="submit" disabled={stockSaving} aria-busy={stockSaving} className={buttonClassName("primary")}>
               {stockSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Ajustar
             </button>
@@ -537,6 +534,7 @@ export function Repuestos() {
         open={!!confirm}
         title="¿Eliminar repuesto?"
         description={confirm ? `${confirm.nombre || confirm.codigo} será eliminado.` : undefined}
+        busy={deleting}
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />

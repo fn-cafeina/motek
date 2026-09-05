@@ -135,7 +135,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     <>
       <button
         onClick={() => setListOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        className={buttonClassName("secondary")}
       >
         <Bike className="h-3.5 w-3.5" /> Motos
       </button>
@@ -208,7 +208,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         )}
       </Dialog>
 
-      <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Marca *" id="moto-marca" error={fieldError ?? undefined}>
@@ -288,7 +288,8 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
             <button
               type="button"
               onClick={() => setDialogOpen(false)}
-              className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-700"
+              disabled={saving}
+              className={buttonClassName("secondary")}
             >
               Cancelar
             </button>
@@ -307,6 +308,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
 
       <ConfirmDialog
         open={!!confirm}
+        busy={deleting}
         title="¿Eliminar moto?"
         description={confirm ? `${confirm.marca} ${confirm.modelo} será eliminada.` : undefined}
         onClose={() => !deleting && setConfirm(null)}
