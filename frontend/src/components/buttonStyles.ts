@@ -9,15 +9,6 @@ const VARIANTS: Record<ButtonVariant, string> = {
   ghost: `${BASE} text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:ring-amber-500 disabled:opacity-50`,
 }
 
-const ICON_SIZES = {
-  sm: "h-8 w-8",
-  md: "h-9 w-9",
-}
-
 export function buttonClassName(variant: ButtonVariant = "primary"): string {
   return VARIANTS[variant]
-}
-
-export function iconButtonClassName(size: "sm" | "md" = "sm"): string {
-  return `flex ${ICON_SIZES[size]} items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500`
 }

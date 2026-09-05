@@ -6,6 +6,27 @@ import (
 	"strconv"
 )
 
+func listMotosHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, cliente_id, marca, modelo, anio, placa, color, vin, kilometraje, creado_en FROM motos")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "error consultando motos")
+		return
+	}
+	defer rows.Close()
+
+	var motos []Moto
+	for rows.Next() {
+		var m Moto
+		if err := rows.Scan(&m.ID, &m.ClienteID, &m.Marca, &m.Modelo, &m.Anio, &m.Placa, &m.Color, &m.VIN, &m.Kilometraje, &m.CreadoEn); err != nil {
+			respondError(w, http.StatusInternalServerError, "error escaneando moto")
+			return
+		}
+		motos = append(motos, m)
+	}
+
+	respondJSON(w, http.StatusOK, motos)
+}
+
 func listMotosByClienteHandler(w http.ResponseWriter, r *http.Request) {
 	clienteID, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {

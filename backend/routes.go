@@ -25,6 +25,7 @@ func setupRoutes() http.Handler {
 	// Motos (protected)
 	mux.HandleFunc("GET /api/clientes/{id}/motos", authMiddleware(listMotosByClienteHandler))
 	mux.HandleFunc("POST /api/clientes/{id}/motos", authMiddleware(createMotoHandler))
+	mux.HandleFunc("GET /api/motos", authMiddleware(listMotosHandler))
 	mux.HandleFunc("GET /api/motos/{id}", authMiddleware(getMotoHandler))
 	mux.HandleFunc("PUT /api/motos/{id}", authMiddleware(updateMotoHandler))
 	mux.HandleFunc("DELETE /api/motos/{id}", authMiddleware(deleteMotoHandler))

@@ -63,11 +63,7 @@ export function Repuestos() {
     setLoading(true)
     setError(null)
     try {
-      const params = new URLSearchParams()
-      if (q.trim()) params.set("q", q.trim())
-      if (soloBajo) params.set("bajo_stock", "true")
-      const qs = params.toString()
-      await fetchData(qs ? `?${qs}` : "")
+      await fetchData("")
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Error cargando repuestos")
     } finally {
@@ -93,10 +89,11 @@ export function Repuestos() {
   }, [])
 
   const filtered = useMemo(() => {
-    if (soloBajo && q.trim()) {
-      return items.filter((r) => r.stock <= r.stock_minimo && [r.nombre, r.codigo].some((v) => v.toLowerCase().includes(q.trim().toLowerCase())))
-    }
-    return items
+    const term = q.trim().toLowerCase()
+    let list = items
+    if (term) list = list.filter((r) => [r.nombre, r.codigo].some((v) => v.toLowerCase().includes(term)))
+    if (soloBajo) list = list.filter((r) => r.stock <= r.stock_minimo)
+    return list
   }, [items, q, soloBajo])
 
   function openCreate() {
@@ -243,7 +240,7 @@ export function Repuestos() {
             />
           </div>
           <button
-            onClick={() => { setSoloBajo((v) => !v); void load() }}
+            onClick={() => setSoloBajo((v) => !v)}
             aria-pressed={soloBajo}
             className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
               soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"

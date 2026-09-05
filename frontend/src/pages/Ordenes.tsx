@@ -66,16 +66,10 @@ export function Ordenes() {
   async function fetchLookups() {
     const [cs, motosData] = await Promise.all([
       api<Cliente[]>("/api/clientes"),
-      loadAllMotos(),
+      api<Moto[]>("/api/motos"),
     ])
     setClientes(cs ?? [])
-    setMotos(motosData)
-  }
-
-  async function loadAllMotos(): Promise<Moto[]> {
-    const cs = await api<Cliente[]>("/api/clientes")
-    const nested = await Promise.all((cs ?? []).map((c) => api<Moto[]>(`/api/clientes/${c.id}/motos`).catch(() => [] as Moto[])))
-    return nested.flat()
+    setMotos((motosData as Moto[]) ?? [])
   }
 
   async function load() {
@@ -97,12 +91,12 @@ export function Ordenes() {
         const [ordenesData, cs, motosData] = await Promise.all([
           api<OrdenTrabajo[]>("/api/ordenes"),
           api<Cliente[]>("/api/clientes"),
-          loadAllMotos(),
+          api<Moto[]>("/api/motos"),
         ])
         if (!cancelled) {
           setOrdenes(ordenesData ?? [])
           setClientes(cs ?? [])
-          setMotos(motosData)
+          setMotos((motosData as Moto[]) ?? [])
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando órdenes")
