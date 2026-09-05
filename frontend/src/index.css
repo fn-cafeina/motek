@@ -120,6 +120,11 @@ body {
 }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
+::selection {
+  background: oklch(0.74 0.16 70 / 0.28);
+  color: oklch(0.97 0.005 70);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .motek-enter {
     animation: motek-enter 280ms cubic-bezier(0.2, 0, 0, 1) both;

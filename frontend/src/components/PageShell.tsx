@@ -50,7 +50,7 @@ export function DataCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="overflow-hidden border-zinc-800 p-0 [-webkit-overflow-scrolling:touch]">
+    <Card className="overflow-hidden border-zinc-800 p-0 shadow-[0_1px_2px_rgb(0_0_0/0.22),0_8px_24px_rgb(0_0_0/0.18)] [-webkit-overflow-scrolling:touch]">
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-xs leading-[1.5] text-zinc-400">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {loadingText}

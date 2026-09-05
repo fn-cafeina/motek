@@ -30,7 +30,7 @@ export function Td({ children, className = "" }: { children: React.ReactNode; cl
 }
 
 export function Tr({ children }: { children: React.ReactNode }) {
-  return <tr className="transition-colors hover:bg-zinc-800/40">{children}</tr>
+  return <tr className="transition-colors hover:bg-zinc-800/50">{children}</tr>
 }
 
 export function MobileList({ children }: { children: React.ReactNode }) {

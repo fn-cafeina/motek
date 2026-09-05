@@ -33,11 +33,13 @@ export function NavItem({
     <Link
       to={to}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-        active ? "bg-amber-500 font-semibold text-zinc-900" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+      className={`group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+        active
+          ? "bg-amber-500 font-semibold text-zinc-900"
+          : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
       }`}
     >
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> {label}
+      <Icon className={`h-3.5 w-3.5 shrink-0 transition-colors ${active ? "" : "text-zinc-500 group-hover:text-zinc-300"}`} aria-hidden /> {label}
     </Link>
   )
 }
