@@ -248,7 +248,7 @@ export function Facturas() {
         {error && facturas.length > 0 && <InlineError message={error} />}
 
         {!loading && facturas.length > 0 && (
-          <div className="relative sm:max-w-xs">
+          <div className="w-full sm:max-w-xs">
             <select
               value={estadoFiltro}
               onChange={(e) => {
@@ -417,7 +417,7 @@ export function Facturas() {
               <span className="text-xs text-zinc-500">Emisión: {formatFecha(detail.fecha_emision)}</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 rounded-lg border border-zinc-800 p-3 text-center">
+            <div className="grid grid-cols-1 gap-2 rounded-lg border border-zinc-800 p-3 text-center sm:grid-cols-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-400">Mano de obra</p>
                 <p className="text-sm font-medium text-zinc-100">{formatMoney(detail.subtotal_mano_obra)}</p>
@@ -500,7 +500,7 @@ export function Facturas() {
                   <button
                     type="submit"
                     disabled={pagoSaving}
-                    className="inline-flex h-[34px] items-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+                    className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50 sm:h-[36px] sm:w-auto"
                   >
                     {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
                     Pagar

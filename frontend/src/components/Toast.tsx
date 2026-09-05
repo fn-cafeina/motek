@@ -65,7 +65,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {createPortal(
         <div
           aria-live="polite"
-          className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-center gap-2 p-4 pb-[max(16px,env(safe-area-inset-bottom))] sm:items-end sm:bottom-[max(16px,env(safe-area-inset-bottom))]"
+          className="pointer-events-none fixed inset-x-0 bottom-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] z-[100] flex flex-col items-center gap-2 p-3 sm:bottom-[max(16px,env(safe-area-inset-bottom))] sm:items-end sm:p-4"
         >
           {toasts.map((t) => (
             <div

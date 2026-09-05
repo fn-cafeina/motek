@@ -289,7 +289,7 @@ export function Ordenes() {
         {error && ordenes.length > 0 && <InlineError message={error} />}
 
         {showSearch && (
-          <div className="relative sm:max-w-xs">
+          <div className="relative w-full sm:max-w-xs">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
             <select
               value={estadoFiltro}
@@ -611,7 +611,7 @@ export function Ordenes() {
               <span className="text-sm font-semibold text-zinc-100">{formatMoney(totalRepuestos)}</span>
             </div>
 
-            <form onSubmit={onAddRepuesto} noValidate className="grid gap-2 sm:grid-cols-[1fr_90px_auto]">
+            <form onSubmit={onAddRepuesto} noValidate className="grid gap-2 sm:grid-cols-[1fr_96px_auto]">
               <Field label="Repuesto" id="add-rep">
                 <select
                   id="add-rep"
@@ -640,7 +640,7 @@ export function Ordenes() {
                 <button
                   type="submit"
                   disabled={repSaving || !addRepId}
-                  className="inline-flex h-[34px] items-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50"
+                  className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50 sm:h-[36px] sm:w-auto"
                 >
                   {repSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
                   Agregar

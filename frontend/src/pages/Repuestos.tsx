@@ -254,7 +254,7 @@ export function Repuestos() {
             <button
               onClick={() => setSoloBajo((v) => !v)}
               aria-pressed={soloBajo}
-              className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+              className={`inline-flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:w-auto sm:py-1.5 ${
                 soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
               }`}
             >

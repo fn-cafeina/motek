@@ -41,14 +41,15 @@ export function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
-      <header className="sticky top-0 z-[var(--z-header)] border-b border-zinc-800 bg-zinc-950">
-        <div className="flex items-center justify-between px-4 pt-[max(10px,env(safe-area-inset-top))] pb-2.5">
-          <Link to="/" aria-label="Inicio">
+    <div className="flex min-h-dvh flex-col bg-zinc-950 text-zinc-100 antialiased">
+      <header className="sticky top-0 z-[var(--z-header)] border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80">
+        <div className="flex items-center justify-between gap-2 px-3 pt-[max(10px,env(safe-area-inset-top))] pb-2.5 sm:px-4">
+          <Link to="/" aria-label="Inicio" className="min-w-0">
             <Brand />
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="hidden text-sm text-zinc-400 sm:inline">{user?.email}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="hidden max-w-40 truncate text-xs text-zinc-400 sm:inline" title={user?.email}>{user?.email}</span>
+            <span className="max-w-28 truncate text-xs text-zinc-500 sm:hidden" title={user?.email}>{user?.email}</span>
             <button onClick={() => setConfirmLogout(true)} className={buttonClassName("secondary")}>
               Salir
             </button>
@@ -65,14 +66,14 @@ export function Layout() {
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 p-4 pb-[max(var(--shell-bottom-nav-h),env(safe-area-inset-bottom))] sm:p-5 sm:pb-5">
+        <main className="min-w-0 flex-1 px-3 pb-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pb-5 sm:pt-5">
           <PageContainer>
             <Outlet />
           </PageContainer>
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-2 pb-[max(4px,env(safe-area-inset-bottom))] pt-1.5 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-1.5 pb-[max(6px,env(safe-area-inset-bottom))] pt-1 sm:hidden">
         <div className="flex gap-1 overflow-x-auto scrollbar-none">
           {NAV.map((item) => (
             <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} compact />

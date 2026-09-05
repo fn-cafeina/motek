@@ -1,6 +1,6 @@
 type ButtonVariant = "primary" | "secondary" | "danger" | "ghost"
 
-const BASE = "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+const BASE = "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:py-1.5"
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: `${BASE} motek-press font-semibold bg-amber-500 text-zinc-900 hover:bg-amber-400 focus-visible:ring-amber-500 disabled:opacity-50`,

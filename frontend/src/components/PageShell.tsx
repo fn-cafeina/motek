@@ -14,8 +14,8 @@ export function PageHeader({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <h1 className="flex items-baseline gap-2 text-lg font-semibold tracking-tight text-zinc-100">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h1 className="flex min-w-0 flex-wrap items-baseline gap-2 text-lg font-semibold tracking-tight text-zinc-100">
         {title}
         {count !== undefined && count !== null && count !== "" && (
           <span role="status" className="text-xs font-normal text-zinc-400">
@@ -23,7 +23,7 @@ export function PageHeader({
           </span>
         )}
       </h1>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   )
 }
@@ -50,7 +50,7 @@ export function DataCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="overflow-hidden border-zinc-800 p-0">
+    <Card className="overflow-hidden border-zinc-800 p-0 [-webkit-overflow-scrolling:touch]">
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-400">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {loadingText}

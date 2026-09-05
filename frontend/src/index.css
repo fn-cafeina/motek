@@ -35,7 +35,7 @@
   --shell-sidebar-w: 12rem;
   --shell-bottom-nav-h: 76px;
   --content-max: 1120px;
-  --content-gutter: 1rem;
+  --content-gutter: 0.875rem;
 }
 
 :root { color-scheme: dark; }
