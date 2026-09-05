@@ -272,7 +272,6 @@ export function Ordenes() {
   }
 
   const totalRepuestos = useMemo(() => repuestos.reduce((acc, r) => acc + r.subtotal, 0), [repuestos])
-  const showSearch = !loading && ordenes.length > 0
 
   const disponible = (repId: string): number => {
     if (!repId) return 0
@@ -303,36 +302,50 @@ export function Ordenes() {
           onRetry={load}
           empty={
             ordenes.length === 0
-              ? {
-                  title: "Aún no hay órdenes",
-                  description: "Abrí la ficha de un cliente, elegí su moto y detallá el trabajo a realizar.",
-                  action: (
-                    <button onClick={openCreate} className={buttonClassName("primary")}>
-                      <Plus className="h-3.5 w-3.5" /> Nueva orden
-                    </button>
-                  ),
-                }
+              ? estadoFiltro
+                ? {
+                    title: "Sin resultados para ese estado",
+                    description: "Probá con otro estado o limpiá el filtro para ver todas las órdenes.",
+                    action: (
+                      <button
+                        onClick={() => {
+                          setEstadoFiltro("")
+                          void fetchOrdenes(undefined)
+                        }}
+                        className={buttonClassName("secondary")}
+                      >
+                        Limpiar filtro
+                      </button>
+                    ),
+                  }
+                : {
+                    title: "Aún no hay órdenes",
+                    description: "Abrí la ficha de un cliente, elegí su moto y detallá el trabajo a realizar.",
+                    action: (
+                      <button onClick={openCreate} className={buttonClassName("primary")}>
+                        <Plus className="h-3.5 w-3.5" /> Nueva orden
+                      </button>
+                    ),
+                  }
               : null
           }
           toolbar={
-            showSearch ? (
-              <div className="relative w-full sm:max-w-xs">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-                <select
-                  value={estadoFiltro}
-                  onChange={(e) => {
-                    setEstadoFiltro(e.target.value)
-                    void fetchOrdenes(e.target.value || undefined)
-                  }}
-                  className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-                >
-                  <option value="">Todos los estados</option>
-                  {ORDEN_ESTADOS.map((e) => (
-                    <option key={e.value} value={e.value}>{e.label}</option>
-                  ))}
-                </select>
-              </div>
-            ) : undefined
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+              <select
+                value={estadoFiltro}
+                onChange={(e) => {
+                  setEstadoFiltro(e.target.value)
+                  void fetchOrdenes(e.target.value || undefined)
+                }}
+                className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+              >
+                <option value="">Todos los estados</option>
+                {ORDEN_ESTADOS.map((e) => (
+                  <option key={e.value} value={e.value}>{e.label}</option>
+                ))}
+              </select>
+            </div>
           }
         >
           <>

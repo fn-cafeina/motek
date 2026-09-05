@@ -260,35 +260,49 @@ export function Facturas() {
           onRetry={load}
           empty={
             facturas.length === 0
-              ? {
-                  title: "Aún no hay facturas",
-                  description: "Facturá una orden entregada para liquidar mano de obra y repuestos.",
-                  action: (
-                    <button onClick={openCreate} className={buttonClassName("primary")}>
-                      <Plus className="h-3.5 w-3.5" /> Nueva factura
-                    </button>
-                  ),
-                }
+              ? estadoFiltro
+                ? {
+                    title: "Sin resultados para ese estado",
+                    description: "Probá con otro estado o limpiá el filtro.",
+                    action: (
+                      <button
+                        onClick={() => {
+                          setEstadoFiltro("")
+                          void fetchFacturas(undefined)
+                        }}
+                        className={buttonClassName("secondary")}
+                      >
+                        Limpiar filtro
+                      </button>
+                    ),
+                  }
+                : {
+                    title: "Aún no hay facturas",
+                    description: "Facturá una orden entregada para liquidar mano de obra y repuestos.",
+                    action: (
+                      <button onClick={openCreate} className={buttonClassName("primary")}>
+                        <Plus className="h-3.5 w-3.5" /> Nueva factura
+                      </button>
+                    ),
+                  }
               : null
           }
           toolbar={
-            !loading && facturas.length > 0 ? (
-              <div className="w-full sm:max-w-xs">
-                <select
-                  value={estadoFiltro}
-                  onChange={(e) => {
-                    setEstadoFiltro(e.target.value)
-                    void fetchFacturas(e.target.value || undefined)
-                  }}
-                  className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-                >
-                  <option value="">Todos los estados</option>
-                  {FACTURA_ESTADOS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-              </div>
-            ) : undefined
+            <div className="w-full sm:max-w-xs">
+              <select
+                value={estadoFiltro}
+                onChange={(e) => {
+                  setEstadoFiltro(e.target.value)
+                  void fetchFacturas(e.target.value || undefined)
+                }}
+                className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+              >
+                <option value="">Todos los estados</option>
+                {FACTURA_ESTADOS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
           }
         >
           <>
