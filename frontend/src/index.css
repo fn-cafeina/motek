@@ -5,6 +5,37 @@
   --color-motek-border: #27272a;
   --color-motek-surface: #18181b;
   --color-motek-bg: #09090b;
+  --color-bg-app: #09090b;
+  --color-bg-surface: #18181b;
+  --color-bg-surface-hover: #27272a;
+  --color-border-default: #27272a;
+  --color-border-strong: #3f3f46;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.2);
+  --shadow-3: 0 25px 50px rgb(0 0 0 / 0.5);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-8: 2rem;
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --duration-enter: 280ms;
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --z-header: 10;
+  --z-dialog: 50;
+  --z-toast: 100;
+  --shell-header-h: 44px;
+  --shell-sidebar-w: 12rem;
+  --shell-bottom-nav-h: 76px;
+  --content-max: 1120px;
+  --content-gutter: 1rem;
 }
 
 :root { color-scheme: dark; }
