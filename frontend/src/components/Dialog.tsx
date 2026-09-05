@@ -91,7 +91,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg" }
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`w-full ${maxWidth} rounded-xl border border-zinc-800 bg-zinc-900 p-4`}
+        className={`motek-dialog-enter w-full ${maxWidth} rounded-xl border border-zinc-800 bg-zinc-900 p-4`}
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-100">{title}</h2>

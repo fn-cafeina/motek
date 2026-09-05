@@ -266,13 +266,14 @@ export function Repuestos() {
         <>
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
+                <caption className="sr-only">Listado</caption>
                 <thead className="border-b border-zinc-800 text-zinc-500">
                   <tr>
-                    <th className="px-3 py-2 font-medium">Repuesto</th>
-                    <th className="px-3 py-2 font-medium">Categoría</th>
-                    <th className="px-3 py-2 text-right font-medium">P. venta</th>
-                    <th className="px-3 py-2 text-right font-medium">Stock</th>
-                    <th className="w-28 px-3 py-2 text-right font-medium"></th>
+                    <th scope="col" className="px-3 py-2 font-medium">Repuesto</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Categoría</th>
+                    <th scope="col" className="px-3 py-2 text-right font-medium">P. venta</th>
+                    <th scope="col" className="px-3 py-2 text-right font-medium">Stock</th>
+                    <th scope="col" className="w-28 px-3 py-2 text-right font-medium"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
