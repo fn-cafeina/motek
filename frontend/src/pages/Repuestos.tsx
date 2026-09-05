@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, RotateCw, Search, Trash2 } from "lucide-react"
+import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Repuesto } from "../api/types"
-import { Card } from "../components/Card"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName } from "../components/inputStyles"
+import { inputClassName, searchInputClassName } from "../components/inputStyles"
+import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { formatMoney } from "../lib/format"
@@ -201,31 +201,35 @@ export function Repuestos() {
   }
 
   const showSearch = !loading && items.length > 0
+  const empty = filtered.length === 0
+    ? {
+        title: (
+          <>
+            <PackagePlus className="h-4 w-4 text-zinc-500" /> {q || soloBajo ? "Sin resultados" : "Aún no hay repuestos"}
+          </>
+        ),
+        description: q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Agregá tu primer repuesto al inventario.",
+        action: !q && !soloBajo ? (
+          <button onClick={openCreate} className={buttonClassName("primary")}>
+            <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
+          </button>
+        ) : undefined,
+      }
+    : null
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="flex items-baseline gap-2 text-sm font-semibold text-zinc-100">
-          Repuestos
-          {!loading && items.length > 0 && (
-            <span role="status" className="text-xs font-normal text-zinc-500">
-              {filtered.length}
-            </span>
-          )}
-        </h1>
-        <button
-          onClick={openCreate}
-          className={buttonClassName("primary")}
-        >
-          <Plus className="h-3.5 w-3.5" /> Nuevo
-        </button>
-      </div>
+      <PageHeader
+        title="Repuestos"
+        count={!loading && items.length > 0 ? filtered.length : undefined}
+        action={
+          <button onClick={openCreate} className={buttonClassName("primary")}>
+            <Plus className="h-3.5 w-3.5" /> Nuevo
+          </button>
+        }
+      />
 
-      {error && items.length > 0 && (
-        <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">
-          {error}
-        </p>
-      )}
+      {error && items.length > 0 && <InlineError message={error} />}
 
       {showSearch && (
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -236,7 +240,7 @@ export function Repuestos() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar por nombre o código"
               inputMode="search"
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900 py-1.5 pl-8 pr-2.5 text-base text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:text-xs"
+              className={searchInputClassName()}
             />
           </div>
           <button
@@ -251,42 +255,15 @@ export function Repuestos() {
         </div>
       )}
 
-      <Card className="overflow-hidden border-zinc-800 p-0">
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Cargando repuestos...
-          </div>
-        ) : error && items.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-200">No se pudieron cargar los repuestos</p>
-            <p className="mt-1 text-xs text-zinc-500">{error}</p>
-            <button
-              onClick={load}
-              className={"mt-4 " + buttonClassName("primary")}
-            >
-              <RotateCw className="h-3.5 w-3.5" /> Reintentar
-            </button>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-200">
-              <PackagePlus className="h-4 w-4 text-zinc-500" />
-              {q || soloBajo ? "Sin resultados" : "Aún no hay repuestos"}
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              {q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Agregá tu primer repuesto al inventario."}
-            </p>
-            {!q && !soloBajo && (
-              <button
-                onClick={openCreate}
-                className={"mt-4 " + buttonClassName("primary")}
-              >
-                <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
+      <DataCard
+        loading={loading}
+        loadingText="Cargando repuestos..."
+        error={error}
+        errorTitle="No se pudieron cargar los repuestos"
+        onRetry={load}
+        empty={empty}
+      >
+        <>
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-zinc-800 text-zinc-500">
@@ -387,8 +364,7 @@ export function Repuestos() {
               ))}
             </ul>
           </>
-        )}
-      </Card>
+      </DataCard>
 
       <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => setDialogOpen(false)}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">

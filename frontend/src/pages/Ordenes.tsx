@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react"
-import { Loader2, PackagePlus, Pencil, Plus, RotateCw, Search, Trash2 } from "lucide-react"
+import { Loader2, PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
 import { ORDEN_ESTADOS } from "../api/types"
-import { Card } from "../components/Card"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName } from "../components/inputStyles"
+import { inputClassName, selectClassName } from "../components/inputStyles"
+import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
@@ -273,24 +273,17 @@ export function Ordenes() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="flex items-baseline gap-2 text-sm font-semibold text-zinc-100">
-          Órdenes
-          {!loading && ordenes.length > 0 && (
-            <span role="status" className="text-xs font-normal text-zinc-500">{ordenes.length}</span>
-          )}
-        </h1>
-        <button
-          onClick={openCreate}
-          className={buttonClassName("primary")}
-        >
-          <Plus className="h-3.5 w-3.5" /> Nueva
-        </button>
-      </div>
+      <PageHeader
+        title="Órdenes"
+        count={!loading && ordenes.length > 0 ? ordenes.length : undefined}
+        action={
+          <button onClick={openCreate} className={buttonClassName("primary")}>
+            <Plus className="h-3.5 w-3.5" /> Nueva
+          </button>
+        }
+      />
 
-      {error && ordenes.length > 0 && (
-        <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">{error}</p>
-      )}
+      {error && ordenes.length > 0 && <InlineError message={error} />}
 
       {showSearch && (
         <div className="relative sm:max-w-xs">
@@ -301,7 +294,7 @@ export function Ordenes() {
               setEstadoFiltro(e.target.value)
               void fetchOrdenes(e.target.value || undefined)
             }}
-            className="w-full appearance-none rounded-md border border-zinc-800 bg-zinc-900 py-1.5 pl-8 pr-3 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
           >
             <option value="">Todos los estados</option>
             {ORDEN_ESTADOS.map((e) => (
@@ -311,35 +304,27 @@ export function Ordenes() {
         </div>
       )}
 
-      <Card className="overflow-hidden border-zinc-800 p-0">
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Cargando órdenes...
-          </div>
-        ) : error && ordenes.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-200">No se pudieron cargar las órdenes</p>
-            <p className="mt-1 text-xs text-zinc-500">{error}</p>
-            <button
-              onClick={load}
-              className={"mt-4 " + buttonClassName("primary")}
-            >
-              <RotateCw className="h-3.5 w-3.5" /> Reintentar
-            </button>
-          </div>
-        ) : ordenes.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-200">Aún no hay órdenes</p>
-            <p className="mt-1 text-xs text-zinc-500">Creá tu primera orden de trabajo.</p>
-            <button
-              onClick={openCreate}
-              className={"mt-4 " + buttonClassName("primary")}
-            >
-              <Plus className="h-3.5 w-3.5" /> Nueva orden
-            </button>
-          </div>
-        ) : (
-          <>
+      <DataCard
+        loading={loading}
+        loadingText="Cargando órdenes..."
+        error={error}
+        errorTitle="No se pudieron cargar las órdenes"
+        onRetry={load}
+        empty={
+          ordenes.length === 0
+            ? {
+                title: "Aún no hay órdenes",
+                description: "Creá tu primera orden de trabajo.",
+                action: (
+                  <button onClick={openCreate} className={buttonClassName("primary")}>
+                    <Plus className="h-3.5 w-3.5" /> Nueva orden
+                  </button>
+                ),
+              }
+            : null
+        }
+      >
+        <>
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-zinc-800 text-zinc-500">
@@ -461,8 +446,7 @@ export function Ordenes() {
               })}
             </ul>
           </>
-        )}
-      </Card>
+      </DataCard>
 
       <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} onClose={() => setDialogOpen(false)}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
@@ -474,7 +458,7 @@ export function Ordenes() {
                   value={form.cliente_id}
                   onChange={(e) => setForm((p) => ({ ...p, cliente_id: e.target.value, moto_id: "" }))}
                   required
-                  className={inputClassName()}
+                  className={selectClassName()}
                 >
                   <option value="">Seleccionar cliente</option>
                   {clientes.map((c) => (
@@ -489,7 +473,7 @@ export function Ordenes() {
                   onChange={(e) => setForm((p) => ({ ...p, moto_id: e.target.value }))}
                   required
                   disabled={!form.cliente_id}
-                  className={inputClassName()}
+                  className={selectClassName()}
                 >
                   <option value="">Seleccionar moto</option>
                   {motosDeCliente.map((m) => (
@@ -630,7 +614,7 @@ export function Ordenes() {
                   id="add-rep"
                   value={addRepId}
                   onChange={(e) => setAddRepId(e.target.value)}
-                  className={inputClassName()}
+                  className={selectClassName()}
                 >
                   <option value="">Seleccionar repuesto</option>
                   {allRepuestos.map((r) => (

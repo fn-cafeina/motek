@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
-import { Banknote, Ban, Loader2, Pencil, Plus, RotateCw, Trash2 } from "lucide-react"
+import { Banknote, Ban, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Factura, OrdenTrabajo, Pago } from "../api/types"
 import { FACTURA_ESTADOS, facturaEstadoLabel, PAGO_METODOS } from "../api/types"
 import { EstadoBadge } from "../components/Badge"
-import { Card } from "../components/Card"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName } from "../components/inputStyles"
+import { inputClassName, selectClassName } from "../components/inputStyles"
+import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { formatFecha, formatMoney } from "../lib/format"
@@ -232,24 +232,17 @@ export function Facturas() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="flex items-baseline gap-2 text-sm font-semibold text-zinc-100">
-          Facturas
-          {!loading && facturas.length > 0 && (
-            <span role="status" className="text-xs font-normal text-zinc-500">{facturas.length}</span>
-          )}
-        </h1>
-        <button
-          onClick={openCreate}
-          className={buttonClassName("primary")}
-        >
-          <Plus className="h-3.5 w-3.5" /> Nueva
-        </button>
-      </div>
+      <PageHeader
+        title="Facturas"
+        count={!loading && facturas.length > 0 ? facturas.length : undefined}
+        action={
+          <button onClick={openCreate} className={buttonClassName("primary")}>
+            <Plus className="h-3.5 w-3.5" /> Nueva
+          </button>
+        }
+      />
 
-      {error && facturas.length > 0 && (
-        <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">{error}</p>
-      )}
+      {error && facturas.length > 0 && <InlineError message={error} />}
 
       {!loading && facturas.length > 0 && (
         <div className="relative sm:max-w-xs">
@@ -259,7 +252,7 @@ export function Facturas() {
               setEstadoFiltro(e.target.value)
               void fetchFacturas(e.target.value || undefined)
             }}
-            className="w-full appearance-none rounded-md border border-zinc-800 bg-zinc-900 py-1.5 px-3 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+            className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
           >
             <option value="">Todos los estados</option>
             {FACTURA_ESTADOS.map((s) => (
@@ -269,35 +262,27 @@ export function Facturas() {
         </div>
       )}
 
-      <Card className="overflow-hidden border-zinc-800 p-0">
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Cargando facturas...
-          </div>
-        ) : error && facturas.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-200">No se pudieron cargar las facturas</p>
-            <p className="mt-1 text-xs text-zinc-500">{error}</p>
-            <button
-              onClick={load}
-              className={"mt-4 " + buttonClassName("primary")}
-            >
-              <RotateCw className="h-3.5 w-3.5" /> Reintentar
-            </button>
-          </div>
-        ) : facturas.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-sm font-medium text-zinc-200">Aún no hay facturas</p>
-            <p className="mt-1 text-xs text-zinc-500">Creá una factura desde una orden de trabajo.</p>
-            <button
-              onClick={openCreate}
-              className={"mt-4 " + buttonClassName("primary")}
-            >
-              <Plus className="h-3.5 w-3.5" /> Nueva factura
-            </button>
-          </div>
-        ) : (
-          <>
+      <DataCard
+        loading={loading}
+        loadingText="Cargando facturas..."
+        error={error}
+        errorTitle="No se pudieron cargar las facturas"
+        onRetry={load}
+        empty={
+          facturas.length === 0
+            ? {
+                title: "Aún no hay facturas",
+                description: "Creá una factura desde una orden de trabajo.",
+                action: (
+                  <button onClick={openCreate} className={buttonClassName("primary")}>
+                    <Plus className="h-3.5 w-3.5" /> Nueva factura
+                  </button>
+                ),
+              }
+            : null
+        }
+      >
+        <>
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-zinc-800 text-zinc-500">
@@ -375,8 +360,7 @@ export function Facturas() {
               ))}
             </ul>
           </>
-        )}
-      </Card>
+      </DataCard>
 
       <Dialog open={createOpen} title="Nueva factura" onClose={() => setCreateOpen(false)}>
         <form onSubmit={onCreate} noValidate className="space-y-3">
@@ -388,7 +372,7 @@ export function Facturas() {
               id="fac-orden"
               value={ordenSel}
               onChange={(e) => { setOrdenSel(e.target.value); if (createError) setCreateError(null) }}
-              className={inputClassName(!!createError)}
+              className={selectClassName(!!createError)}
             >
               <option value="">Seleccionar orden</option>
               {ordenesSinFactura.map((o) => (
@@ -502,7 +486,7 @@ export function Facturas() {
                     id="pago-metodo"
                     value={pagoMetodo}
                     onChange={(e) => setPagoMetodo(e.target.value)}
-                    className={inputClassName()}
+                    className={selectClassName()}
                   >
                     {PAGO_METODOS.map((m) => (
                       <option key={m} value={m}>{m}</option>
