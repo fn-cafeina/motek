@@ -74,7 +74,46 @@
   --content-gutter: 0.875rem;
 }
 
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+  --motek-type-body: 0.8125rem;
+  --motek-type-body-lh: 1.6;
+  --motek-type-small: 0.75rem;
+  --motek-type-small-lh: 1.5;
+  --motek-type-micro: 0.6875rem;
+  --motek-type-micro-lh: 1.4;
+  --motek-type-h1: 1.375rem;
+  --motek-type-h1-lh: 1.15;
+  --motek-type-h2: 0.9375rem;
+  --motek-type-h2-lh: 1.25;
+  --motek-type-measure: 68ch;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-variant-ligatures: common-ligatures;
+  font-variant-numeric: tabular-nums;
+  font-optical-sizing: auto;
+}
+
+.motek-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.motek-prose {
+  max-width: var(--motek-type-measure);
+  text-wrap: pretty;
+}
+
+.motek-heading {
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
 
 .scrollbar-none {
   scrollbar-width: none;

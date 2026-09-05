@@ -15,10 +15,10 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <h1 className="flex min-w-0 flex-wrap items-baseline gap-2 text-lg font-semibold tracking-tight text-zinc-100">
+      <h1 className="motek-heading flex min-w-0 flex-wrap items-baseline gap-2 text-[22px] font-semibold leading-[1.15] tracking-tight text-zinc-100">
         {title}
         {count !== undefined && count !== null && count !== "" && (
-          <span role="status" className="text-xs font-normal text-zinc-400">
+          <span role="status" className="text-xs font-normal leading-[1.4] tracking-wide text-zinc-400">
             {count}
           </span>
         )}
@@ -52,13 +52,13 @@ export function DataCard({
   return (
     <Card className="overflow-hidden border-zinc-800 p-0 [-webkit-overflow-scrolling:touch]">
       {loading ? (
-        <div className="flex items-center justify-center gap-2 py-10 text-xs text-zinc-400">
+        <div className="flex items-center justify-center gap-2 py-10 text-xs leading-[1.5] text-zinc-400">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {loadingText}
         </div>
       ) : error && empty ? (
-        <div className="p-8 text-center">
-          <p className="text-sm font-medium text-zinc-200">{errorTitle}</p>
-          <p className="mt-1 text-xs text-zinc-400">{error}</p>
+        <div className="motek-prose mx-auto p-8 text-center">
+          <p className="motek-heading text-[15px] font-semibold leading-[1.25] text-zinc-200">{errorTitle}</p>
+          <p className="mt-1 text-xs leading-[1.6] text-zinc-400">{error}</p>
           <button onClick={onRetry} className={"mt-4 " + buttonClassName("primary")}>
             <RotateCw className="h-3.5 w-3.5" /> Reintentar
           </button>

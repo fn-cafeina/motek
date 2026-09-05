@@ -19,7 +19,7 @@ export function Tbody({ children }: { children: React.ReactNode }) {
 
 export function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
   return (
-    <th scope="col" className={`px-3 py-2 font-medium ${className}`}>
+    <th scope="col" className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-400 ${className}`}>
       {children}
     </th>
   )
