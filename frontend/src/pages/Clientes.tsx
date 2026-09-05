@@ -244,6 +244,8 @@ export function Clientes() {
           <Field label="Nombre *" id="cliente-nombre" error={fieldError ?? undefined}>
             <input
               id="cliente-nombre"
+              name="name"
+              autoComplete="name"
               value={form.nombre}
               onChange={(e) => {
                 setForm((p) => ({ ...p, nombre: e.target.value }))
@@ -261,6 +263,8 @@ export function Clientes() {
             <Field label="Teléfono" id="cliente-telefono">
               <input
                 id="cliente-telefono"
+                name="tel"
+                autoComplete="tel"
                 value={form.telefono}
                 inputMode="tel"
                 onChange={(e) => setForm((p) => ({ ...p, telefono: e.target.value }))}
@@ -271,7 +275,9 @@ export function Clientes() {
             <Field label="Email" id="cliente-email">
               <input
                 id="cliente-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 inputMode="email"
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
@@ -283,6 +289,8 @@ export function Clientes() {
           <Field label="Dirección" id="cliente-direccion">
             <input
               id="cliente-direccion"
+              name="street-address"
+              autoComplete="street-address"
               value={form.direccion}
               onChange={(e) => setForm((p) => ({ ...p, direccion: e.target.value }))}
               className={inputClassName()}
@@ -291,6 +299,7 @@ export function Clientes() {
           <Field label="Notas" id="cliente-notas">
             <textarea
               id="cliente-notas"
+              name="notes"
               value={form.notas}
               onChange={(e) => setForm((p) => ({ ...p, notas: e.target.value }))}
               rows={2}

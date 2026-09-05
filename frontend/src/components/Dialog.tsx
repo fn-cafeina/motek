@@ -92,11 +92,11 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", 
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby="dialog-title"
         className={`motek-dialog-enter flex max-h-[calc(100dvh-1rem)] w-full ${maxWidth} flex-col rounded-t-2xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-black/50 ring-1 ring-white/[0.06] sm:max-h-[calc(100vh-2rem)] sm:rounded-xl`}
       >
         <div className="flex items-center justify-between gap-2 border-b border-zinc-800 px-3 py-2.5 sm:px-4 sm:py-3">
-          <h2 className="motek-heading min-w-0 truncate text-[15px] font-semibold leading-[1.25] text-zinc-100">{title}</h2>
+          <h2 id="dialog-title" className="motek-heading min-w-0 truncate text-[15px] font-semibold leading-[1.25] text-zinc-100">{title}</h2>
           <button
             onClick={onClose}
             disabled={!dismissible}

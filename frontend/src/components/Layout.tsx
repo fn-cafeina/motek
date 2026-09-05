@@ -42,6 +42,9 @@ export function Layout() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-zinc-950 text-zinc-100 antialiased">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-md focus:bg-zinc-900 focus:px-3 focus:py-2 focus:text-sm focus:text-zinc-100 focus:ring-2 focus:ring-amber-500">
+        Saltar al contenido
+      </a>
       <header className="sticky top-0 z-[var(--z-header)] border-b border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80">
         <div className="flex items-center justify-between gap-2 px-3 pt-[max(10px,env(safe-area-inset-top))] pb-2.5 sm:px-4">
           <Link to="/" aria-label="Inicio" className="min-w-0">
@@ -59,21 +62,21 @@ export function Layout() {
 
       <div className="flex flex-1">
         <aside className="hidden w-[var(--shell-sidebar-w)] shrink-0 border-e border-zinc-800 sm:block">
-          <nav className="sticky top-[var(--shell-header-h)] flex flex-col gap-0.5 p-3 text-xs">
+          <nav aria-label="Principal" className="sticky top-[var(--shell-header-h)] flex flex-col gap-0.5 p-3 text-xs">
             {NAV.map((item) => (
               <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} />
             ))}
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 px-3 pb-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] pt-3 sm:px-5 sm:pb-5 sm:pt-5">
+        <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-3 pb-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] pt-3 focus:outline-none sm:px-5 sm:pb-5 sm:pt-5">
           <PageContainer>
             <Outlet />
           </PageContainer>
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-1.5 pb-[max(6px,env(safe-area-inset-bottom))] pt-1 sm:hidden">
+      <nav aria-label="Principal móvil" className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-1.5 pb-[max(6px,env(safe-area-inset-bottom))] pt-1 sm:hidden">
         <div className="flex gap-1 overflow-x-auto scrollbar-none">
           {NAV.map((item) => (
             <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} compact />
