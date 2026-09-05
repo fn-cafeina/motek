@@ -9,7 +9,7 @@ export function AuthCard({ title, children }: { title: string; children: React.R
           <p className="mt-1 text-xs text-zinc-500">Taller especializado en motocicletas</p>
         </div>
         <div className="motek-enter-2 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-          <h1 className="mb-3 text-xs font-semibold tracking-wide text-zinc-100">{title}</h1>
+          <h1 className="mb-3 text-sm font-semibold tracking-wide text-zinc-100">{title}</h1>
           {children}
         </div>
       </div>

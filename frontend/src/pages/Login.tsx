@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
+import { buttonClassName } from "../components/buttonStyles"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
 import { useToast } from "../components/toastContext"
@@ -123,7 +124,7 @@ export function Login() {
           type="submit"
           disabled={loading}
           aria-busy={loading}
-          className="motek-press inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-amber-500 py-1.5 text-xs font-semibold text-zinc-900 hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-50"
+          className={`w-full justify-center ${buttonClassName("primary")}`}
         >
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
           {loading ? "Entrando..." : "Entrar"}
