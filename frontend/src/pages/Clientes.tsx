@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Cliente } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
@@ -29,7 +29,6 @@ export function Clientes() {
   const [form, setForm] = useState<FormState>(emptyForm)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [showMore, setShowMore] = useState(false)
   const [confirm, setConfirm] = useState<Cliente | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -77,7 +76,6 @@ export function Clientes() {
     setEditing(null)
     setForm(emptyForm)
     setFieldError(null)
-    setShowMore(false)
     setDialogOpen(true)
   }
 
@@ -85,7 +83,6 @@ export function Clientes() {
     setEditing(c)
     setForm({ nombre: c.nombre, telefono: c.telefono, email: c.email, direccion: c.direccion, notas: c.notas })
     setFieldError(null)
-    setShowMore(!!(c.direccion || c.notas))
     setDialogOpen(true)
   }
 
@@ -284,36 +281,23 @@ export function Clientes() {
               />
             </Field>
           </FormGrid>
-
-          <button
-            type="button"
-            onClick={() => setShowMore((v) => !v)}
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
-          >
-            {showMore ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            {showMore ? "Menos datos" : "Más datos"}
-          </button>
-          {showMore && (
-            <div className="motek-enter space-y-3">
-              <Field label="Dirección" id="cliente-direccion">
-                <input
-                  id="cliente-direccion"
-                  value={form.direccion}
-                  onChange={(e) => setForm((p) => ({ ...p, direccion: e.target.value }))}
-                  className={inputClassName()}
-                />
-              </Field>
-              <Field label="Notas" id="cliente-notas">
-                <textarea
-                  id="cliente-notas"
-                  value={form.notas}
-                  onChange={(e) => setForm((p) => ({ ...p, notas: e.target.value }))}
-                  rows={2}
-                  className={inputClassName()}
-                />
-              </Field>
-            </div>
-          )}
+          <Field label="Dirección" id="cliente-direccion">
+            <input
+              id="cliente-direccion"
+              value={form.direccion}
+              onChange={(e) => setForm((p) => ({ ...p, direccion: e.target.value }))}
+              className={inputClassName()}
+            />
+          </Field>
+          <Field label="Notas" id="cliente-notas">
+            <textarea
+              id="cliente-notas"
+              value={form.notas}
+              onChange={(e) => setForm((p) => ({ ...p, notas: e.target.value }))}
+              rows={2}
+              className={inputClassName()}
+            />
+          </Field>
 
           <FormActions>
             <button type="button" onClick={() => setDialogOpen(false)} disabled={saving} className={buttonClassName("secondary")}>
