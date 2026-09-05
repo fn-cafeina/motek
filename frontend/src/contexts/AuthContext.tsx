@@ -9,11 +9,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("motek_token")
-    if (!token) return
+    if (!token) {
+      setLoading(false)
+      return
+    }
     api<User>("/api/auth/me")
       .then(setUser)
       .catch(() => localStorage.removeItem("motek_token"))
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    function onUnauthorized() {
+      setUser(null)
+      setLoading(false)
+    }
+    window.addEventListener("motek:unauthorized", onUnauthorized)
+    return () => window.removeEventListener("motek:unauthorized", onUnauthorized)
   }, [])
 
   async function login(email: string, password: string) {

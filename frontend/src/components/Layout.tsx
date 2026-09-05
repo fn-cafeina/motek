@@ -25,7 +25,7 @@ export function Layout() {
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
       <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950">
-        <div className="flex items-center justify-between px-4 pt-[max(10px,env(safe-area-inset-top))] pb-2.5 ps-4 pe-4">
+        <div className="flex items-center justify-between px-4 pt-[max(10px,env(safe-area-inset-top))] pb-2.5">
           <Link to="/" className="text-base font-bold tracking-tight">
             <span className="text-amber-500">Mo</span>tek
           </Link>
@@ -69,14 +69,14 @@ export function Layout() {
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-800 bg-zinc-950 px-2 pb-[max(4px,env(safe-area-inset-bottom))] pt-1.5 sm:hidden">
-        <div className="flex gap-1 overflow-x-auto">
+        <div className="flex gap-1 overflow-x-auto scrollbar-none">
           {NAV.map((item) => {
             const active = location.pathname.startsWith(item.to)
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex-1 whitespace-nowrap rounded-md px-2 py-2 text-center text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                className={`min-w-0 flex-1 whitespace-nowrap rounded-md px-2 py-2 text-center text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
                   active ? "bg-amber-500 text-zinc-900" : "text-zinc-500 hover:text-zinc-200"
                 }`}
               >

@@ -26,9 +26,11 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   })
 
-  if (res.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/register") {
+  if (res.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/register" && path !== "/api/auth/me") {
     localStorage.removeItem("motek_token")
-    if (window.location.pathname !== "/login") window.location.href = "/login"
+    if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      window.dispatchEvent(new CustomEvent("motek:unauthorized"))
+    }
     throw new ApiError(401, "No autorizado")
   }
 
