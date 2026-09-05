@@ -31,7 +31,7 @@ const emptyForm: MotoForm = {
   kilometraje: "",
 }
 
-export function MotosManager({ cliente }: { cliente: Cliente }) {
+export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; triggerClassName?: string }) {
   const toast = useToast()
   const [listOpen, setListOpen] = useState(false)
   const [motos, setMotos] = useState<Moto[]>([])
@@ -142,7 +142,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       <button
         onClick={() => setListOpen(true)}
         aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        className={`relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:h-8 sm:w-8 ${triggerClassName ?? ""}`}
       >
         <Bike className="h-3.5 w-3.5" aria-hidden />
         {motos.length > 0 && (

@@ -226,17 +226,31 @@ export function Repuestos() {
     }
   }
 
-  const showSearch = !loading && items.length > 0
+  const hasFilter = q.trim() !== "" || soloBajo
+  function clearFilters() {
+    setQ("")
+    setSoloBajo(false)
+  }
   const empty = filtered.length === 0
-    ? {
-        title: q || soloBajo ? "Sin resultados" : "Aún no hay repuestos",
-        description: q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Cargá el repuesto con código y stock para descontarlo en las órdenes.",
-        action: !q && !soloBajo ? (
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
-          </button>
-        ) : undefined,
-      }
+    ? hasFilter
+      ? {
+          title: "Sin resultados",
+          description: "Probá con otro término o limpiá los filtros.",
+          action: (
+            <button onClick={clearFilters} className={buttonClassName("secondary")}>
+              Limpiar filtros
+            </button>
+          ),
+        }
+      : {
+          title: "Aún no hay repuestos",
+          description: "Cargá el repuesto con código y stock para descontarlo en las órdenes.",
+          action: (
+            <button onClick={openCreate} className={buttonClassName("primary")}>
+              <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
+            </button>
+          ),
+        }
     : null
 
   return (
@@ -244,7 +258,7 @@ export function Repuestos() {
       <PageStack>
         <PageHeader
           title="Repuestos"
-          count={!loading && items.length > 0 ? filtered.length : undefined}
+          count={!loading && items.length > 0 ? (hasFilter ? `${filtered.length} de ${items.length}` : items.length) : undefined}
           action={
             <button onClick={openCreate} className={buttonClassName("primary")}>
               <Plus className="h-3.5 w-3.5" /> Nuevo
@@ -262,20 +276,18 @@ export function Repuestos() {
           onRetry={load}
           empty={empty}
           toolbar={
-            showSearch ? (
-              <FilterBar>
-                <SearchInput value={q} onChange={setQ} placeholder="Buscar por nombre o código" />
-                <button
-                  onClick={() => setSoloBajo((v) => !v)}
-                  aria-pressed={soloBajo}
-                  className={`inline-flex w-full items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:w-auto sm:py-1.5 ${
-                    soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
-                </button>
-              </FilterBar>
-            ) : undefined
+            <FilterBar>
+              <SearchInput value={q} onChange={setQ} placeholder="Buscar por nombre o código" />
+              <button
+                onClick={() => setSoloBajo((v) => !v)}
+                aria-pressed={soloBajo}
+                className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:w-auto sm:py-1.5 ${
+                  soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
+              </button>
+            </FilterBar>
           }
         >
           <>
@@ -335,15 +347,15 @@ export function Repuestos() {
             </Table>
             <MobileList>
               {filtered.map((r) => (
-                <li key={r.id} className="px-3 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
+                <li key={r.id} className="min-w-0 px-3 py-3">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium text-zinc-100">{r.nombre || r.codigo}</div>
                       <div className="truncate text-xs text-zinc-500">
                         {r.codigo}{r.categoria ? ` · ${r.categoria}` : ""}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <div className="text-sm font-semibold text-zinc-200">{formatMoney(r.precio_venta)}</div>
                       <div className={r.stock <= r.stock_minimo ? "text-xs font-semibold text-red-400" : "text-xs text-zinc-500"}>
                         {r.stock} / {r.stock_minimo}

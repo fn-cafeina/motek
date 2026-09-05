@@ -295,7 +295,7 @@ export function Facturas() {
                   setEstadoFiltro(e.target.value)
                   void fetchFacturas(e.target.value || undefined)
                 }}
-                className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+                className={`w-full appearance-none ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
               >
                 <option value="">Todos los estados</option>
                 {FACTURA_ESTADOS.map((s) => (
@@ -361,19 +361,19 @@ export function Facturas() {
             </Table>
             <MobileList>
               {facturas.map((f) => (
-                <li key={f.id} className="px-3 py-3">
-                  <div className="flex items-center justify-between">
+                <li key={f.id} className="min-w-0 px-3 py-3">
+                  <div className="flex min-w-0 items-center justify-between gap-3">
                     <button onClick={() => openDetail(f)} className="text-sm font-medium text-zinc-100 hover:text-amber-400">#{f.id}</button>
                     <span className="text-sm font-semibold text-zinc-100">{formatMoney(f.total)}</span>
                   </div>
                   <div className="mt-0.5 text-xs text-zinc-500">Orden #{f.orden_id} · {formatFecha(f.fecha_emision)}</div>
-                  <div className="mt-2 flex items-center justify-between">
+                  <div className="mt-2 flex items-center justify-between gap-2">
                     <EstadoBadge estado={facturaEstadoLabel(f.estado)} />
-                    <div className="flex gap-1.5">
-                      <button onClick={() => openDetail(f)} className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400"><Banknote className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => openEdit(f)} className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300"><Pencil className="h-3.5 w-3.5" /></button>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button onClick={() => openDetail(f)} aria-label="Ver pagos" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"><Banknote className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => openEdit(f)} aria-label="Editar factura" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"><Pencil className="h-3.5 w-3.5" /></button>
                       {f.estado !== "cancelada" && (
-                        <button onClick={() => setCancelTarget(f)} className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-red-400"><Ban className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => setCancelTarget(f)} aria-label="Cancelar factura" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-red-400 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"><Ban className="h-3.5 w-3.5" /></button>
                       )}
                     </div>
                   </div>

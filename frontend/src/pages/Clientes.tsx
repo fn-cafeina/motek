@@ -130,8 +130,6 @@ export function Clientes() {
     }
   }
 
-  const showSearch = !loading && (clientes.length > 0 || q.length > 0)
-
   const headerCount = !loading && clientes.length > 0 ? (q.trim() ? `${filtered.length} de ${clientes.length}` : clientes.length) : undefined
   const empty = filtered.length === 0
     ? {
@@ -167,7 +165,7 @@ export function Clientes() {
         errorTitle="No se pudieron cargar los clientes"
         onRetry={load}
         empty={empty}
-        toolbar={showSearch ? <SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" /> : undefined}
+        toolbar={<SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" />}
       >
         <>
           <Table>
@@ -211,13 +209,13 @@ export function Clientes() {
           </Table>
           <MobileList>
             {filtered.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-3">
-                <div className="min-w-0">
+              <li key={c.id} className="flex min-w-0 items-center justify-between gap-3 px-3 py-3">
+                <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
                   <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
-                  <div className="mt-2"><MotosManager cliente={c} /></div>
                 </div>
-                <div className="flex shrink-0 gap-1">
+                <div className="flex shrink-0 items-center gap-1">
+                  <MotosManager cliente={c} triggerClassName="bg-zinc-800 text-zinc-300 hover:bg-zinc-700" />
                   <button
                     onClick={() => openEdit(c)}
                     aria-label={`Editar ${c.nombre}`}

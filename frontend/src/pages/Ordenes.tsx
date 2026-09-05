@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { Loader2, PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
 import { ORDEN_ESTADOS } from "../api/types"
@@ -330,15 +330,14 @@ export function Ordenes() {
               : null
           }
           toolbar={
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+            <div className="w-full sm:max-w-xs">
               <select
                 value={estadoFiltro}
                 onChange={(e) => {
                   setEstadoFiltro(e.target.value)
                   void fetchOrdenes(e.target.value || undefined)
                 }}
-                className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+                className={`w-full appearance-none ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
               >
                 <option value="">Todos los estados</option>
                 {ORDEN_ESTADOS.map((e) => (
@@ -426,46 +425,51 @@ export function Ordenes() {
                 const moto = motoMap.get(o.moto_id)
                 const cliente = clienteMap.get(o.cliente_id)
                 return (
-                  <li key={o.id} className="px-3 py-3">
-                    <button onClick={() => openDetail(o)} title={o.descripcion} className="block text-left text-sm font-medium text-zinc-100 hover:text-amber-400">
-                      {o.descripcion}
-                    </button>
-                    <div className="mt-0.5 truncate text-xs text-zinc-500">
-                      {cliente?.nombre ?? `#${o.cliente_id}`} · {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`} · {formatMoney(o.total_mano_obra)}
+                  <li key={o.id} className="min-w-0 px-3 py-3">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <button onClick={() => openDetail(o)} title={o.descripcion} className="block w-full truncate text-left text-sm font-medium text-zinc-100 hover:text-amber-400">
+                          {o.descripcion}
+                        </button>
+                        <div className="mt-0.5 truncate text-xs text-zinc-500">
+                          {cliente?.nombre ?? `#${o.cliente_id}`} · {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`} · {formatFecha(o.fecha_recibido)}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right text-sm font-semibold text-zinc-200">{formatMoney(o.total_mano_obra)}</div>
                     </div>
-                    <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="mt-2 flex min-w-0 items-center justify-between gap-2">
                       <select
                         value={o.estado}
                         onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
                         disabled={estadoUpdatingId === o.id}
                         aria-label={`Cambiar estado`}
                         aria-busy={estadoUpdatingId === o.id}
-                        className={inlineSelectClassName()}
+                        className={`${inlineSelectClassName()} max-w-[60%] truncate`}
                       >
                         {ORDEN_ESTADOS.map((e) => (
                           <option key={e.value} value={e.value}>{e.label}</option>
                         ))}
                       </select>
-                    </div>
-                    <div className="mt-2 flex justify-end gap-1.5">
-                      <button
-                        onClick={() => openDetail(o)}
-                        className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                      >
-                        <PackagePlus className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openEdit(o)}
-                        className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setConfirm(o)}
-                        className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex shrink-0 gap-1.5">
+                        <button
+                          onClick={() => openDetail(o)}
+                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <PackagePlus className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => openEdit(o)}
+                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setConfirm(o)}
+                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </li>
                 )

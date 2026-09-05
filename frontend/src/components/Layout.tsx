@@ -77,7 +77,7 @@ export function Layout() {
       </div>
 
       <nav aria-label="Principal móvil" className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-1.5 pb-[max(6px,env(safe-area-inset-bottom))] pt-1 sm:hidden">
-        <div className="flex gap-1 overflow-x-auto scrollbar-none">
+        <div className="grid grid-cols-5 gap-1">
           {NAV.map((item) => (
             <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} compact />
           ))}
