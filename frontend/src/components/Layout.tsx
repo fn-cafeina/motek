@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Link, Outlet, useNavigate, useLocation } from "react-router"
 import { useAuth } from "../contexts/authContext"
+import { buttonClassName } from "./buttonStyles"
 import { ConfirmDialog } from "./ConfirmDialog"
 
 const NAV = [
@@ -31,10 +32,7 @@ export function Layout() {
           </Link>
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-zinc-400 sm:inline">{user?.email}</span>
-            <button
-              onClick={() => setConfirmLogout(true)}
-              className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-            >
+            <button onClick={() => setConfirmLogout(true)} className={buttonClassName("secondary")}>
               Salir
             </button>
           </div>
@@ -92,6 +90,7 @@ export function Layout() {
         title="¿Salir de Motek?"
         description={user ? `Cerrarás la sesión de ${user.email}.` : "Cerrarás tu sesión."}
         confirmLabel="Salir"
+        variant="primary"
         onConfirm={() => {
           setConfirmLogout(false)
           handleLogout()
