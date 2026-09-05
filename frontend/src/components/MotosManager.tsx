@@ -59,6 +59,11 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
   }
 
   useEffect(() => {
+    loadMotos()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cliente.id])
+
+  useEffect(() => {
     if (listOpen) loadMotos()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listOpen])
