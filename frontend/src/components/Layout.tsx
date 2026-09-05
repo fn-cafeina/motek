@@ -4,6 +4,9 @@ import { Users, ClipboardList, Package, FileText, TriangleAlert } from "lucide-r
 import { useAuth } from "../contexts/authContext"
 import { buttonClassName } from "./buttonStyles"
 import { ConfirmDialog } from "./ConfirmDialog"
+import { Brand } from "./layout/Brand"
+import { NavItem } from "./layout/NavItem"
+import { PageContainer } from "./layout/PageContainer"
 
 const NAV = [
   { to: "/clientes", label: "Clientes", icon: Users },
@@ -28,7 +31,8 @@ export function Layout() {
   const [confirmLogout, setConfirmLogout] = useState(false)
 
   useEffect(() => {
-    document.title = TITLES[location.pathname] ?? "Motek"
+    const key = "/" + location.pathname.split("/").filter(Boolean)[0]
+    document.title = TITLES[key] ?? "Motek"
   }, [location.pathname])
 
   function handleLogout() {
@@ -38,10 +42,10 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
-      <header className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-950">
+      <header className="sticky top-0 z-[var(--z-header)] border-b border-zinc-800 bg-zinc-950">
         <div className="flex items-center justify-between px-4 pt-[max(10px,env(safe-area-inset-top))] pb-2.5">
-          <Link to="/" className="text-base font-bold tracking-tight">
-            <span className="text-amber-500">Mo</span>tek
+          <Link to="/" aria-label="Inicio">
+            <Brand />
           </Link>
           <div className="flex items-center gap-2">
             <span className="hidden text-sm text-zinc-400 sm:inline">{user?.email}</span>
@@ -53,53 +57,26 @@ export function Layout() {
       </header>
 
       <div className="flex flex-1">
-        <aside className="hidden w-48 shrink-0 border-s-0 border-e border-zinc-800 sm:block">
-          <nav className="sticky top-[41px] flex flex-col gap-0.5 p-3 text-xs">
-            {NAV.map((item) => {
-              const active = location.pathname.startsWith(item.to)
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                    active
-                      ? "bg-amber-500 font-semibold text-zinc-900"
-                      : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden /> {item.label}
-                </Link>
-              )
-            })}
+        <aside className="hidden w-[var(--shell-sidebar-w)] shrink-0 border-e border-zinc-800 sm:block">
+          <nav className="sticky top-[var(--shell-header-h)] flex flex-col gap-0.5 p-3 text-xs">
+            {NAV.map((item) => (
+              <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} />
+            ))}
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 p-4 pb-[max(76px,env(safe-area-inset-bottom))] sm:p-5 sm:pb-5">
-          <Outlet />
+        <main className="min-w-0 flex-1 p-4 pb-[max(var(--shell-bottom-nav-h),env(safe-area-inset-bottom))] sm:p-5 sm:pb-5">
+          <PageContainer>
+            <Outlet />
+          </PageContainer>
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-800 bg-zinc-950 px-2 pb-[max(4px,env(safe-area-inset-bottom))] pt-1.5 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-[var(--z-header)] border-t border-zinc-800 bg-zinc-950 px-2 pb-[max(4px,env(safe-area-inset-bottom))] pt-1.5 sm:hidden">
         <div className="flex gap-1 overflow-x-auto scrollbar-none">
-          {NAV.map((item) => {
-            const active = location.pathname.startsWith(item.to)
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                aria-current={active ? "page" : undefined}
-                className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 whitespace-nowrap rounded-md px-2 py-1.5 text-center text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-                  active ? "bg-amber-500 text-zinc-900" : "text-zinc-500 hover:text-zinc-200"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden />
-                {item.label}
-              </Link>
-            )
-          })}
+          {NAV.map((item) => (
+            <NavItem key={item.to} to={item.to} label={item.label} icon={item.icon} active={location.pathname.startsWith(item.to)} compact />
+          ))}
         </div>
       </nav>
 
