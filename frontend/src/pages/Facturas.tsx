@@ -200,7 +200,11 @@ export function Facturas() {
     }
   }
 
+  const [editFactura, setEditFactura] = useState<Factura | null>(null)
+
   function openEdit(f: Factura) {
+    setEditFactura(f)
+    setDetail(f)
     setEditOpen(true)
     setEditNotas(f.notas)
     setEditVenc(f.fecha_vencimiento ? f.fecha_vencimiento.slice(0, 10) : "")
@@ -209,11 +213,12 @@ export function Facturas() {
 
   async function onEdit(e: React.FormEvent) {
     e.preventDefault()
-    if (!detail) return
+    const target = editFactura ?? detail
+    if (!target) return
     setEditSaving(true)
     setEditError(null)
     try {
-      await api(`/api/facturas/${detail.id}`, {
+      await api(`/api/facturas/${target.id}`, {
         method: "PUT",
         body: {
           notas: editNotas,
@@ -221,7 +226,7 @@ export function Facturas() {
         },
       })
       setEditOpen(false)
-      const updated = await api<Factura>(`/api/facturas/${detail.id}`)
+      const updated = await api<Factura>(`/api/facturas/${target.id}`)
       setDetail(updated)
       toast.success("Factura actualizada")
       await fetchFacturas(estadoFiltro || undefined)
