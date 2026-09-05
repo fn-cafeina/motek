@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router"
-import { Check, Eye, EyeOff, Loader2, X } from "lucide-react"
+import { Check, Eye, EyeOff, Loader2 } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
@@ -13,13 +13,8 @@ function isValidEmail(v: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 }
 
-type PwReq = { label: string; ok: boolean }
-function pwRequirements(password: string): PwReq[] {
-  return [
-    { label: "Mínimo 6 caracteres", ok: password.length >= 6 },
-    { label: "Al menos 8 para más seguridad", ok: password.length >= 8 },
-    { label: "Una letra y un número", ok: /[A-Za-z]/.test(password) && /\d/.test(password) },
-  ]
+function pwHint(password: string): { label: string; ok: boolean } {
+  return { label: "Mínimo 6 caracteres", ok: password.length >= 6 }
 }
 
 export function Register() {
@@ -73,8 +68,7 @@ export function Register() {
 
   const emailInvalid = !!fieldErrors.email
   const passInvalid = !!fieldErrors.password
-  const reqs = pwRequirements(password)
-  const showReqs = password.length > 0
+  const hint = pwHint(password)
 
   return (
     <AuthCard title="Crear cuenta">
@@ -147,19 +141,14 @@ export function Register() {
               className={inputClassName(passInvalid)}
             />
           </Field>
-          <ul id="register-pass-hint" className="mt-2 space-y-1" aria-live="polite">
-            {reqs.map((r) => (
-              <li key={r.label} className={`flex items-center gap-1.5 text-xs ${r.ok ? "text-emerald-400" : "text-zinc-500"}`}>
-                {r.ok ? <Check className="h-3 w-3 shrink-0" aria-hidden /> : <X className="h-3 w-3 shrink-0" aria-hidden />}
-                {r.label}
-              </li>
-            ))}
-          </ul>
-          {showReqs && !passInvalid && (
-            <p className="sr-only" aria-live="polite">
-              {reqs.filter((r) => r.ok).length} de {reqs.length} requisitos cumplidos
-            </p>
-          )}
+          <p
+            id="register-pass-hint"
+            className={`mt-1.5 flex items-center gap-1.5 text-xs ${hint.ok ? "text-emerald-400" : "text-zinc-500"}`}
+            aria-live="polite"
+          >
+            {hint.ok && <Check className="h-3 w-3 shrink-0" aria-hidden />}
+            {hint.label}
+          </p>
         </div>
         <button
           type="submit"
