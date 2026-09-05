@@ -402,7 +402,7 @@ export function Facturas() {
               ))}
             </select>
           </Field>
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="sticky -bottom-3 -mx-3 -mb-3 flex justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:mb-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-2">
             <button
               type="button"
               onClick={() => setCreateOpen(false)}
@@ -565,7 +565,7 @@ export function Facturas() {
               className={inputClassName()}
             />
           </Field>
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="sticky -bottom-3 -mx-3 -mb-3 flex justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:mb-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-2">
             <button type="button" onClick={() => setEditOpen(false)} disabled={editSaving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
