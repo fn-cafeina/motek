@@ -159,8 +159,6 @@ export function Clientes() {
 
       {error && clientes.length > 0 && <InlineError message={error} />}
 
-      {showSearch && <SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" />}
-
       <DataCard
         loading={loading}
         loadingText="Cargando clientes..."
@@ -168,6 +166,7 @@ export function Clientes() {
         errorTitle="No se pudieron cargar los clientes"
         onRetry={load}
         empty={empty}
+        toolbar={showSearch ? <SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" /> : undefined}
       >
         <>
           <Table>

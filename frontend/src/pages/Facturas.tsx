@@ -247,24 +247,6 @@ export function Facturas() {
 
         {error && facturas.length > 0 && <InlineError message={error} />}
 
-        {!loading && facturas.length > 0 && (
-          <div className="w-full sm:max-w-xs">
-            <select
-              value={estadoFiltro}
-              onChange={(e) => {
-                setEstadoFiltro(e.target.value)
-                void fetchFacturas(e.target.value || undefined)
-              }}
-              className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-            >
-              <option value="">Todos los estados</option>
-              {FACTURA_ESTADOS.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <DataCard
           loading={loading}
           loadingText="Cargando facturas..."
@@ -283,6 +265,25 @@ export function Facturas() {
                   ),
                 }
               : null
+          }
+          toolbar={
+            !loading && facturas.length > 0 ? (
+              <div className="w-full sm:max-w-xs">
+                <select
+                  value={estadoFiltro}
+                  onChange={(e) => {
+                    setEstadoFiltro(e.target.value)
+                    void fetchFacturas(e.target.value || undefined)
+                  }}
+                  className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+                >
+                  <option value="">Todos los estados</option>
+                  {FACTURA_ESTADOS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
+            ) : undefined
           }
         >
           <>

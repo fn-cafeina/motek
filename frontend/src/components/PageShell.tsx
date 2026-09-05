@@ -8,22 +8,27 @@ export function PageHeader({
   title,
   count,
   action,
+  eyebrow,
 }: {
   title: string
   count?: React.ReactNode
   action?: React.ReactNode
+  eyebrow?: string
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h1 className="motek-heading flex min-w-0 flex-wrap items-baseline gap-2 text-[22px] font-semibold leading-[1.15] tracking-tight text-zinc-100">
-        {title}
-        {count !== undefined && count !== null && count !== "" && (
-          <span role="status" className="text-xs font-normal leading-[1.4] tracking-wide text-zinc-400">
-            {count}
-          </span>
-        )}
-      </h1>
-      {action && <div className="shrink-0">{action}</div>}
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
+        {eyebrow && <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">{eyebrow}</p>}
+        <h1 className="motek-heading flex min-w-0 flex-wrap items-baseline gap-2 text-[22px] font-semibold leading-[1.15] tracking-tight text-zinc-100">
+          {title}
+          {count !== undefined && count !== null && count !== "" && (
+            <span role="status" className="text-xs font-normal leading-[1.4] tracking-wide text-zinc-400">
+              {count}
+            </span>
+          )}
+        </h1>
+      </div>
+      {action && <div className="shrink-0 pt-0.5">{action}</div>}
     </div>
   )
 }
@@ -39,6 +44,7 @@ export function DataCard({
   errorTitle,
   onRetry,
   empty,
+  toolbar,
   children,
 }: {
   loading: boolean
@@ -47,10 +53,12 @@ export function DataCard({
   errorTitle: string
   onRetry: () => void
   empty: EmptyStateProps | null
+  toolbar?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
     <Card className="overflow-hidden border-zinc-800 p-0 shadow-[0_1px_2px_rgb(0_0_0/0.22),0_8px_24px_rgb(0_0_0/0.18)] [-webkit-overflow-scrolling:touch]">
+      {toolbar && <div className="border-b border-zinc-800 bg-zinc-900 px-3 py-2.5 sm:px-3.5">{toolbar}</div>}
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-xs leading-[1.5] text-zinc-400">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {loadingText}

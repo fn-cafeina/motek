@@ -288,25 +288,6 @@ export function Ordenes() {
 
         {error && ordenes.length > 0 && <InlineError message={error} />}
 
-        {showSearch && (
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-            <select
-              value={estadoFiltro}
-              onChange={(e) => {
-                setEstadoFiltro(e.target.value)
-                void fetchOrdenes(e.target.value || undefined)
-              }}
-              className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-            >
-              <option value="">Todos los estados</option>
-              {ORDEN_ESTADOS.map((e) => (
-                <option key={e.value} value={e.value}>{e.label}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <DataCard
           loading={loading}
           loadingText="Cargando órdenes..."
@@ -325,6 +306,26 @@ export function Ordenes() {
                   ),
                 }
               : null
+          }
+          toolbar={
+            showSearch ? (
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+                <select
+                  value={estadoFiltro}
+                  onChange={(e) => {
+                    setEstadoFiltro(e.target.value)
+                    void fetchOrdenes(e.target.value || undefined)
+                  }}
+                  className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+                >
+                  <option value="">Todos los estados</option>
+                  {ORDEN_ESTADOS.map((e) => (
+                    <option key={e.value} value={e.value}>{e.label}</option>
+                  ))}
+                </select>
+              </div>
+            ) : undefined
           }
         >
           <>
