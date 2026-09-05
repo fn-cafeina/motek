@@ -136,9 +136,15 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     <>
       <button
         onClick={() => setListOpen(true)}
-        className={buttonClassName("secondary")}
+        aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
+        className="relative flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
       >
-        <Bike className="h-3.5 w-3.5" /> Motos
+        <Bike className="h-3.5 w-3.5" aria-hidden />
+        {motos.length > 0 && (
+          <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-[10px] font-bold leading-4 text-zinc-900">
+            {motos.length}
+          </span>
+        )}
       </button>
 
       <Dialog open={listOpen} title={`Motos de ${cliente.nombre}`} onClose={() => setListOpen(false)}>
