@@ -262,7 +262,7 @@ export function Facturas() {
             facturas.length === 0
               ? {
                   title: "Aún no hay facturas",
-                  description: "Creá una factura desde una orden de trabajo.",
+                  description: "Facturá una orden entregada para liquidar mano de obra y repuestos.",
                   action: (
                     <button onClick={openCreate} className={buttonClassName("primary")}>
                       <Plus className="h-3.5 w-3.5" /> Nueva factura

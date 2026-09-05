@@ -230,7 +230,7 @@ export function Repuestos() {
   const empty = filtered.length === 0
     ? {
         title: q || soloBajo ? "Sin resultados" : "Aún no hay repuestos",
-        description: q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Agregá tu primer repuesto al inventario.",
+        description: q || soloBajo ? "Probá con otro término o desactivá el filtro." : "Cargá el repuesto con código y stock para descontarlo en las órdenes.",
         action: !q && !soloBajo ? (
           <button onClick={openCreate} className={buttonClassName("primary")}>
             <Plus className="h-3.5 w-3.5" /> Nuevo repuesto

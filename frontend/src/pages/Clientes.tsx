@@ -135,7 +135,7 @@ export function Clientes() {
   const empty = filtered.length === 0
     ? {
         title: q ? "Sin resultados" : "Aún no hay clientes",
-        description: q ? "Probá con otro nombre o teléfono." : "Agregá tu primer cliente para registrar motos y órdenes.",
+        description: q ? "Probá con otro nombre o teléfono." : "Registrá el dueño de la moto para abrir su ficha y cargar trabajos.",
         action: !q ? (
           <button onClick={openCreate} className={buttonClassName("primary")}>
             <Plus className="h-3.5 w-3.5" /> Nuevo cliente

@@ -305,7 +305,7 @@ export function Ordenes() {
             ordenes.length === 0
               ? {
                   title: "Aún no hay órdenes",
-                  description: "Creá tu primera orden de trabajo.",
+                  description: "Abrí la ficha de un cliente, elegí su moto y detallá el trabajo a realizar.",
                   action: (
                     <button onClick={openCreate} className={buttonClassName("primary")}>
                       <Plus className="h-3.5 w-3.5" /> Nueva orden
