@@ -286,7 +286,7 @@ export function Facturas() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-500">
+                <thead className="border-b border-zinc-800 text-zinc-400">
                   <tr>
                     <th scope="col" className="px-3 py-2 font-medium">Factura</th>
                     <th scope="col" className="px-3 py-2 font-medium">Estado</th>
@@ -295,9 +295,9 @@ export function Facturas() {
                     <th scope="col" className="w-24 px-3 py-2 text-right font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-zinc-800/60">
                   {facturas.map((f) => (
-                    <tr key={f.id} className="hover:bg-zinc-800/40">
+                    <tr key={f.id} className="transition-colors hover:bg-zinc-800/40">
                       <td className="px-3 py-2.5">
                         <button onClick={() => openDetail(f)} className="font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
                           #{f.id}

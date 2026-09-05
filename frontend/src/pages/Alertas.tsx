@@ -113,7 +113,7 @@ export function Alertas() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-500">
+                <thead className="border-b border-zinc-800 text-zinc-400">
                   <tr>
                     <th scope="col" className="px-3 py-2 font-medium">Repuesto</th>
                     <th scope="col" className="px-3 py-2 text-right font-medium">Stock</th>
@@ -121,9 +121,9 @@ export function Alertas() {
                     <th scope="col" className="w-16 px-3 py-2 text-right font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-zinc-800/60">
                   {items.map((a) => (
-                    <tr key={a.id} className="hover:bg-zinc-800/40">
+                    <tr key={a.id} className="transition-colors hover:bg-zinc-800/40">
                       <td className="px-3 py-2.5">
                         <div className="font-medium text-zinc-100">{a.nombre || a.codigo}</div>
                         <div className="text-xs text-zinc-500">{a.codigo}</div>
@@ -158,7 +158,7 @@ export function Alertas() {
                   <button
                     onClick={() => { setTarget(a); setDelta(""); setFormError(null) }}
                     aria-label={`Surtir ${a.nombre || a.codigo}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10"
+                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   >
                     <PackagePlus className="h-3.5 w-3.5" />
                   </button>

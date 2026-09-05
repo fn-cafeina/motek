@@ -178,16 +178,16 @@ export function Clientes() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-500">
+                <thead className="border-b border-zinc-800 text-zinc-400">
                   <tr>
                     <th scope="col" className="px-3 py-2 font-medium">Cliente</th>
                     <th scope="col" className="px-3 py-2 font-medium">Contacto</th>
                     <th scope="col" className="w-20 px-3 py-2 text-right font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-zinc-800/60">
                   {filtered.map((c) => (
-                    <tr key={c.id} className="hover:bg-zinc-800/40">
+                    <tr key={c.id} className="transition-colors hover:bg-zinc-800/40">
                       <td className="px-3 py-2.5">
                         <div className="font-medium text-zinc-100">{c.nombre}</div>
                         {c.email && <div className="truncate text-xs text-zinc-500">{c.email}</div>}

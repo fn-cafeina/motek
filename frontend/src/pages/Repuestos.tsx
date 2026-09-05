@@ -267,7 +267,7 @@ export function Repuestos() {
             <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-500">
+                <thead className="border-b border-zinc-800 text-zinc-400">
                   <tr>
                     <th scope="col" className="px-3 py-2 font-medium">Repuesto</th>
                     <th scope="col" className="px-3 py-2 font-medium">Categoría</th>
@@ -276,9 +276,9 @@ export function Repuestos() {
                     <th scope="col" className="w-28 px-3 py-2 text-right font-medium"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-zinc-800/60">
                   {filtered.map((r) => (
-                    <tr key={r.id} className="hover:bg-zinc-800/40">
+                    <tr key={r.id} className="transition-colors hover:bg-zinc-800/40">
                       <td className="px-3 py-2.5">
                         <div className="font-medium text-zinc-100">{r.nombre || r.codigo}</div>
                         <div className="truncate text-xs text-zinc-500">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
@@ -342,21 +342,21 @@ export function Repuestos() {
                     <button
                       onClick={() => openStock(r)}
                       aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                       <PackagePlus className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => openEdit(r)}
                       aria-label={`Editar ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => setConfirm(r)}
                       aria-label={`Eliminar ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400"
+                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
