@@ -1,18 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  --color-motek-amber: #f59e0b;
-  --color-motek-border: #27272a;
-  --color-motek-surface: #18181b;
-  --color-motek-bg: #09090b;
-  --color-bg-app: #09090b;
-  --color-bg-surface: #18181b;
-  --color-bg-surface-hover: #27272a;
-  --color-border-default: #27272a;
-  --color-border-strong: #3f3f46;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted: #71717a;
+  --color-zinc-50: oklch(0.985 0.004 70);
+  --color-zinc-100: oklch(0.97 0.005 70);
+  --color-zinc-200: oklch(0.92 0.008 70);
+  --color-zinc-300: oklch(0.87 0.01 70);
+  --color-zinc-400: oklch(0.71 0.015 70);
+  --color-zinc-500: oklch(0.64 0.015 70);
+  --color-zinc-600: oklch(0.56 0.013 70);
+  --color-zinc-700: oklch(0.39 0.01 70);
+  --color-zinc-800: oklch(0.27 0.01 70);
+  --color-zinc-900: oklch(0.21 0.011 70);
+  --color-zinc-950: oklch(0.145 0.01 70);
+
+  --color-amber-50: oklch(0.975 0.03 70);
+  --color-amber-100: oklch(0.95 0.06 70);
+  --color-amber-200: oklch(0.9 0.1 70);
+  --color-amber-300: oklch(0.84 0.13 70);
+  --color-amber-400: oklch(0.79 0.15 70);
+  --color-amber-500: oklch(0.74 0.16 70);
+  --color-amber-600: oklch(0.66 0.15 70);
+  --color-amber-700: oklch(0.56 0.13 70);
+  --color-amber-800: oklch(0.47 0.1 70);
+  --color-amber-900: oklch(0.39 0.07 70);
+  --color-amber-950: oklch(0.28 0.05 70);
+
+  --color-motek-amber: oklch(0.74 0.16 70);
+  --color-motek-border: oklch(0.27 0.01 70);
+  --color-motek-surface: oklch(0.21 0.011 70);
+  --color-motek-bg: oklch(0.145 0.01 70);
+  --color-bg-app: oklch(0.145 0.01 70);
+  --color-bg-surface: oklch(0.21 0.011 70);
+  --color-bg-surface-hover: oklch(0.25 0.012 70);
+  --color-border-default: oklch(0.27 0.01 70);
+  --color-border-strong: oklch(0.32 0.012 70);
+  --color-text-primary: oklch(0.97 0.005 70);
+  --color-text-secondary: oklch(0.705 0.015 70);
+  --color-text-muted: oklch(0.62 0.012 70);
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -28,6 +52,18 @@
   --duration-enter: 280ms;
   --ease-enter: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --color-success: oklch(0.72 0.15 145);
+  --color-success-bg: oklch(0.72 0.15 145 / 0.14);
+  --color-success-border: oklch(0.72 0.15 145 / 0.28);
+  --color-danger: oklch(0.62 0.2 25);
+  --color-danger-bg: oklch(0.62 0.2 25 / 0.14);
+  --color-danger-border: oklch(0.62 0.2 25 / 0.28);
+  --color-info: oklch(0.68 0.13 235);
+  --color-info-bg: oklch(0.68 0.13 235 / 0.14);
+  --color-info-border: oklch(0.68 0.13 235 / 0.28);
+  --color-focus: oklch(0.74 0.16 70);
+  --color-focus-ring: oklch(0.74 0.16 70 / 0.5);
+
   --z-header: 10;
   --z-dialog: 50;
   --z-toast: 100;
