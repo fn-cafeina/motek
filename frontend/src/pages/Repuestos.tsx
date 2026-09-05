@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Repuesto } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName, searchInputClassName } from "../components/inputStyles"
+import { inputClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { PageStack } from "../components/layout/PageStack"
+import { FilterBar } from "../components/ui/FilterBar"
+import { SearchInput } from "../components/ui/SearchInput"
+import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { formatMoney } from "../lib/format"
@@ -233,110 +237,99 @@ export function Repuestos() {
     : null
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Repuestos"
-        count={!loading && items.length > 0 ? filtered.length : undefined}
-        action={
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nuevo
-          </button>
-        }
-      />
+    <>
+      <PageStack>
+        <PageHeader
+          title="Repuestos"
+          count={!loading && items.length > 0 ? filtered.length : undefined}
+          action={
+            <button onClick={openCreate} className={buttonClassName("primary")}>
+              <Plus className="h-3.5 w-3.5" /> Nuevo
+            </button>
+          }
+        />
 
-      {error && items.length > 0 && <InlineError message={error} />}
+        {error && items.length > 0 && <InlineError message={error} />}
 
-      {showSearch && (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar por nombre o código"
-              inputMode="search"
-              className={searchInputClassName()}
-            />
-          </div>
-          <button
-            onClick={() => setSoloBajo((v) => !v)}
-            aria-pressed={soloBajo}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
-              soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
-          </button>
-        </div>
-      )}
+        {showSearch && (
+          <FilterBar>
+            <SearchInput value={q} onChange={setQ} placeholder="Buscar por nombre o código" />
+            <button
+              onClick={() => setSoloBajo((v) => !v)}
+              aria-pressed={soloBajo}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+                soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
+            </button>
+          </FilterBar>
+        )}
 
-      <DataCard
-        loading={loading}
-        loadingText="Cargando repuestos..."
-        error={error}
-        errorTitle="No se pudieron cargar los repuestos"
-        onRetry={load}
-        empty={empty}
-      >
-        <>
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Repuesto</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Categoría</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">P. venta</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">Stock</th>
-                    <th scope="col" className="w-28 px-3 py-2 text-right font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {filtered.map((r) => (
-                    <tr key={r.id} className="transition-colors hover:bg-zinc-800/40">
-                      <td className="px-3 py-2.5">
-                        <div className="font-medium text-zinc-100">{r.nombre || r.codigo}</div>
-                        <div className="truncate text-xs text-zinc-500">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
-                      </td>
-                      <td className="px-3 py-2.5 text-zinc-400">{r.categoria || "—"}</td>
-                      <td className="px-3 py-2.5 text-right text-zinc-300">{formatMoney(r.precio_venta)}</td>
-                      <td className="px-3 py-2.5 text-right">
-                        <span className={r.stock <= r.stock_minimo ? "font-semibold text-red-400" : "text-zinc-300"}>
-                          {r.stock}
-                        </span>
-                        <span className="text-zinc-500"> / {r.stock_minimo}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openStock(r)}
-                            aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <PackagePlus className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => openEdit(r)}
-                            aria-label={`Editar ${r.nombre || r.codigo}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirm(r)}
-                            aria-label={`Eliminar ${r.nombre || r.codigo}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className="divide-y divide-zinc-800 sm:hidden">
+        <DataCard
+          loading={loading}
+          loadingText="Cargando repuestos..."
+          error={error}
+          errorTitle="No se pudieron cargar los repuestos"
+          onRetry={load}
+          empty={empty}
+        >
+          <>
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Repuesto</Th>
+                  <Th>Categoría</Th>
+                  <Th className="text-right">P. venta</Th>
+                  <Th className="text-right">Stock</Th>
+                  <Th className="w-28 text-right"></Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {filtered.map((r) => (
+                  <Tr key={r.id}>
+                    <Td>
+                      <div className="font-medium text-zinc-100">{r.nombre || r.codigo}</div>
+                      <div className="truncate text-xs text-zinc-500">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
+                    </Td>
+                    <Td className="text-zinc-400">{r.categoria || "—"}</Td>
+                    <Td className="text-right text-zinc-300">{formatMoney(r.precio_venta)}</Td>
+                    <Td className="text-right">
+                      <span className={r.stock <= r.stock_minimo ? "font-semibold text-red-400" : "text-zinc-300"}>
+                        {r.stock}
+                      </span>
+                      <span className="text-zinc-500"> / {r.stock_minimo}</span>
+                    </Td>
+                    <Td>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openStock(r)}
+                          aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <PackagePlus className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => openEdit(r)}
+                          aria-label={`Editar ${r.nombre || r.codigo}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setConfirm(r)}
+                          aria-label={`Eliminar ${r.nombre || r.codigo}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+            <MobileList>
               {filtered.map((r) => (
                 <li key={r.id} className="px-3 py-3">
                   <div className="flex items-center justify-between gap-3">
@@ -378,9 +371,10 @@ export function Repuestos() {
                   </div>
                 </li>
               ))}
-            </ul>
+            </MobileList>
           </>
-      </DataCard>
+        </DataCard>
+      </PageStack>
 
       <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
@@ -538,6 +532,6 @@ export function Repuestos() {
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />
-    </div>
+    </>
   )
 }

@@ -1,6 +1,8 @@
 import { CheckCircle2, Loader2, RotateCw } from "lucide-react"
 import { Card } from "./Card"
 import { buttonClassName } from "./buttonStyles"
+import { Alert } from "./ui/Alert"
+import { EmptyState, type EmptyStateProps } from "./ui/EmptyState"
 
 export function PageHeader({
   title,
@@ -27,18 +29,7 @@ export function PageHeader({
 }
 
 export function InlineError({ message }: { message: string }) {
-  return (
-    <p role="alert" className="rounded-md bg-red-950/50 px-3 py-2 text-xs text-red-400">
-      {message}
-    </p>
-  )
-}
-
-type EmptyProps = {
-  title: React.ReactNode
-  description?: string
-  action?: React.ReactNode
-  icon?: React.ReactNode
+  return <Alert>{message}</Alert>
 }
 
 export function DataCard({
@@ -55,7 +46,7 @@ export function DataCard({
   error: string | null
   errorTitle: string
   onRetry: () => void
-  empty: EmptyProps | null
+  empty: EmptyStateProps | null
   children: React.ReactNode
 }) {
   return (
@@ -73,12 +64,7 @@ export function DataCard({
           </button>
         </div>
       ) : empty ? (
-        <div className="p-8 text-center">
-          {empty.icon ?? null}
-          <p className="flex items-center justify-center gap-2 text-sm font-medium text-zinc-200">{empty.title}</p>
-          {empty.description && <p className="mt-1 text-xs text-zinc-400">{empty.description}</p>}
-          {empty.action && <div className="mt-4 flex justify-center">{empty.action}</div>}
-        </div>
+        <EmptyState {...empty} />
       ) : (
         children
       )}

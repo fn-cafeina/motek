@@ -9,6 +9,8 @@ import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { PageStack } from "../components/layout/PageStack"
+import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { formatFecha, formatMoney } from "../lib/format"
@@ -231,115 +233,113 @@ export function Facturas() {
   }
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Facturas"
-        count={!loading && facturas.length > 0 ? facturas.length : undefined}
-        action={
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nueva
-          </button>
-        }
-      />
+    <>
+      <PageStack>
+        <PageHeader
+          title="Facturas"
+          count={!loading && facturas.length > 0 ? facturas.length : undefined}
+          action={
+            <button onClick={openCreate} className={buttonClassName("primary")}>
+              <Plus className="h-3.5 w-3.5" /> Nueva
+            </button>
+          }
+        />
 
-      {error && facturas.length > 0 && <InlineError message={error} />}
+        {error && facturas.length > 0 && <InlineError message={error} />}
 
-      {!loading && facturas.length > 0 && (
-        <div className="relative sm:max-w-xs">
-          <select
-            value={estadoFiltro}
-            onChange={(e) => {
-              setEstadoFiltro(e.target.value)
-              void fetchFacturas(e.target.value || undefined)
-            }}
-            className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-          >
-            <option value="">Todos los estados</option>
-            {FACTURA_ESTADOS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
+        {!loading && facturas.length > 0 && (
+          <div className="relative sm:max-w-xs">
+            <select
+              value={estadoFiltro}
+              onChange={(e) => {
+                setEstadoFiltro(e.target.value)
+                void fetchFacturas(e.target.value || undefined)
+              }}
+              className={`w-full appearance-none text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+            >
+              <option value="">Todos los estados</option>
+              {FACTURA_ESTADOS.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
-      <DataCard
-        loading={loading}
-        loadingText="Cargando facturas..."
-        error={error}
-        errorTitle="No se pudieron cargar las facturas"
-        onRetry={load}
-        empty={
-          facturas.length === 0
-            ? {
-                title: "Aún no hay facturas",
-                description: "Creá una factura desde una orden de trabajo.",
-                action: (
-                  <button onClick={openCreate} className={buttonClassName("primary")}>
-                    <Plus className="h-3.5 w-3.5" /> Nueva factura
-                  </button>
-                ),
-              }
-            : null
-        }
-      >
-        <>
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Factura</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Estado</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">Total</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Emisión</th>
-                    <th scope="col" className="w-24 px-3 py-2 text-right font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {facturas.map((f) => (
-                    <tr key={f.id} className="transition-colors hover:bg-zinc-800/40">
-                      <td className="px-3 py-2.5">
-                        <button onClick={() => openDetail(f)} className="font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
-                          #{f.id}
+        <DataCard
+          loading={loading}
+          loadingText="Cargando facturas..."
+          error={error}
+          errorTitle="No se pudieron cargar las facturas"
+          onRetry={load}
+          empty={
+            facturas.length === 0
+              ? {
+                  title: "Aún no hay facturas",
+                  description: "Creá una factura desde una orden de trabajo.",
+                  action: (
+                    <button onClick={openCreate} className={buttonClassName("primary")}>
+                      <Plus className="h-3.5 w-3.5" /> Nueva factura
+                    </button>
+                  ),
+                }
+              : null
+          }
+        >
+          <>
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Factura</Th>
+                  <Th>Estado</Th>
+                  <Th className="text-right">Total</Th>
+                  <Th>Emisión</Th>
+                  <Th className="w-24 text-right"></Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {facturas.map((f) => (
+                  <Tr key={f.id}>
+                    <Td>
+                      <button onClick={() => openDetail(f)} className="font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
+                        #{f.id}
+                      </button>
+                      <div className="text-xs text-zinc-500">Orden #{f.orden_id}</div>
+                    </Td>
+                    <Td><EstadoBadge estado={facturaEstadoLabel(f.estado)} /></Td>
+                    <Td className="text-right font-semibold text-zinc-100">{formatMoney(f.total)}</Td>
+                    <Td className="text-zinc-400">{formatFecha(f.fecha_emision)}</Td>
+                    <Td>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openDetail(f)}
+                          aria-label="Ver pagos"
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <Banknote className="h-3.5 w-3.5" />
                         </button>
-                        <div className="text-xs text-zinc-500">Orden #{f.orden_id}</div>
-                      </td>
-                      <td className="px-3 py-2.5"><EstadoBadge estado={facturaEstadoLabel(f.estado)} /></td>
-                      <td className="px-3 py-2.5 text-right font-semibold text-zinc-100">{formatMoney(f.total)}</td>
-                      <td className="px-3 py-2.5 text-zinc-400">{formatFecha(f.fecha_emision)}</td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openEdit(f)}
+                          aria-label="Editar factura"
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        {f.estado !== "cancelada" && (
                           <button
-                            onClick={() => openDetail(f)}
-                            aria-label="Ver pagos"
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            onClick={() => setCancelTarget(f)}
+                            aria-label="Cancelar factura"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-red-400 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                           >
-                            <Banknote className="h-3.5 w-3.5" />
+                            <Ban className="h-3.5 w-3.5" />
                           </button>
-                          <button
-                            onClick={() => openEdit(f)}
-                            aria-label="Editar factura"
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          {f.estado !== "cancelada" && (
-                            <button
-                              onClick={() => setCancelTarget(f)}
-                              aria-label="Cancelar factura"
-                              className="flex h-8 w-8 items-center justify-center rounded-md text-red-400 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                            >
-                              <Ban className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className="divide-y divide-zinc-800 sm:hidden">
+                        )}
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+            <MobileList>
               {facturas.map((f) => (
                 <li key={f.id} className="px-3 py-3">
                   <div className="flex items-center justify-between">
@@ -359,9 +359,10 @@ export function Facturas() {
                   </div>
                 </li>
               ))}
-            </ul>
+            </MobileList>
           </>
-      </DataCard>
+        </DataCard>
+      </PageStack>
 
       <Dialog open={createOpen} title="Nueva factura" onClose={() => (creating ? undefined : setCreateOpen(false))}>
         <form onSubmit={onCreate} noValidate className="space-y-3">
@@ -569,6 +570,6 @@ export function Facturas() {
         onConfirm={onCancel}
         onClose={() => !cancelSaving && setCancelTarget(null)}
       />
-    </div>
+    </>
   )
 }

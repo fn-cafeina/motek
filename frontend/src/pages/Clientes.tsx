@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
-import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react"
+import { ChevronDown, ChevronUp, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { api, ApiError } from "../api/client"
 import type { Cliente } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
-import { inputClassName, searchInputClassName } from "../components/inputStyles"
+import { inputClassName } from "../components/inputStyles"
 import { MotosManager } from "../components/MotosManager"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { PageStack } from "../components/layout/PageStack"
+import { SearchInput } from "../components/ui/SearchInput"
+import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 
@@ -144,7 +147,8 @@ export function Clientes() {
     : null
 
   return (
-    <div className="space-y-3">
+    <>
+      <PageStack>
       <PageHeader
         title="Clientes"
         count={headerCount}
@@ -157,18 +161,7 @@ export function Clientes() {
 
       {error && clientes.length > 0 && <InlineError message={error} />}
 
-      {showSearch && (
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar cliente"
-            inputMode="search"
-            className={searchInputClassName()}
-          />
-        </div>
-      )}
+      {showSearch && <SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" />}
 
       <DataCard
         loading={loading}
@@ -179,77 +172,75 @@ export function Clientes() {
         empty={empty}
       >
         <>
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Cliente</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Contacto</th>
-                    <th scope="col" className="w-20 px-3 py-2 text-right font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {filtered.map((c) => (
-                    <tr key={c.id} className="transition-colors hover:bg-zinc-800/40">
-                      <td className="px-3 py-2.5">
-                        <div className="font-medium text-zinc-100">{c.nombre}</div>
-                        {c.email && <div className="truncate text-xs text-zinc-500">{c.email}</div>}
-                      </td>
-                      <td className="px-3 py-2.5 text-zinc-400">{c.telefono || "—"}</td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <MotosManager cliente={c} />
-                          <button
-                            onClick={() => openEdit(c)}
-                            aria-label={`Editar ${c.nombre}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirm(c)}
-                            aria-label={`Eliminar ${c.nombre}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className="divide-y divide-zinc-800 sm:hidden">
+          <Table>
+            <Thead>
+              <tr>
+                <Th>Cliente</Th>
+                <Th>Contacto</Th>
+                <Th className="w-20 text-right"></Th>
+              </tr>
+            </Thead>
+            <Tbody>
               {filtered.map((c) => (
-                <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
-                    <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
-                    <div className="mt-2"><MotosManager cliente={c} /></div>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => openEdit(c)}
-                      aria-label={`Editar ${c.nombre}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setConfirm(c)}
-                      aria-label={`Eliminar ${c.nombre}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </li>
+                <Tr key={c.id}>
+                  <Td>
+                    <div className="font-medium text-zinc-100">{c.nombre}</div>
+                    {c.email && <div className="truncate text-xs text-zinc-500">{c.email}</div>}
+                  </Td>
+                  <Td className="text-zinc-400">{c.telefono || "—"}</Td>
+                  <Td>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <MotosManager cliente={c} />
+                      <button
+                        onClick={() => openEdit(c)}
+                        aria-label={`Editar ${c.nombre}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setConfirm(c)}
+                        aria-label={`Eliminar ${c.nombre}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </Td>
+                </Tr>
               ))}
-            </ul>
-          </>
+            </Tbody>
+          </Table>
+          <MobileList>
+            {filtered.map((c) => (
+              <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
+                  <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
+                  <div className="mt-2"><MotosManager cliente={c} /></div>
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    onClick={() => openEdit(c)}
+                    aria-label={`Editar ${c.nombre}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setConfirm(c)}
+                    aria-label={`Eliminar ${c.nombre}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </MobileList>
+        </>
       </DataCard>
+      </PageStack>
 
       <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
@@ -343,6 +334,6 @@ export function Clientes() {
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />
-    </div>
+    </>
   )
 }

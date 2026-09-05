@@ -8,6 +8,8 @@ import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { PageStack } from "../components/layout/PageStack"
+import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
@@ -272,133 +274,131 @@ export function Ordenes() {
   }
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Órdenes"
-        count={!loading && ordenes.length > 0 ? ordenes.length : undefined}
-        action={
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nueva
-          </button>
-        }
-      />
+    <>
+      <PageStack>
+        <PageHeader
+          title="Órdenes"
+          count={!loading && ordenes.length > 0 ? ordenes.length : undefined}
+          action={
+            <button onClick={openCreate} className={buttonClassName("primary")}>
+              <Plus className="h-3.5 w-3.5" /> Nueva
+            </button>
+          }
+        />
 
-      {error && ordenes.length > 0 && <InlineError message={error} />}
+        {error && ordenes.length > 0 && <InlineError message={error} />}
 
-      {showSearch && (
-        <div className="relative sm:max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
-          <select
-            value={estadoFiltro}
-            onChange={(e) => {
-              setEstadoFiltro(e.target.value)
-              void fetchOrdenes(e.target.value || undefined)
-            }}
-            className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-          >
-            <option value="">Todos los estados</option>
-            {ORDEN_ESTADOS.map((e) => (
-              <option key={e.value} value={e.value}>{e.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
+        {showSearch && (
+          <div className="relative sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" />
+            <select
+              value={estadoFiltro}
+              onChange={(e) => {
+                setEstadoFiltro(e.target.value)
+                void fetchOrdenes(e.target.value || undefined)
+              }}
+              className={`w-full appearance-none pl-8 pr-3 text-xs ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
+            >
+              <option value="">Todos los estados</option>
+              {ORDEN_ESTADOS.map((e) => (
+                <option key={e.value} value={e.value}>{e.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
-      <DataCard
-        loading={loading}
-        loadingText="Cargando órdenes..."
-        error={error}
-        errorTitle="No se pudieron cargar las órdenes"
-        onRetry={load}
-        empty={
-          ordenes.length === 0
-            ? {
-                title: "Aún no hay órdenes",
-                description: "Creá tu primera orden de trabajo.",
-                action: (
-                  <button onClick={openCreate} className={buttonClassName("primary")}>
-                    <Plus className="h-3.5 w-3.5" /> Nueva orden
-                  </button>
-                ),
-              }
-            : null
-        }
-      >
-        <>
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Descripción</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Cliente</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Moto</th>
-                    <th scope="col" className="px-3 py-2 font-medium">Estado</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">M. obra</th>
-                    <th scope="col" className="w-28 px-3 py-2 text-right font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {ordenes.map((o) => {
-                    const moto = motoMap.get(o.moto_id)
-                    const cliente = clienteMap.get(o.cliente_id)
-                    return (
-                      <tr key={o.id} className="transition-colors hover:bg-zinc-800/40">
-                        <td className="max-w-[200px] px-3 py-2.5">
-                          <button onClick={() => openDetail(o)} title={o.descripcion} className="block truncate text-left font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
-                            {o.descripcion}
-                          </button>
-                          <div className="text-xs text-zinc-400">{formatFecha(o.fecha_recibido)}</div>
-                        </td>
-                        <td className="px-3 py-2.5 text-zinc-300">{cliente?.nombre ?? `#${o.cliente_id}`}</td>
-                        <td className="px-3 py-2.5 text-zinc-400">
-                          {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <select
-                            value={o.estado}
-                            onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
-                            aria-label={`Cambiar estado de ${o.descripcion}`}
-                            className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        <DataCard
+          loading={loading}
+          loadingText="Cargando órdenes..."
+          error={error}
+          errorTitle="No se pudieron cargar las órdenes"
+          onRetry={load}
+          empty={
+            ordenes.length === 0
+              ? {
+                  title: "Aún no hay órdenes",
+                  description: "Creá tu primera orden de trabajo.",
+                  action: (
+                    <button onClick={openCreate} className={buttonClassName("primary")}>
+                      <Plus className="h-3.5 w-3.5" /> Nueva orden
+                    </button>
+                  ),
+                }
+              : null
+          }
+        >
+          <>
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Descripción</Th>
+                  <Th>Cliente</Th>
+                  <Th>Moto</Th>
+                  <Th>Estado</Th>
+                  <Th className="text-right">M. obra</Th>
+                  <Th className="w-28 text-right"></Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {ordenes.map((o) => {
+                  const moto = motoMap.get(o.moto_id)
+                  const cliente = clienteMap.get(o.cliente_id)
+                  return (
+                    <Tr key={o.id}>
+                      <Td className="max-w-[200px]">
+                        <button onClick={() => openDetail(o)} title={o.descripcion} className="block truncate text-left font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
+                          {o.descripcion}
+                        </button>
+                        <div className="text-xs text-zinc-400">{formatFecha(o.fecha_recibido)}</div>
+                      </Td>
+                      <Td className="text-zinc-300">{cliente?.nombre ?? `#${o.cliente_id}`}</Td>
+                      <Td className="text-zinc-400">
+                        {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`}
+                      </Td>
+                      <Td>
+                        <select
+                          value={o.estado}
+                          onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
+                          aria-label={`Cambiar estado de ${o.descripcion}`}
+                          className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          {ORDEN_ESTADOS.map((e) => (
+                            <option key={e.value} value={e.value}>{e.label}</option>
+                          ))}
+                        </select>
+                      </Td>
+                      <Td className="text-right text-zinc-300">{formatMoney(o.total_mano_obra)}</Td>
+                      <Td>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => openDetail(o)}
+                            aria-label="Ver repuestos"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                           >
-                            {ORDEN_ESTADOS.map((e) => (
-                              <option key={e.value} value={e.value}>{e.label}</option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-zinc-300">{formatMoney(o.total_mano_obra)}</td>
-                        <td className="px-3 py-2.5">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              onClick={() => openDetail(o)}
-                              aria-label="Ver repuestos"
-                              className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                            >
-                              <PackagePlus className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => openEdit(o)}
-                              aria-label={`Editar ${o.descripcion}`}
-                              className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setConfirm(o)}
-                              aria-label={`Eliminar ${o.descripcion}`}
-                              className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <ul className="divide-y divide-zinc-800 sm:hidden">
+                            <PackagePlus className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEdit(o)}
+                            aria-label={`Editar ${o.descripcion}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setConfirm(o)}
+                            aria-label={`Eliminar ${o.descripcion}`}
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </Td>
+                    </Tr>
+                  )
+                })}
+              </Tbody>
+            </Table>
+            <MobileList>
               {ordenes.map((o) => {
                 const moto = motoMap.get(o.moto_id)
                 const cliente = clienteMap.get(o.cliente_id)
@@ -445,9 +445,10 @@ export function Ordenes() {
                   </li>
                 )
               })}
-            </ul>
+            </MobileList>
           </>
-      </DataCard>
+        </DataCard>
+      </PageStack>
 
       <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} onClose={() => (saving ? undefined : setDialogOpen(false))}>
         <form onSubmit={onSubmit} noValidate className="space-y-3">
@@ -662,6 +663,6 @@ export function Ordenes() {
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />
-    </div>
+    </>
   )
 }

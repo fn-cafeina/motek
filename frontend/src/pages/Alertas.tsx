@@ -6,6 +6,8 @@ import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { DataCard, EmptyCheckIcon, InlineError, PageHeader } from "../components/PageShell"
+import { PageStack } from "../components/layout/PageStack"
+import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 
@@ -77,73 +79,71 @@ export function Alertas() {
   }
 
   return (
-    <div className="space-y-3">
-      <PageHeader
-        title="Alertas de stock"
-        count={!loading && items.length > 0 ? items.length : undefined}
-        action={
-          <button onClick={load} className={buttonClassName("secondary")}>
-            <RotateCw className="h-3.5 w-3.5" /> Actualizar
-          </button>
-        }
-      />
+    <>
+      <PageStack>
+        <PageHeader
+          title="Alertas de stock"
+          count={!loading && items.length > 0 ? items.length : undefined}
+          action={
+            <button onClick={load} className={buttonClassName("secondary")}>
+              <RotateCw className="h-3.5 w-3.5" /> Actualizar
+            </button>
+          }
+        />
 
-      {error && items.length > 0 && <InlineError message={error} />}
+        {error && items.length > 0 && <InlineError message={error} />}
 
-      <DataCard
-        loading={loading}
-        loadingText="Cargando alertas..."
-        error={error}
-        errorTitle="No se pudieron cargar las alertas"
-        onRetry={load}
-        empty={
-          items.length === 0
-            ? {
-                title: "Todo en stock",
-                description: "No hay repuestos por debajo del mínimo.",
-                icon: <EmptyCheckIcon />,
-              }
-            : null
-        }
-      >
-        <>
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <caption className="sr-only">Listado</caption>
-                <thead className="border-b border-zinc-800 text-zinc-400">
-                  <tr>
-                    <th scope="col" className="px-3 py-2 font-medium">Repuesto</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">Stock</th>
-                    <th scope="col" className="px-3 py-2 text-right font-medium">Mínimo</th>
-                    <th scope="col" className="w-16 px-3 py-2 text-right font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800/60">
-                  {items.map((a) => (
-                    <tr key={a.id} className="transition-colors hover:bg-zinc-800/40">
-                      <td className="px-3 py-2.5">
-                        <div className="font-medium text-zinc-100">{a.nombre || a.codigo}</div>
-                        <div className="text-xs text-zinc-500">{a.codigo}</div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-semibold text-red-400">{a.stock}</td>
-                      <td className="px-3 py-2.5 text-right text-zinc-400">{a.stock_minimo}</td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => { setTarget(a); setDelta(""); setFormError(null) }}
-                            aria-label={`Surtir ${a.nombre || a.codigo}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <PackagePlus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <ul className="divide-y divide-zinc-800 sm:hidden">
+        <DataCard
+          loading={loading}
+          loadingText="Cargando alertas..."
+          error={error}
+          errorTitle="No se pudieron cargar las alertas"
+          onRetry={load}
+          empty={
+            items.length === 0
+              ? {
+                  title: "Todo en stock",
+                  description: "No hay repuestos por debajo del mínimo.",
+                  icon: <EmptyCheckIcon />,
+                }
+              : null
+          }
+        >
+          <>
+            <Table>
+              <Thead>
+                <tr>
+                  <Th>Repuesto</Th>
+                  <Th className="text-right">Stock</Th>
+                  <Th className="text-right">Mínimo</Th>
+                  <Th className="w-16 text-right"></Th>
+                </tr>
+              </Thead>
+              <Tbody>
+                {items.map((a) => (
+                  <Tr key={a.id}>
+                    <Td>
+                      <div className="font-medium text-zinc-100">{a.nombre || a.codigo}</div>
+                      <div className="text-xs text-zinc-500">{a.codigo}</div>
+                    </Td>
+                    <Td className="text-right font-semibold text-red-400">{a.stock}</Td>
+                    <Td className="text-right text-zinc-400">{a.stock_minimo}</Td>
+                    <Td>
+                      <div className="flex justify-end">
+                        <button
+                          onClick={() => { setTarget(a); setDelta(""); setFormError(null) }}
+                          aria-label={`Surtir ${a.nombre || a.codigo}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        >
+                          <PackagePlus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+            <MobileList>
               {items.map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-3 px-3 py-3">
                   <div className="min-w-0">
@@ -161,9 +161,10 @@ export function Alertas() {
                   </button>
                 </li>
               ))}
-            </ul>
+            </MobileList>
           </>
-      </DataCard>
+        </DataCard>
+      </PageStack>
 
       <Dialog
         open={!!target}
@@ -203,6 +204,6 @@ export function Alertas() {
           </div>
         </form>
       </Dialog>
-    </div>
+    </>
   )
 }
