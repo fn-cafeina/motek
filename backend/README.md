@@ -7,10 +7,10 @@ API para taller mecánico (Go `net/http` + MySQL + JWT).
 ```bash
 cp .env.example .env   # completar DB_* y JWT_SECRET
 # CREATE DATABASE motek;
-go build . && ./motek  # http://localhost:8080
+go run ./cmd/motek     # http://localhost:8080
 ```
 
-Migraciones se ejecutan al arrancar. `SERVER_PORT` en `.env` no se usa (hardcoded `8080` en `main.go`).
+Migraciones se ejecutan al arrancar. `JWT_SECRET` es requerido.
 
 ## Tests
 
@@ -19,7 +19,7 @@ go test ./...
 go vet ./...
 ```
 
-Requiere `motek_test` con credenciales de `.env`. 41 tests, `go vet` limpio.
+Requiere `motek_test` con credenciales de `.env`. Tests route-level (`internal/api`) contra el router real con token.
 
 ## Autenticación
 
@@ -44,7 +44,7 @@ Todos los endpoints bajo `/api/*` requieren token, excepto `POST /api/auth/regis
 `GET /api/clientes`, `POST /api/clientes` (`nombre!`), `GET/PUT/DELETE /api/clientes/{id}`
 
 ### Motos
-`GET/POST /api/clientes/{id}/motos` (`marca!`), `GET/PUT/DELETE /api/motos/{id}`
+`GET /api/motos`, `GET/POST /api/clientes/{id}/motos` (`marca!`), `GET/PUT/DELETE /api/motos/{id}`
 
 ### Órdenes
 `GET /api/ordenes?estado=` (filtro), `POST /api/ordenes` (`cliente_id!`, `moto_id!`, `descripcion!`), `GET/PUT/DELETE /api/ordenes/{id}`, `PATCH /api/ordenes/{id}/estado` (`recibido|en_progreso|esperando_repuestos|terminado|entregado`)
@@ -55,15 +55,18 @@ Todos los endpoints bajo `/api/*` requieren token, excepto `POST /api/auth/regis
 ### Facturación
 `GET /api/facturas?estado=`, `POST /api/facturas` (`orden_id!` → totales server-side), `GET/PUT /api/facturas/{id}`, `PATCH /api/facturas/{id}/cancelar`, `GET/POST/DELETE /api/facturas/{id}/pagos[/{pid}]` (estados `pendiente|parcial|pagada|cancelada`)
 
-Errores: `{"error":"mensaje"}` en español. `DELETE` → `204`.
+Errores: `{"error":"mensaje"}` en español. Listas vacías → `[]`. `DELETE` → `204` sin body.
 
 ## Estructura
 
 ```
 backend/
-├── main.go, db.go, models.go, routes.go, middleware.go, token.go
-├── handlers*.go
-├── *_test.go
+├── cmd/motek/main.go          # wiring + graceful shutdown
+├── internal/
+│   ├── config/                # Config desde env
+│   ├── store/                 # SQL por dominio + migrate + modelos
+│   ├── auth/                  # JWT + bcrypt
+│   └── api/                   # Server, rutas, middleware, handlers
 ├── .env.example
 └── .gitignore
 ```

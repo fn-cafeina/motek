@@ -1,45 +1,8 @@
-package main
+package store
 
-import (
-	"database/sql"
-	"fmt"
-	"os"
+import "fmt"
 
-	_ "github.com/go-sql-driver/mysql"
-)
-
-var db *sql.DB
-
-func initDB() error {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-	)
-
-	var err error
-	db, err = sql.Open("mysql", dsn)
-	if err != nil {
-		return fmt.Errorf("error opening database: %w", err)
-	}
-
-	if err = db.Ping(); err != nil {
-		return fmt.Errorf("error connecting to database: %w", err)
-	}
-
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(5)
-
-	if err = migrate(); err != nil {
-		return fmt.Errorf("error running migrations: %w", err)
-	}
-
-	return nil
-}
-
-func migrate() error {
+func (s *Store) Migrate() error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS users (
 			id INT AUTO_INCREMENT PRIMARY KEY,
@@ -136,7 +99,7 @@ func migrate() error {
 	}
 
 	for _, q := range queries {
-		if _, err := db.Exec(q); err != nil {
+		if _, err := s.DB.Exec(q); err != nil {
 			return fmt.Errorf("error executing migration: %w", err)
 		}
 	}

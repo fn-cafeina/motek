@@ -1,4 +1,4 @@
-package main
+package store
 
 import "time"
 
@@ -47,15 +47,6 @@ type OrdenTrabajo struct {
 	ActualizadoEn time.Time  `json:"actualizado_en"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginResponse struct {
-	Token string `json:"token"`
-}
-
 type Repuesto struct {
 	ID            int64     `json:"id"`
 	Codigo        string    `json:"codigo"`
@@ -72,12 +63,12 @@ type Repuesto struct {
 }
 
 type OrdenRepuesto struct {
-	ID            int64 `json:"id"`
-	OrdenID       int64 `json:"orden_id"`
-	RepuestoID    int64 `json:"repuesto_id"`
-	Cantidad      int   `json:"cantidad"`
+	ID             int64 `json:"id"`
+	OrdenID        int64 `json:"orden_id"`
+	RepuestoID     int64 `json:"repuesto_id"`
+	Cantidad       int   `json:"cantidad"`
 	PrecioUnitario int64 `json:"precio_unitario"`
-	Subtotal      int64 `json:"subtotal"`
+	Subtotal       int64 `json:"subtotal"`
 }
 
 type Factura struct {
@@ -102,4 +93,12 @@ type Pago struct {
 	Fecha     time.Time `json:"fecha"`
 	Notas     string    `json:"notas"`
 	CreadoEn  time.Time `json:"creado_en"`
+}
+
+type AlertaStock struct {
+	ID          int64  `json:"id"`
+	Codigo      string `json:"codigo"`
+	Nombre      string `json:"nombre"`
+	Stock       int    `json:"stock"`
+	StockMinimo int    `json:"stock_minimo"`
 }
