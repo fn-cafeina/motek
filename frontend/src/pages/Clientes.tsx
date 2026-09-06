@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react"
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { useMemo, useState } from "react"
+import { Loader2, Plus } from "lucide-react"
+import { api } from "../api/client"
 import type { Cliente } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
@@ -11,61 +11,28 @@ import { MotosManager } from "../components/MotosManager"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { SearchInput } from "../components/ui/SearchInput"
+import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
-import { isValidEmail } from "../lib/validate"
+import { useCollection } from "../hooks/useCollection"
+import { getErrorMessage } from "../lib/errors"
+import { isValidEmail, required } from "../lib/validate"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
 
 export function Clientes() {
   const toast = useToast()
-  const [clientes, setClientes] = useState<Cliente[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { items: clientes, loading, error, setError, load } = useCollection<Cliente>("/api/clientes", "Error cargando clientes")
   const [q, setQ] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Cliente | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ nombre?: string; email?: string }>({})
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Cliente | null>(null)
   const [deleting, setDeleting] = useState(false)
-
-  async function fetchClientes() {
-    const data = await api<Cliente[]>("/api/clientes")
-    setClientes(data ?? [])
-  }
-
-  async function load() {
-    setLoading(true)
-    setError(null)
-    try {
-      await fetchClientes()
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando clientes")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await api<Cliente[]>("/api/clientes")
-        if (!cancelled) setClientes(data ?? [])
-      } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando clientes")
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -76,28 +43,25 @@ export function Clientes() {
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
-    setFieldError(null)
+    setFieldErrors({})
     setDialogOpen(true)
   }
 
   function openEdit(c: Cliente) {
     setEditing(c)
     setForm({ nombre: c.nombre, telefono: c.telefono, email: c.email, direccion: c.direccion, notas: c.notas })
-    setFieldError(null)
+    setFieldErrors({})
     setDialogOpen(true)
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.nombre.trim()) {
-      setFieldError("Nombre es requerido")
-      return
-    }
-    if (form.email && !isValidEmail(form.email)) {
-      setFieldError("Email inválido")
-      return
-    }
-    setFieldError(null)
+    const next: typeof fieldErrors = {}
+    const nombreError = required(form.nombre, "Nombre es requerido")
+    if (nombreError) next.nombre = nombreError
+    if (form.email && !isValidEmail(form.email)) next.email = "Email inválido"
+    setFieldErrors(next)
+    if (next.nombre || next.email) return
     setSaving(true)
     const isEdit = !!editing
     try {
@@ -109,7 +73,7 @@ export function Clientes() {
       toast.success(isEdit ? "Cliente actualizado" : "Cliente creado")
       await load()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error guardando cliente")
+      setFieldErrors({ nombre: getErrorMessage(e, "Error guardando cliente") })
     } finally {
       setSaving(false)
     }
@@ -124,7 +88,7 @@ export function Clientes() {
       toast.success("Cliente eliminado")
       await load()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error eliminando cliente")
+      setError(getErrorMessage(e, "Error eliminando cliente"))
     } finally {
       setDeleting(false)
     }
@@ -151,7 +115,7 @@ export function Clientes() {
         count={headerCount}
         action={
           <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nuevo
+            <Plus className="h-3.5 w-3.5" /> Nuevo cliente
           </button>
         }
       />
@@ -173,7 +137,7 @@ export function Clientes() {
               <tr>
                 <Th>Cliente</Th>
                 <Th>Contacto</Th>
-                <Th className="w-20 text-right"></Th>
+                <Th className="w-28 text-right"><span className="sr-only">Acciones</span></Th>
               </tr>
             </Thead>
             <Tbody>
@@ -185,23 +149,13 @@ export function Clientes() {
                   </Td>
                   <Td className="text-zinc-400">{c.telefono || "—"}</Td>
                   <Td>
-                    <div className="flex items-center justify-end gap-1.5">
-                      <MotosManager cliente={c} />
-                      <button
-                        onClick={() => openEdit(c)}
-                        aria-label={`Editar ${c.nombre}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setConfirm(c)}
-                        aria-label={`Eliminar ${c.nombre}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                    <RowActions
+                      extra={<MotosManager cliente={c} />}
+                      onEdit={() => openEdit(c)}
+                      editLabel={`Editar ${c.nombre}`}
+                      onDelete={() => setConfirm(c)}
+                      deleteLabel={`Eliminar ${c.nombre}`}
+                    />
                   </Td>
                 </Tr>
               ))}
@@ -214,23 +168,14 @@ export function Clientes() {
                   <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
                   <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <MotosManager cliente={c} triggerClassName="bg-zinc-800 text-zinc-300 hover:bg-zinc-700" />
-                  <button
-                    onClick={() => openEdit(c)}
-                    aria-label={`Editar ${c.nombre}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setConfirm(c)}
-                    aria-label={`Eliminar ${c.nombre}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <RowActions
+                  variant="card"
+                  extra={<MotosManager cliente={c} />}
+                  onEdit={() => openEdit(c)}
+                  editLabel={`Editar ${c.nombre}`}
+                  onDelete={() => setConfirm(c)}
+                  deleteLabel={`Eliminar ${c.nombre}`}
+                />
               </li>
             ))}
           </MobileList>
@@ -240,7 +185,7 @@ export function Clientes() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          <Field label="Nombre *" id="cliente-nombre" error={fieldError ?? undefined}>
+          <Field label="Nombre *" id="cliente-nombre" error={fieldErrors.nombre}>
             <input
               id="cliente-nombre"
               name="name"
@@ -248,14 +193,13 @@ export function Clientes() {
               value={form.nombre}
               onChange={(e) => {
                 setForm((p) => ({ ...p, nombre: e.target.value }))
-                if (fieldError) setFieldError(null)
+                if (fieldErrors.nombre) setFieldErrors((p) => ({ ...p, nombre: undefined }))
               }}
               required
-              aria-invalid={!!fieldError}
-              aria-describedby={fieldError ? "cliente-nombre-error" : undefined}
-              className={inputClassName(!!fieldError)}
+              aria-invalid={!!fieldErrors.nombre}
+              aria-describedby={fieldErrors.nombre ? "cliente-nombre-error" : undefined}
+              className={inputClassName(!!fieldErrors.nombre)}
               placeholder="Juan Pérez"
-              autoFocus
             />
           </Field>
           <FormGrid>
@@ -271,7 +215,7 @@ export function Clientes() {
                 placeholder="11 5555-0000"
               />
             </Field>
-            <Field label="Email" id="cliente-email">
+            <Field label="Email" id="cliente-email" error={fieldErrors.email}>
               <input
                 id="cliente-email"
                 name="email"
@@ -279,8 +223,13 @@ export function Clientes() {
                 autoComplete="email"
                 inputMode="email"
                 value={form.email}
-                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, email: e.target.value }))
+                  if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.email}
+                aria-describedby={fieldErrors.email ? "cliente-email-error" : undefined}
+                className={inputClassName(!!fieldErrors.email)}
                 placeholder="juan@mail.com"
               />
             </Field>

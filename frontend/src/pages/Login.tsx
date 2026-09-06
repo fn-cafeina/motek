@@ -4,6 +4,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
+import { Alert } from "../components/ui/Alert"
 import { buttonClassName } from "../components/buttonStyles"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
@@ -65,9 +66,9 @@ export function Login() {
     <AuthCard title="Iniciar sesión">
       <form onSubmit={onSubmit} noValidate>
         {error && (
-          <p role="alert" className="mb-2.5 rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
-            {error}
-          </p>
+          <div className="mb-2.5">
+            <Alert>{error}</Alert>
+          </div>
         )}
         <div className="mb-2">
           <Field label="Email" id="login-email" error={emailInvalid ? fieldErrors.email : undefined}>

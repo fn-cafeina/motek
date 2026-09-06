@@ -9,14 +9,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("motek_token")
-    if (!token) {
-      setLoading(false)
-      return
-    }
+    if (!token) return
+    let cancelled = false
     api<User>("/api/auth/me")
-      .then(setUser)
+      .then((me) => {
+        if (!cancelled) setUser(me)
+      })
       .catch(() => localStorage.removeItem("motek_token"))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {

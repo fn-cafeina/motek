@@ -1,3 +1,5 @@
+import { facturaEstadoLabel, ordenEstadoLabel } from "../api/types"
+
 type BadgeProps = {
   tone?: "amber" | "green" | "red" | "zinc" | "blue"
   children: React.ReactNode
@@ -26,6 +28,7 @@ export function EstadoBadge({ estado }: { estado: string }) {
   if (estado === "entregado" || estado === "pagada") tone = "green"
   else if (estado === "esperando_repuestos" || estado === "cancelada") tone = "red"
   else if (estado === "recibido" || estado === "pendiente") tone = "amber"
-  else if (estado === "en_progreso" || estado === "parcial") tone = "blue"
-  return <Badge tone={tone}>{estado}</Badge>
+  else if (estado === "en_progreso" || estado === "parcial" || estado === "terminado") tone = "blue"
+  const label = ordenEstadoLabel(estado) !== estado ? ordenEstadoLabel(estado) : facturaEstadoLabel(estado)
+  return <Badge tone={tone}>{label}</Badge>
 }

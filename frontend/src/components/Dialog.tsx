@@ -77,7 +77,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", 
       document.body.style.overflow = previousOverflow
       document.removeEventListener("keydown", onKeyDown)
     }
-  }, [open, onClose])
+  }, [open, onClose, dismissible])
 
   if (!open) return null
 

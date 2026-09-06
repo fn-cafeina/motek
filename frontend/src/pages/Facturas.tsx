@@ -1,18 +1,23 @@
 import { useEffect, useMemo, useState } from "react"
-import { Banknote, Ban, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { Banknote, Ban, Loader2, Plus } from "lucide-react"
+import { api } from "../api/client"
 import type { Factura, OrdenTrabajo, Pago } from "../api/types"
-import { FACTURA_ESTADOS, facturaEstadoLabel, PAGO_METODOS } from "../api/types"
+import { FACTURA_ESTADOS, PAGO_METODOS } from "../api/types"
 import { EstadoBadge } from "../components/Badge"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
+import { Alert } from "../components/ui/Alert"
+import { Form, FormActions, FormGrid } from "../components/ui/Form"
+import { FilterSelect } from "../components/ui/FilterSelect"
 import { inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
+import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { getErrorMessage } from "../lib/errors"
 import { formatFecha, formatMoney } from "../lib/format"
 
 export function Facturas() {
@@ -56,7 +61,7 @@ export function Facturas() {
     try {
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando facturas")
+      setError(getErrorMessage(e, "Error cargando facturas"))
     } finally {
       setLoading(false)
     }
@@ -69,7 +74,7 @@ export function Facturas() {
         const data = await api<Factura[]>("/api/facturas")
         if (!cancelled) setFacturas(data ?? [])
       } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando facturas")
+        if (!cancelled) setError(getErrorMessage(e, "Error cargando facturas"))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -108,7 +113,7 @@ export function Facturas() {
       toast.success("Factura creada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
-      setCreateError(e instanceof ApiError ? e.message : "Error creando factura")
+      setCreateError(getErrorMessage(e, "Error creando factura"))
     } finally {
       setCreating(false)
     }
@@ -125,7 +130,7 @@ export function Facturas() {
       const data = await api<Pago[]>(`/api/facturas/${f.id}/pagos`)
       setPagos(data ?? [])
     } catch (e) {
-      setPagoError(e instanceof ApiError ? e.message : "Error cargando pagos")
+      setPagoError(getErrorMessage(e, "Error cargando pagos"))
     } finally {
       setPagosLoading(false)
     }
@@ -161,7 +166,7 @@ export function Facturas() {
       setPagoMonto("")
       toast.success("Pago registrado")
     } catch (e) {
-      setPagoError(e instanceof ApiError ? e.message : "Error registrando pago")
+      setPagoError(getErrorMessage(e, "Error registrando pago"))
     } finally {
       setPagoSaving(false)
     }
@@ -181,7 +186,7 @@ export function Facturas() {
       if (updated) setDetail(updated)
       toast.success("Pago eliminado")
     } catch (e) {
-      setPagoError(e instanceof ApiError ? e.message : "Error eliminando pago")
+      setPagoError(getErrorMessage(e, "Error eliminando pago"))
     }
   }
 
@@ -194,7 +199,7 @@ export function Facturas() {
       toast.success("Factura cancelada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cancelando factura")
+      setError(getErrorMessage(e, "Error cancelando factura"))
     } finally {
       setCancelSaving(false)
     }
@@ -204,7 +209,6 @@ export function Facturas() {
 
   function openEdit(f: Factura) {
     setEditFactura(f)
-    setDetail(f)
     setEditOpen(true)
     setEditNotas(f.notas)
     setEditVenc(f.fecha_vencimiento ? f.fecha_vencimiento.slice(0, 10) : "")
@@ -227,11 +231,11 @@ export function Facturas() {
       })
       setEditOpen(false)
       const updated = await api<Factura>(`/api/facturas/${target.id}`)
-      setDetail(updated)
+      setDetail((d) => (d && d.id === updated.id ? updated : d))
       toast.success("Factura actualizada")
       await fetchFacturas(estadoFiltro || undefined)
     } catch (e) {
-      setEditError(e instanceof ApiError ? e.message : "Error actualizando factura")
+      setEditError(getErrorMessage(e, "Error actualizando factura"))
     } finally {
       setEditSaving(false)
     }
@@ -245,7 +249,7 @@ export function Facturas() {
           count={!loading && facturas.length > 0 ? facturas.length : undefined}
           action={
             <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nueva
+              <Plus className="h-3.5 w-3.5" /> Nueva factura
             </button>
           }
         />
@@ -272,7 +276,7 @@ export function Facturas() {
                         }}
                         className={buttonClassName("secondary")}
                       >
-                        Limpiar filtro
+                        Limpiar filtros
                       </button>
                     ),
                   }
@@ -289,19 +293,16 @@ export function Facturas() {
           }
           toolbar={
             <div className="w-full sm:max-w-xs">
-              <select
+              <FilterSelect
                 value={estadoFiltro}
-                onChange={(e) => {
-                  setEstadoFiltro(e.target.value)
-                  void fetchFacturas(e.target.value || undefined)
+                onChange={(v) => {
+                  setEstadoFiltro(v)
+                  void fetchFacturas(v || undefined)
                 }}
-                className={`w-full appearance-none ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-              >
-                <option value="">Todos los estados</option>
-                {FACTURA_ESTADOS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
+                label="Filtrar facturas por estado"
+                busy={loading}
+                options={[{ value: "", label: "Todos los estados" }, ...FACTURA_ESTADOS.map((s) => ({ value: s.value, label: s.label }))]}
+              />
             </div>
           }
         >
@@ -325,35 +326,18 @@ export function Facturas() {
                       </button>
                       <div className="text-xs text-zinc-500">Orden #{f.orden_id}</div>
                     </Td>
-                    <Td><EstadoBadge estado={facturaEstadoLabel(f.estado)} /></Td>
+                    <Td><EstadoBadge estado={f.estado} /></Td>
                     <Td className="text-right font-semibold text-zinc-100">{formatMoney(f.total)}</Td>
                     <Td className="text-zinc-400">{formatFecha(f.fecha_emision)}</Td>
                     <Td>
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => openDetail(f)}
-                          aria-label="Ver pagos"
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <Banknote className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openEdit(f)}
-                          aria-label="Editar factura"
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        {f.estado !== "cancelada" && (
-                          <button
-                            onClick={() => setCancelTarget(f)}
-                            aria-label="Cancelar factura"
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-red-400 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                          >
-                            <Ban className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      <RowActions
+                        actions={[
+                          { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="h-3.5 w-3.5" />, tone: "info" },
+                          ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="h-3.5 w-3.5" />, tone: "danger" as const }] : []),
+                        ]}
+                        onEdit={() => openEdit(f)}
+                        editLabel={`Editar factura #${f.id}`}
+                      />
                     </Td>
                   </Tr>
                 ))}
@@ -368,14 +352,16 @@ export function Facturas() {
                   </div>
                   <div className="mt-0.5 text-xs text-zinc-500">Orden #{f.orden_id} · {formatFecha(f.fecha_emision)}</div>
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    <EstadoBadge estado={facturaEstadoLabel(f.estado)} />
-                    <div className="flex shrink-0 gap-1.5">
-                      <button onClick={() => openDetail(f)} aria-label="Ver pagos" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"><Banknote className="h-3.5 w-3.5" /></button>
-                      <button onClick={() => openEdit(f)} aria-label="Editar factura" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"><Pencil className="h-3.5 w-3.5" /></button>
-                      {f.estado !== "cancelada" && (
-                        <button onClick={() => setCancelTarget(f)} aria-label="Cancelar factura" className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-red-400 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"><Ban className="h-3.5 w-3.5" /></button>
-                      )}
-                    </div>
+                    <EstadoBadge estado={f.estado} />
+                    <RowActions
+                      variant="card"
+                      actions={[
+                        { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="h-3.5 w-3.5" />, tone: "info" },
+                        ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="h-3.5 w-3.5" />, tone: "danger" as const }] : []),
+                      ]}
+                      onEdit={() => openEdit(f)}
+                      editLabel={`Editar factura #${f.id}`}
+                    />
                   </div>
                 </li>
               ))}
@@ -385,10 +371,8 @@ export function Facturas() {
       </PageStack>
 
       <Dialog open={createOpen} title="Nueva factura" dismissible={!creating} onClose={() => setCreateOpen(false)}>
-        <form onSubmit={onCreate} noValidate className="space-y-3">
-          {createError && (
-            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{createError}</p>
-          )}
+        <Form onSubmit={onCreate}>
+          {createError && <Alert>{createError}</Alert>}
           <Field label="Orden de trabajo *" id="fac-orden">
             <select
               id="fac-orden"
@@ -402,7 +386,7 @@ export function Facturas() {
               ))}
             </select>
           </Field>
-          <div className="sticky -bottom-3 -mx-3 -mb-3 flex justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:mb-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-2">
+          <FormActions>
             <button
               type="button"
               onClick={() => setCreateOpen(false)}
@@ -420,8 +404,8 @@ export function Facturas() {
               {creating && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Crear
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <Dialog
@@ -433,7 +417,7 @@ export function Facturas() {
         {detail && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <EstadoBadge estado={facturaEstadoLabel(detail.estado)} />
+              <EstadoBadge estado={detail.estado} />
               <span className="text-xs text-zinc-500">Emisión: {formatFecha(detail.fecha_emision)}</span>
             </div>
 
@@ -462,9 +446,7 @@ export function Facturas() {
               )}
             </div>
 
-            {pagoError && (
-              <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{pagoError}</p>
-            )}
+            {pagoError && <Alert>{pagoError}</Alert>}
 
             {pagosLoading ? (
               <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-400">
@@ -480,53 +462,52 @@ export function Facturas() {
                       <div className="text-sm font-medium text-zinc-100">{formatMoney(p.monto)}</div>
                       <div className="text-xs text-zinc-500">{p.metodo} · {formatFecha(p.fecha)}</div>
                     </div>
-                    <button
-                      onClick={() => onRemovePago(p)}
-                      aria-label="Eliminar pago"
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <RowActions
+                      onDelete={() => onRemovePago(p)}
+                      deleteLabel={`Eliminar pago de ${formatMoney(p.monto)}`}
+                    />
                   </li>
                 ))}
               </ul>
             )}
 
             {detail.estado !== "cancelada" && detail.estado !== "pagada" && (
-              <form onSubmit={onAddPago} noValidate className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                <Field label="Monto" id="pago-monto">
-                  <input
-                    id="pago-monto"
-                    value={pagoMonto}
-                    inputMode="numeric"
-                    onChange={(e) => { setPagoMonto(e.target.value); if (pagoError) setPagoError(null) }}
-                    className={inputClassName(!!pagoError)}
-                    placeholder={`Hasta ${formatMoney(saldo)}`}
-                  />
-                </Field>
-                <Field label="Método" id="pago-metodo">
-                  <select
-                    id="pago-metodo"
-                    value={pagoMetodo}
-                    onChange={(e) => setPagoMetodo(e.target.value)}
-                    className={selectClassName()}
-                  >
-                    {PAGO_METODOS.map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </Field>
-                <div className="flex items-end pb-0.5">
-                  <button
-                    type="submit"
-                    disabled={pagoSaving}
-                    className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50 sm:h-[36px] sm:w-auto"
-                  >
-                    {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
-                    Pagar
-                  </button>
-                </div>
-              </form>
+              <Form onSubmit={onAddPago}>
+                <FormGrid cols={3}>
+                  <Field label="Monto" id="pago-monto">
+                    <input
+                      id="pago-monto"
+                      value={pagoMonto}
+                      inputMode="numeric"
+                      onChange={(e) => { setPagoMonto(e.target.value); if (pagoError) setPagoError(null) }}
+                      className={inputClassName(!!pagoError)}
+                      placeholder={`Hasta ${formatMoney(saldo)}`}
+                    />
+                  </Field>
+                  <Field label="Método" id="pago-metodo">
+                    <select
+                      id="pago-metodo"
+                      value={pagoMetodo}
+                      onChange={(e) => setPagoMetodo(e.target.value)}
+                      className={selectClassName()}
+                    >
+                      {PAGO_METODOS.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <div className="flex items-end pb-0.5">
+                    <button
+                      type="submit"
+                      disabled={pagoSaving}
+                      className={buttonClassName("primary")}
+                    >
+                      {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+                      Pagar
+                    </button>
+                  </div>
+                </FormGrid>
+              </Form>
             )}
 
             <div className="flex justify-end border-t border-zinc-800 pt-2">
@@ -543,10 +524,8 @@ export function Facturas() {
       </Dialog>
 
       <Dialog open={editOpen} title="Editar factura" dismissible={!editSaving} onClose={() => setEditOpen(false)}>
-        <form onSubmit={onEdit} noValidate className="space-y-3">
-          {editError && (
-            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{editError}</p>
-          )}
+        <Form onSubmit={onEdit}>
+          {editError && <Alert>{editError}</Alert>}
           <Field label="Notas" id="fac-notas">
             <textarea
               id="fac-notas"
@@ -565,7 +544,7 @@ export function Facturas() {
               className={inputClassName()}
             />
           </Field>
-          <div className="sticky -bottom-3 -mx-3 -mb-3 flex justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:mb-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-2">
+          <FormActions>
             <button type="button" onClick={() => setEditOpen(false)} disabled={editSaving} className={buttonClassName("secondary")}>
               Cancelar
             </button>
@@ -577,8 +556,8 @@ export function Facturas() {
               {editSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               Guardar
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <ConfirmDialog

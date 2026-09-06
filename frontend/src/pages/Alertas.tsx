@@ -1,56 +1,37 @@
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 import { Loader2, PackagePlus, RotateCw } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { api } from "../api/client"
 import type { AlertaStock } from "../api/types"
 import { Dialog } from "../components/Dialog"
 import { Form, FormActions } from "../components/ui/Form"
 import { Field } from "../components/Field"
+import { Alert } from "../components/ui/Alert"
 import { inputClassName } from "../components/inputStyles"
 import { DataCard, EmptyCheckIcon, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
+import { FilterBar } from "../components/ui/FilterBar"
+import { SearchInput } from "../components/ui/SearchInput"
+import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { useCollection } from "../hooks/useCollection"
+import { getErrorMessage } from "../lib/errors"
 
 export function Alertas() {
   const toast = useToast()
-  const [items, setItems] = useState<AlertaStock[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { items, setItems, loading, error, load } = useCollection<AlertaStock>("/api/alertas/stock", "Error cargando alertas")
+  const [q, setQ] = useState("")
   const [target, setTarget] = useState<AlertaStock | null>(null)
   const [delta, setDelta] = useState("")
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  async function load() {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await api<AlertaStock[]>("/api/alertas/stock")
-      setItems(data ?? [])
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando alertas")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await api<AlertaStock[]>("/api/alertas/stock")
-        if (!cancelled) setItems(data ?? [])
-      } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando alertas")
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase()
+    if (!term) return items
+    return items.filter((a) => [a.nombre, a.codigo].some((v) => v.toLowerCase().includes(term)))
+  }, [items, q])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -73,11 +54,29 @@ export function Alertas() {
       if (res.stock > target.stock_minimo) await load()
       else setItems((prev) => prev.map((a) => (a.id === target.id ? { ...a, stock: res.stock } : a)))
     } catch (e) {
-      setFormError(e instanceof ApiError ? e.message : "Error ajustando stock")
+      setFormError(getErrorMessage(e, "Error ajustando stock"))
     } finally {
       setSaving(false)
     }
   }
+
+  const empty = filtered.length === 0
+    ? q
+      ? {
+          title: "Sin resultados",
+          description: "Probá con otro código o nombre.",
+          action: (
+            <button onClick={() => setQ("")} className={buttonClassName("secondary")}>
+              Limpiar filtros
+            </button>
+          ),
+        }
+      : {
+          title: "Todo en stock",
+          description: "No hay repuestos por debajo del mínimo.",
+          icon: <EmptyCheckIcon />,
+        }
+    : null
 
   return (
     <>
@@ -100,14 +99,11 @@ export function Alertas() {
           error={error}
           errorTitle="No se pudieron cargar las alertas"
           onRetry={load}
-          empty={
-            items.length === 0
-              ? {
-                  title: "Todo en stock",
-                  description: "No hay repuestos por debajo del mínimo.",
-                  icon: <EmptyCheckIcon />,
-                }
-              : null
+          empty={empty}
+          toolbar={
+            <FilterBar>
+              <SearchInput value={q} onChange={setQ} placeholder="Buscar por código o nombre" />
+            </FilterBar>
           }
         >
           <>
@@ -117,11 +113,11 @@ export function Alertas() {
                   <Th>Repuesto</Th>
                   <Th className="text-right">Stock</Th>
                   <Th className="text-right">Mínimo</Th>
-                  <Th className="w-16 text-right"></Th>
+                  <Th className="w-28 text-right"><span className="sr-only">Acciones</span></Th>
                 </tr>
               </Thead>
               <Tbody>
-                {items.map((a) => (
+                {filtered.map((a) => (
                   <Tr key={a.id}>
                     <Td>
                       <div className="font-medium text-zinc-100">{a.nombre || a.codigo}</div>
@@ -130,22 +126,16 @@ export function Alertas() {
                     <Td className="text-right font-semibold text-red-400">{a.stock}</Td>
                     <Td className="text-right text-zinc-400">{a.stock_minimo}</Td>
                     <Td>
-                      <div className="flex justify-end">
-                        <button
-                          onClick={() => { setTarget(a); setDelta(""); setFormError(null) }}
-                          aria-label={`Surtir ${a.nombre || a.codigo}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <PackagePlus className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      <RowActions
+                        actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                      />
                     </Td>
                   </Tr>
                 ))}
               </Tbody>
             </Table>
             <MobileList>
-              {items.map((a) => (
+              {filtered.map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-3 px-3 py-3">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium text-zinc-100">{a.nombre || a.codigo}</div>
@@ -153,13 +143,10 @@ export function Alertas() {
                       {a.codigo} · <span className="font-semibold text-red-400">{a.stock}</span> / {a.stock_minimo}
                     </div>
                   </div>
-                  <button
-                    onClick={() => { setTarget(a); setDelta(""); setFormError(null) }}
-                    aria-label={`Surtir ${a.nombre || a.codigo}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  >
-                    <PackagePlus className="h-3.5 w-3.5" />
-                  </button>
+                  <RowActions
+                    variant="card"
+                    actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                  />
                 </li>
               ))}
             </MobileList>
@@ -177,15 +164,12 @@ export function Alertas() {
             Stock actual: <span className="font-semibold text-red-400">{target?.stock ?? 0}</span>
             {" · "}Mínimo: <span className="text-zinc-200">{target?.stock_minimo ?? 0}</span>
           </p>
-          {formError && (
-            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{formError}</p>
-          )}
+          {formError && <Alert>{formError}</Alert>}
           <Field label="Cantidad a sumar" id="alerta-cantidad">
             <input
               id="alerta-cantidad"
               value={delta}
               inputMode="numeric"
-              autoFocus
               onChange={(e) => {
                 setDelta(e.target.value)
                 if (formError) setFormError(null)

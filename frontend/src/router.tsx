@@ -1,5 +1,6 @@
-import { createBrowserRouter, Link, Navigate } from "react-router"
+import { createBrowserRouter, Navigate } from "react-router"
 import { Layout } from "./components/Layout"
+import { NotFound } from "./components/NotFound"
 import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Alertas } from "./pages/Alertas"
 import { Clientes } from "./pages/Clientes"
@@ -8,19 +9,6 @@ import { Login } from "./pages/Login"
 import { Ordenes } from "./pages/Ordenes"
 import { Register } from "./pages/Register"
 import { Repuestos } from "./pages/Repuestos"
-import { buttonClassName } from "./components/buttonStyles"
-
-function NotFound({ embedded }: { embedded?: boolean }) {
-  return (
-    <div className={`flex flex-col items-center justify-center gap-3 p-8 text-center ${embedded ? "" : "min-h-screen bg-zinc-950"}`}>
-      <p className="text-sm font-semibold text-zinc-100">Página no encontrada</p>
-      <p className="text-xs text-zinc-400">La ruta no existe.</p>
-      <Link to="/" className={buttonClassName("primary")}>
-        Volver al inicio
-      </Link>
-    </div>
-  )
-}
 
 export const router = createBrowserRouter([
   { path: "/login", element: <Login /> },

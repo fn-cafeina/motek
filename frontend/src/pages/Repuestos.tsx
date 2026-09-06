@@ -1,19 +1,24 @@
-import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { useMemo, useState } from "react"
+import { AlertTriangle, Loader2, PackagePlus, Plus } from "lucide-react"
+import { api } from "../api/client"
 import type { Repuesto } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
+import { Alert } from "../components/ui/Alert"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
+import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { useCollection } from "../hooks/useCollection"
+import { getErrorMessage } from "../lib/errors"
+import { numberField, required } from "../lib/validate"
 import { formatMoney } from "../lib/format"
 
 type FormState = {
@@ -42,15 +47,13 @@ const emptyForm: FormState = {
 
 export function Repuestos() {
   const toast = useToast()
-  const [items, setItems] = useState<Repuesto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { items, setItems, loading, error, setError, load } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos")
   const [q, setQ] = useState("")
   const [soloBajo, setSoloBajo] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Repuesto | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Repuesto | null>(null)
@@ -59,40 +62,6 @@ export function Repuestos() {
   const [stockDelta, setStockDelta] = useState("")
   const [stockError, setStockError] = useState<string | null>(null)
   const [stockSaving, setStockSaving] = useState(false)
-
-  async function fetchData(params: string) {
-    const data = await api<Repuesto[]>(`/api/repuestos${params}`)
-    setItems(data ?? [])
-  }
-
-  async function load() {
-    setLoading(true)
-    setError(null)
-    try {
-      await fetchData("")
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando repuestos")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await api<Repuesto[]>("/api/repuestos")
-        if (!cancelled) setItems(data ?? [])
-      } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando repuestos")
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -105,7 +74,7 @@ export function Repuestos() {
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
-    setFieldError(null)
+    setFieldErrors({})
     setSubmitError(null)
     setDialogOpen(true)
   }
@@ -123,16 +92,21 @@ export function Repuestos() {
       stock_minimo: String(r.stock_minimo),
       ubicacion: r.ubicacion,
     })
-    setFieldError(null)
+    setFieldErrors({})
     setSubmitError(null)
     setDialogOpen(true)
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.codigo.trim()) {
-      setFieldError("Código es requerido")
-      return
+    const next: Record<string, string> = {}
+    const codigoError = required(form.codigo, "Código es requerido")
+    if (codigoError) next.codigo = codigoError
+    const labels: Record<string, string> = {
+      precio_compra: "Precio compra",
+      precio_venta: "Precio venta",
+      stock: "Stock",
+      stock_minimo: "Stock mínimo",
     }
     for (const [key, val] of [
       ["precio_compra", form.precio_compra],
@@ -140,16 +114,11 @@ export function Repuestos() {
       ["stock", form.stock],
       ["stock_minimo", form.stock_minimo],
     ] as const) {
-      if (val && Number.isNaN(Number(val))) {
-        setFieldError(`${key} debe ser un número`)
-        return
-      }
-      if (val && Number(val) < 0) {
-        setFieldError(`${key} no puede ser negativo`)
-        return
-      }
+      const err = numberField(val, { label: labels[key] })
+      if (err) next[key] = err
     }
-    setFieldError(null)
+    setFieldErrors(next)
+    if (Object.keys(next).length > 0) return
     setSubmitError(null)
     setSaving(true)
     const isEdit = !!editing
@@ -172,9 +141,7 @@ export function Repuestos() {
       toast.success(isEdit ? "Repuesto actualizado" : "Repuesto creado")
       await load()
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : "Error guardando repuesto"
-      setSubmitError(msg)
-      toast.error(msg)
+      setSubmitError(getErrorMessage(e, "Error guardando repuesto"))
     } finally {
       setSaving(false)
     }
@@ -189,7 +156,7 @@ export function Repuestos() {
       toast.success("Repuesto eliminado")
       await load()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error eliminando repuesto")
+      setError(getErrorMessage(e, "Error eliminando repuesto"))
     } finally {
       setDeleting(false)
     }
@@ -220,7 +187,7 @@ export function Repuestos() {
       toast.success("Stock ajustado")
       setItems((prev) => prev.map((r) => (r.id === stockTarget.id ? { ...r, stock: res.stock } : r)))
     } catch (e) {
-      setStockError(e instanceof ApiError ? e.message : "Error ajustando stock")
+      setStockError(getErrorMessage(e, "Error ajustando stock"))
     } finally {
       setStockSaving(false)
     }
@@ -261,7 +228,7 @@ export function Repuestos() {
           count={!loading && items.length > 0 ? (hasFilter ? `${filtered.length} de ${items.length}` : items.length) : undefined}
           action={
             <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nuevo
+              <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
             </button>
           }
         />
@@ -281,9 +248,7 @@ export function Repuestos() {
               <button
                 onClick={() => setSoloBajo((v) => !v)}
                 aria-pressed={soloBajo}
-                className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:w-auto sm:py-1.5 ${
-                  soloBajo ? "border-amber-500/50 bg-amber-500/15 text-amber-500" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-                }`}
+                className={buttonClassName(soloBajo ? "primary" : "secondary")}
               >
                 <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
               </button>
@@ -317,29 +282,13 @@ export function Repuestos() {
                       <span className="text-zinc-500"> / {r.stock_minimo}</span>
                     </Td>
                     <Td>
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => openStock(r)}
-                          aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <PackagePlus className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openEdit(r)}
-                          aria-label={`Editar ${r.nombre || r.codigo}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setConfirm(r)}
-                          aria-label={`Eliminar ${r.nombre || r.codigo}`}
-                          className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      <RowActions
+                        actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                        onEdit={() => openEdit(r)}
+                        editLabel={`Editar ${r.nombre || r.codigo}`}
+                        onDelete={() => setConfirm(r)}
+                        deleteLabel={`Eliminar ${r.nombre || r.codigo}`}
+                      />
                     </Td>
                   </Tr>
                 ))}
@@ -363,27 +312,14 @@ export function Repuestos() {
                     </div>
                   </div>
                   <div className="mt-2 flex justify-end gap-1.5">
-                    <button
-                      onClick={() => openStock(r)}
-                      aria-label={`Ajustar stock de ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                    >
-                      <PackagePlus className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => openEdit(r)}
-                      aria-label={`Editar ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setConfirm(r)}
-                      aria-label={`Eliminar ${r.nombre || r.codigo}`}
-                      className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <RowActions
+                      variant="card"
+                      actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                      onEdit={() => openEdit(r)}
+                      editLabel={`Editar ${r.nombre || r.codigo}`}
+                      onDelete={() => setConfirm(r)}
+                      deleteLabel={`Eliminar ${r.nombre || r.codigo}`}
+                    />
                   </div>
                 </li>
               ))}
@@ -394,22 +330,19 @@ export function Repuestos() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          {submitError && (
-            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
-              {submitError}
-            </p>
-          )}
+          {submitError && <Alert>{submitError}</Alert>}
           <FormGrid>
-            <Field label="Código *" id="rep-codigo" error={fieldError ?? undefined}>
+            <Field label="Código *" id="rep-codigo" error={fieldErrors.codigo}>
               <input
                 id="rep-codigo"
                 value={form.codigo}
                 onChange={(e) => {
                   setForm((p) => ({ ...p, codigo: e.target.value }))
-                  if (fieldError) setFieldError(null)
+                  if (fieldErrors.codigo) setFieldErrors((p) => ({ ...p, codigo: undefined }))
                 }}
-                autoFocus
-                className={inputClassName(!!fieldError)}
+                aria-invalid={!!fieldErrors.codigo}
+                aria-describedby={fieldErrors.codigo ? "rep-codigo-error" : undefined}
+                className={inputClassName(!!fieldErrors.codigo)}
                 placeholder="FIL-001"
               />
             </Field>
@@ -444,42 +377,58 @@ export function Repuestos() {
             </Field>
           </FormGrid>
           <FormGrid>
-            <Field label="Precio compra" id="rep-compra">
+            <Field label="Precio compra" id="rep-compra" error={fieldErrors.precio_compra}>
               <input
                 id="rep-compra"
                 value={form.precio_compra}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, precio_compra: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, precio_compra: e.target.value }))
+                  if (fieldErrors.precio_compra) setFieldErrors((p) => ({ ...p, precio_compra: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.precio_compra}
+                className={inputClassName(!!fieldErrors.precio_compra)}
               />
             </Field>
-            <Field label="Precio venta" id="rep-venta">
+            <Field label="Precio venta" id="rep-venta" error={fieldErrors.precio_venta}>
               <input
                 id="rep-venta"
                 value={form.precio_venta}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, precio_venta: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, precio_venta: e.target.value }))
+                  if (fieldErrors.precio_venta) setFieldErrors((p) => ({ ...p, precio_venta: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.precio_venta}
+                className={inputClassName(!!fieldErrors.precio_venta)}
               />
             </Field>
           </FormGrid>
           <FormGrid>
-            <Field label="Stock inicial" id="rep-stock">
+            <Field label="Stock inicial" id="rep-stock" error={fieldErrors.stock}>
               <input
                 id="rep-stock"
                 value={form.stock}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, stock: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, stock: e.target.value }))
+                  if (fieldErrors.stock) setFieldErrors((p) => ({ ...p, stock: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.stock}
+                className={inputClassName(!!fieldErrors.stock)}
               />
             </Field>
-            <Field label="Stock mínimo" id="rep-minimo">
+            <Field label="Stock mínimo" id="rep-minimo" error={fieldErrors.stock_minimo}>
               <input
                 id="rep-minimo"
                 value={form.stock_minimo}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, stock_minimo: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, stock_minimo: e.target.value }))
+                  if (fieldErrors.stock_minimo) setFieldErrors((p) => ({ ...p, stock_minimo: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.stock_minimo}
+                className={inputClassName(!!fieldErrors.stock_minimo)}
               />
             </Field>
           </FormGrid>
@@ -514,17 +463,12 @@ export function Repuestos() {
             Stock actual: <span className="font-semibold text-zinc-200">{stockTarget?.stock ?? 0}</span>
             {" · "}Mínimo: <span className="text-zinc-200">{stockTarget?.stock_minimo ?? 0}</span>
           </p>
-          {stockError && (
-            <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
-              {stockError}
-            </p>
-          )}
+          {stockError && <Alert>{stockError}</Alert>}
           <Field label="Cantidad (positivo suma, negativo resta)" id="rep-delta">
             <input
               id="rep-delta"
               value={stockDelta}
               inputMode="numeric"
-              autoFocus
               onChange={(e) => {
                 setStockDelta(e.target.value)
                 if (stockError) setStockError(null)

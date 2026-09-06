@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react"
-import { Bike, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { Bike, Loader2, Plus } from "lucide-react"
+import { api } from "../api/client"
 import type { Cliente, Moto } from "../api/types"
 import { ConfirmDialog } from "./ConfirmDialog"
 import { Dialog } from "./Dialog"
 import { Form, FormActions, FormGrid } from "./ui/Form"
 import { Field } from "./Field"
 import { inputClassName } from "./inputStyles"
-import { Empty } from "./Empty"
+import { Alert } from "./ui/Alert"
+import { EmptyState } from "./ui/EmptyState"
+import { RowActions } from "./ui/RowActions"
 import { useToast } from "./toastContext"
 import { buttonClassName } from "./buttonStyles"
+import { getErrorMessage } from "../lib/errors"
+import { numberField, required } from "../lib/validate"
 
 type MotoForm = {
   marca: string
@@ -31,7 +35,7 @@ const emptyForm: MotoForm = {
   kilometraje: "",
 }
 
-export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; triggerClassName?: string }) {
+export function MotosManager({ cliente }: { cliente: Cliente }) {
   const toast = useToast()
   const [listOpen, setListOpen] = useState(false)
   const [motos, setMotos] = useState<Moto[]>([])
@@ -40,7 +44,8 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Moto | null>(null)
   const [form, setForm] = useState<MotoForm>(emptyForm)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ marca?: string; anio?: string; kilometraje?: string }>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Moto | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -52,16 +57,11 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
       const data = await api<Moto[]>(`/api/clientes/${cliente.id}/motos`)
       setMotos(data ?? [])
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando motos")
+      setError(getErrorMessage(e, "Error cargando motos"))
     } finally {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    loadMotos()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cliente.id])
 
   useEffect(() => {
     if (listOpen) loadMotos()
@@ -71,7 +71,8 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
-    setFieldError(null)
+    setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
@@ -86,17 +87,23 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
       vin: m.vin,
       kilometraje: m.kilometraje ? String(m.kilometraje) : "",
     })
-    setFieldError(null)
+    setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.marca.trim()) {
-      setFieldError("Marca es requerida")
-      return
-    }
-    setFieldError(null)
+    const next: typeof fieldErrors = {}
+    const marcaError = required(form.marca, "Marca es requerida")
+    if (marcaError) next.marca = marcaError
+    const anioError = numberField(form.anio, { label: "Año" })
+    if (anioError) next.anio = anioError
+    const kmError = numberField(form.kilometraje, { label: "Kilometraje" })
+    if (kmError) next.kilometraje = kmError
+    setFieldErrors(next)
+    if (next.marca || next.anio || next.kilometraje) return
+    setFormError(null)
     setSaving(true)
     const isEdit = !!editing
     const body = {
@@ -116,7 +123,7 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
       toast.success(isEdit ? "Moto actualizada" : "Moto creada")
       await loadMotos()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error guardando moto")
+      setFormError(getErrorMessage(e, "Error guardando moto"))
     } finally {
       setSaving(false)
     }
@@ -131,7 +138,7 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
       toast.success("Moto eliminada")
       await loadMotos()
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error eliminando moto")
+      setError(getErrorMessage(e, "Error eliminando moto"))
     } finally {
       setDeleting(false)
     }
@@ -142,7 +149,7 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
       <button
         onClick={() => setListOpen(true)}
         aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:h-8 sm:w-8 ${triggerClassName ?? ""}`}
+        className="relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:h-8 sm:w-8"
       >
         <Bike className="h-3.5 w-3.5" aria-hidden />
         {motos.length > 0 && (
@@ -154,16 +161,16 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
 
       <Dialog open={listOpen} title={`Motos de ${cliente.nombre}`} onClose={() => setListOpen(false)}>
         {error && (
-          <p role="alert" className="mb-2.5 rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">
-            {error}
-          </p>
+          <div className="mb-2.5">
+            <Alert>{error}</Alert>
+          </div>
         )}
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-8 text-xs text-zinc-500">
             <Loader2 className="h-4 w-4 animate-spin" /> Cargando motos...
           </div>
         ) : motos.length === 0 ? (
-          <Empty
+          <EmptyState
             title="Sin motos registradas"
             description="Agregá la primera moto de este cliente."
             action={
@@ -189,22 +196,12 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
                       {[m.placa, m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ") || "—"}
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => openEdit(m)}
-                      aria-label={`Editar ${m.marca} ${m.modelo}`}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setConfirm(m)}
-                      aria-label={`Eliminar ${m.marca} ${m.modelo}`}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+                  <RowActions
+                    onEdit={() => openEdit(m)}
+                    editLabel={`Editar ${m.marca} ${m.modelo}`}
+                    onDelete={() => setConfirm(m)}
+                    deleteLabel={`Eliminar ${m.marca} ${m.modelo}`}
+                  />
                 </li>
               ))}
             </ul>
@@ -222,17 +219,19 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
 
       <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
+          {formError && <Alert>{formError}</Alert>}
           <FormGrid>
-            <Field label="Marca *" id="moto-marca" error={fieldError ?? undefined}>
+            <Field label="Marca *" id="moto-marca" error={fieldErrors.marca}>
               <input
                 id="moto-marca"
                 value={form.marca}
                 onChange={(e) => {
                   setForm((p) => ({ ...p, marca: e.target.value }))
-                  if (fieldError) setFieldError(null)
+                  if (fieldErrors.marca) setFieldErrors((p) => ({ ...p, marca: undefined }))
                 }}
-                autoFocus
-                className={inputClassName(!!fieldError)}
+                aria-invalid={!!fieldErrors.marca}
+                aria-describedby={fieldErrors.marca ? "moto-marca-error" : undefined}
+                className={inputClassName(!!fieldErrors.marca)}
                 placeholder="Honda"
               />
             </Field>
@@ -247,13 +246,17 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
             </Field>
           </FormGrid>
           <FormGrid cols={3}>
-            <Field label="Año" id="moto-anio">
+            <Field label="Año" id="moto-anio" error={fieldErrors.anio}>
               <input
                 id="moto-anio"
                 value={form.anio}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, anio: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, anio: e.target.value }))
+                  if (fieldErrors.anio) setFieldErrors((p) => ({ ...p, anio: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.anio}
+                className={inputClassName(!!fieldErrors.anio)}
                 placeholder="2022"
               />
             </Field>
@@ -285,13 +288,17 @@ export function MotosManager({ cliente, triggerClassName }: { cliente: Cliente; 
                 className={inputClassName()}
               />
             </Field>
-            <Field label="Kilometraje" id="moto-km">
+            <Field label="Kilometraje" id="moto-km" error={fieldErrors.kilometraje}>
               <input
                 id="moto-km"
                 value={form.kilometraje}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, kilometraje: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, kilometraje: e.target.value }))
+                  if (fieldErrors.kilometraje) setFieldErrors((p) => ({ ...p, kilometraje: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.kilometraje}
+                className={inputClassName(!!fieldErrors.kilometraje)}
                 placeholder="15000"
               />
             </Field>

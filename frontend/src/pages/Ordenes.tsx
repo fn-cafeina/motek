@@ -1,17 +1,23 @@
 import { useEffect, useMemo, useState } from "react"
-import { Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
-import { api, ApiError } from "../api/client"
+import { Loader2, PackagePlus, Plus } from "lucide-react"
+import { api } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
 import { ORDEN_ESTADOS } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
+import { Alert } from "../components/ui/Alert"
+import { Form, FormActions, FormGrid } from "../components/ui/Form"
+import { FilterSelect } from "../components/ui/FilterSelect"
 import { inlineSelectClassName, inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
+import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { getErrorMessage } from "../lib/errors"
+import { numberField, required } from "../lib/validate"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
 
 type FormState = {
@@ -43,7 +49,8 @@ export function Ordenes() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<OrdenTrabajo | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ descripcion?: string; cliente?: string; moto?: string; total_mano_obra?: string }>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<OrdenTrabajo | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -81,7 +88,7 @@ export function Ordenes() {
     try {
       await Promise.all([fetchOrdenes(estadoFiltro || undefined), fetchLookups()])
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error cargando órdenes")
+      setError(getErrorMessage(e, "Error cargando órdenes"))
     } finally {
       setLoading(false)
     }
@@ -102,7 +109,7 @@ export function Ordenes() {
           setMotos((motosData as Moto[]) ?? [])
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof ApiError ? e.message : "Error cargando órdenes")
+        if (!cancelled) setError(getErrorMessage(e, "Error cargando órdenes"))
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -120,7 +127,8 @@ export function Ordenes() {
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
-    setFieldError(null)
+    setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
@@ -134,17 +142,25 @@ export function Ordenes() {
       total_mano_obra: o.total_mano_obra ? String(o.total_mano_obra) : "",
       notas: o.notas,
     })
-    setFieldError(null)
+    setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.descripcion.trim()) {
-      setFieldError("Descripción es requerida")
-      return
+    const next: typeof fieldErrors = {}
+    const descError = required(form.descripcion, "Descripción es requerida")
+    if (descError) next.descripcion = descError
+    if (!editing) {
+      if (!form.cliente_id) next.cliente = "Seleccioná un cliente"
+      if (!form.moto_id) next.moto = "Seleccioná una moto"
     }
-    setFieldError(null)
+    const moError = numberField(form.total_mano_obra, { label: "Total mano de obra" })
+    if (moError) next.total_mano_obra = moError
+    setFieldErrors(next)
+    if (next.descripcion || next.cliente || next.moto || next.total_mano_obra) return
+    setFormError(null)
     setSaving(true)
     const isEdit = !!editing
     try {
@@ -176,7 +192,7 @@ export function Ordenes() {
       toast.success(isEdit ? "Orden actualizada" : "Orden creada")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error guardando orden")
+      setFormError(getErrorMessage(e, "Error guardando orden"))
     } finally {
       setSaving(false)
     }
@@ -190,9 +206,7 @@ export function Ordenes() {
       toast.success("Estado actualizado")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
-      const msg = e instanceof ApiError ? e.message : "Error actualizando estado"
-      setError(msg)
-      toast.error(msg)
+      setError(getErrorMessage(e, "Error actualizando estado"))
     } finally {
       setEstadoUpdatingId(null)
     }
@@ -207,7 +221,7 @@ export function Ordenes() {
       toast.success("Orden eliminada")
       await fetchOrdenes(estadoFiltro || undefined)
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : "Error eliminando orden")
+      setError(getErrorMessage(e, "Error eliminando orden"))
     } finally {
       setDeleting(false)
     }
@@ -251,7 +265,7 @@ export function Ordenes() {
         api<Repuesto[]>("/api/repuestos").then((r) => setAllRepuestos(r ?? [])),
       ])
     } catch (e) {
-      setRepError(e instanceof ApiError ? e.message : "Error agregando repuesto")
+      setRepError(getErrorMessage(e, "Error agregando repuesto"))
     } finally {
       setRepSaving(false)
     }
@@ -267,7 +281,7 @@ export function Ordenes() {
       const reps = await api<Repuesto[]>("/api/repuestos")
       setAllRepuestos(reps ?? [])
     } catch (e) {
-      setRepError(e instanceof ApiError ? e.message : "Error quitando repuesto")
+      setRepError(getErrorMessage(e, "Error quitando repuesto"))
     }
   }
 
@@ -287,7 +301,7 @@ export function Ordenes() {
           count={!loading && ordenes.length > 0 ? ordenes.length : undefined}
           action={
             <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nueva
+              <Plus className="h-3.5 w-3.5" /> Nueva orden
             </button>
           }
         />
@@ -314,7 +328,7 @@ export function Ordenes() {
                         }}
                         className={buttonClassName("secondary")}
                       >
-                        Limpiar filtro
+                        Limpiar filtros
                       </button>
                     ),
                   }
@@ -331,19 +345,16 @@ export function Ordenes() {
           }
           toolbar={
             <div className="w-full sm:max-w-xs">
-              <select
+              <FilterSelect
                 value={estadoFiltro}
-                onChange={(e) => {
-                  setEstadoFiltro(e.target.value)
-                  void fetchOrdenes(e.target.value || undefined)
+                onChange={(v) => {
+                  setEstadoFiltro(v)
+                  void fetchOrdenes(v || undefined)
                 }}
-                className={`w-full appearance-none ${selectClassName()} !border-zinc-800 !bg-zinc-900`}
-              >
-                <option value="">Todos los estados</option>
-                {ORDEN_ESTADOS.map((e) => (
-                  <option key={e.value} value={e.value}>{e.label}</option>
-                ))}
-              </select>
+                label="Filtrar órdenes por estado"
+                busy={loading}
+                options={[{ value: "", label: "Todos los estados" }, ...ORDEN_ESTADOS.map((e) => ({ value: e.value, label: e.label }))]}
+              />
             </div>
           }
         >
@@ -391,29 +402,13 @@ export function Ordenes() {
                       </Td>
                       <Td className="text-right text-zinc-300">{formatMoney(o.total_mano_obra)}</Td>
                       <Td>
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => openDetail(o)}
-                            aria-label="Ver repuestos"
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <PackagePlus className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => openEdit(o)}
-                            aria-label={`Editar ${o.descripcion}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirm(o)}
-                            aria-label={`Eliminar ${o.descripcion}`}
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <RowActions
+                          actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                          onEdit={() => openEdit(o)}
+                          editLabel={`Editar ${o.descripcion}`}
+                          onDelete={() => setConfirm(o)}
+                          deleteLabel={`Eliminar ${o.descripcion}`}
+                        />
                       </Td>
                     </Tr>
                   )
@@ -442,7 +437,7 @@ export function Ordenes() {
                         value={o.estado}
                         onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
                         disabled={estadoUpdatingId === o.id}
-                        aria-label={`Cambiar estado`}
+                        aria-label={`Cambiar estado de ${o.descripcion}`}
                         aria-busy={estadoUpdatingId === o.id}
                         className={`${inlineSelectClassName()} max-w-[60%] truncate`}
                       >
@@ -450,26 +445,14 @@ export function Ordenes() {
                           <option key={e.value} value={e.value}>{e.label}</option>
                         ))}
                       </select>
-                      <div className="flex shrink-0 gap-1.5">
-                        <button
-                          onClick={() => openDetail(o)}
-                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-sky-400 hover:bg-sky-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <PackagePlus className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openEdit(o)}
-                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setConfirm(o)}
-                          className="flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-950/50 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      <RowActions
+                        variant="card"
+                        actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                        onEdit={() => openEdit(o)}
+                        editLabel={`Editar ${o.descripcion}`}
+                        onDelete={() => setConfirm(o)}
+                        deleteLabel={`Eliminar ${o.descripcion}`}
+                      />
                     </div>
                   </li>
                 )
@@ -480,16 +463,21 @@ export function Ordenes() {
       </PageStack>
 
       <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
-        <form onSubmit={onSubmit} noValidate className="space-y-3">
+        <Form onSubmit={onSubmit}>
+          {formError && <Alert>{formError}</Alert>}
           {!editing ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Cliente *" id="ord-cliente">
+            <FormGrid>
+              <Field label="Cliente *" id="ord-cliente" error={fieldErrors.cliente}>
                 <select
                   id="ord-cliente"
                   value={form.cliente_id}
-                  onChange={(e) => setForm((p) => ({ ...p, cliente_id: e.target.value, moto_id: "" }))}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, cliente_id: e.target.value, moto_id: "" }))
+                    if (fieldErrors.cliente) setFieldErrors((p) => ({ ...p, cliente: undefined }))
+                  }}
                   required
-                  className={selectClassName()}
+                  aria-invalid={!!fieldErrors.cliente}
+                  className={selectClassName(!!fieldErrors.cliente)}
                 >
                   <option value="">Seleccionar cliente</option>
                   {clientes.map((c) => (
@@ -497,14 +485,18 @@ export function Ordenes() {
                   ))}
                 </select>
               </Field>
-              <Field label="Moto *" id="ord-moto">
+              <Field label="Moto *" id="ord-moto" error={fieldErrors.moto}>
                 <select
                   id="ord-moto"
                   value={form.moto_id}
-                  onChange={(e) => setForm((p) => ({ ...p, moto_id: e.target.value }))}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, moto_id: e.target.value }))
+                    if (fieldErrors.moto) setFieldErrors((p) => ({ ...p, moto: undefined }))
+                  }}
                   required
                   disabled={!form.cliente_id}
-                  className={selectClassName()}
+                  aria-invalid={!!fieldErrors.moto}
+                  className={selectClassName(!!fieldErrors.moto)}
                 >
                   <option value="">Seleccionar moto</option>
                   {motosDeCliente.map((m) => (
@@ -513,23 +505,24 @@ export function Ordenes() {
                 </select>
                 {!form.cliente_id && <p className="mt-1 text-xs text-zinc-400">Elegí un cliente para listar sus motos.</p>}
               </Field>
-            </div>
+            </FormGrid>
           ) : (
             <div className="rounded-md bg-zinc-800/50 px-3 py-2 text-xs text-zinc-400">
               Cliente: <span className="text-zinc-200">{clienteMap.get(editing.cliente_id)?.nombre ?? `#${editing.cliente_id}`}</span>
               {" · "}Moto: <span className="text-zinc-200">{(() => { const m = motoMap.get(editing.moto_id); return m ? `${m.marca} ${m.modelo}` : `#${editing.moto_id}` })()}</span>
             </div>
           )}
-          <Field label="Descripción *" id="ord-descripcion" error={fieldError ?? undefined}>
+          <Field label="Descripción *" id="ord-descripcion" error={fieldErrors.descripcion}>
             <input
               id="ord-descripcion"
               value={form.descripcion}
               onChange={(e) => {
                 setForm((p) => ({ ...p, descripcion: e.target.value }))
-                if (fieldError) setFieldError(null)
+                if (fieldErrors.descripcion) setFieldErrors((p) => ({ ...p, descripcion: undefined }))
               }}
-              autoFocus={!!editing}
-              className={inputClassName(!!fieldError)}
+              aria-invalid={!!fieldErrors.descripcion}
+              aria-describedby={fieldErrors.descripcion ? "ord-descripcion-error" : undefined}
+              className={inputClassName(!!fieldErrors.descripcion)}
               placeholder="Cambio de aceite y filtros"
             />
           </Field>
@@ -542,14 +535,18 @@ export function Ordenes() {
               className={inputClassName()}
             />
           </Field>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Total mano de obra" id="ord-mo">
+          <FormGrid>
+            <Field label="Total mano de obra" id="ord-mo" error={fieldErrors.total_mano_obra}>
               <input
                 id="ord-mo"
                 value={form.total_mano_obra}
                 inputMode="numeric"
-                onChange={(e) => setForm((p) => ({ ...p, total_mano_obra: e.target.value }))}
-                className={inputClassName()}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, total_mano_obra: e.target.value }))
+                  if (fieldErrors.total_mano_obra) setFieldErrors((p) => ({ ...p, total_mano_obra: undefined }))
+                }}
+                aria-invalid={!!fieldErrors.total_mano_obra}
+                className={inputClassName(!!fieldErrors.total_mano_obra)}
               />
             </Field>
             <Field label="Notas" id="ord-notas">
@@ -560,8 +557,8 @@ export function Ordenes() {
                 className={inputClassName()}
               />
             </Field>
-          </div>
-          <div className="sticky -bottom-3 -mx-3 -mb-3 flex justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:static sm:mx-0 sm:mb-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-2">
+          </FormGrid>
+          <FormActions>
             <button
               type="button"
               onClick={() => setDialogOpen(false)}
@@ -579,8 +576,8 @@ export function Ordenes() {
               {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
-          </div>
-        </form>
+          </FormActions>
+        </Form>
       </Dialog>
 
       <Dialog
@@ -596,9 +593,7 @@ export function Ordenes() {
               {" · "}Mano de obra: <span className="text-zinc-200">{formatMoney(detail.total_mano_obra)}</span>
             </div>
 
-            {repError && (
-              <p role="alert" className="rounded-md bg-red-950/50 px-2.5 py-1.5 text-xs text-red-400">{repError}</p>
-            )}
+            {repError && <Alert>{repError}</Alert>}
 
             <div>
               <p className="mb-1.5 text-xs font-medium tracking-wide text-zinc-400">Repuestos</p>
@@ -620,13 +615,10 @@ export function Ordenes() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-zinc-200">{formatMoney(line.subtotal)}</span>
-                          <button
-                            onClick={() => onRemoveRepuesto(line)}
-                            aria-label={`Quitar ${rep?.nombre || "repuesto"}`}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-red-950/50 hover:text-red-400"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          <RowActions
+                            onDelete={() => onRemoveRepuesto(line)}
+                            deleteLabel={`Quitar ${rep?.nombre || "repuesto"}`}
+                          />
                         </div>
                       </li>
                     )
@@ -640,45 +632,47 @@ export function Ordenes() {
               <span className="text-sm font-semibold text-zinc-100">{formatMoney(totalRepuestos)}</span>
             </div>
 
-            <form onSubmit={onAddRepuesto} noValidate className="grid gap-2 sm:grid-cols-[1fr_96px_auto]">
-              <Field label="Repuesto" id="add-rep">
-                <select
-                  id="add-rep"
-                  value={addRepId}
-                  onChange={(e) => setAddRepId(e.target.value)}
-                  className={selectClassName()}
-                >
-                  <option value="">Seleccionar repuesto</option>
-                  {allRepuestos.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.nombre || r.codigo} · stock {r.stock}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Cantidad" id="add-cant">
-                <input
-                  id="add-cant"
-                  value={addRepCant}
-                  inputMode="numeric"
-                  onChange={(e) => setAddRepCant(e.target.value)}
-                  className={inputClassName()}
-                />
-              </Field>
-              <div className="flex items-end pb-0.5">
-                <button
-                  type="submit"
-                  disabled={repSaving || !addRepId}
-                  className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-900 hover:bg-amber-400 disabled:opacity-50 sm:h-[36px] sm:w-auto"
-                >
-                  {repSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
-                  Agregar
-                </button>
-              </div>
+            <Form onSubmit={onAddRepuesto}>
+              <FormGrid cols={3}>
+                <Field label="Repuesto" id="add-rep">
+                  <select
+                    id="add-rep"
+                    value={addRepId}
+                    onChange={(e) => setAddRepId(e.target.value)}
+                    className={selectClassName()}
+                  >
+                    <option value="">Seleccionar repuesto</option>
+                    {allRepuestos.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.nombre || r.codigo} · stock {r.stock}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Cantidad" id="add-cant">
+                  <input
+                    id="add-cant"
+                    value={addRepCant}
+                    inputMode="numeric"
+                    onChange={(e) => setAddRepCant(e.target.value)}
+                    className={inputClassName()}
+                  />
+                </Field>
+                <div className="flex items-end pb-0.5">
+                  <button
+                    type="submit"
+                    disabled={repSaving || !addRepId}
+                    className={buttonClassName("primary")}
+                  >
+                    {repSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+                    Agregar
+                  </button>
+                </div>
+              </FormGrid>
               {addRepId && disponible(addRepId) <= 0 && (
-                <p className="text-xs text-red-400 sm:col-span-3">Sin stock disponible para este repuesto.</p>
+                <Alert>Sin stock disponible para este repuesto.</Alert>
               )}
-            </form>
+            </Form>
           </div>
         )}
       </Dialog>

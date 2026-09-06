@@ -22,6 +22,8 @@ const TITLES: Record<string, string> = {
   "/repuestos": "Repuestos — Motek",
   "/facturas": "Facturas — Motek",
   "/alertas": "Alertas — Motek",
+  "/login": "Iniciar sesión — Motek",
+  "/register": "Crear cuenta — Motek",
 }
 
 export function Layout() {
@@ -51,8 +53,7 @@ export function Layout() {
             <Brand />
           </Link>
           <div className="flex min-w-0 items-center gap-2">
-            <span className="hidden max-w-40 truncate text-xs text-zinc-400 sm:inline" title={user?.email}>{user?.email}</span>
-            <span className="max-w-28 truncate text-xs text-zinc-500 sm:hidden" title={user?.email}>{user?.email}</span>
+            <span className="max-w-28 truncate text-xs text-zinc-500 sm:max-w-40 sm:text-zinc-400" title={user?.email}>{user?.email}</span>
             <button onClick={() => setConfirmLogout(true)} className={buttonClassName("secondary")}>
               Salir
             </button>

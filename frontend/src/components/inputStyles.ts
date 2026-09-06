@@ -13,5 +13,5 @@ export function inlineSelectClassName() {
 }
 
 export function searchInputClassName() {
-  return "w-full rounded-md border border-zinc-800 bg-zinc-900 py-2 pl-8 pr-2.5 text-base text-zinc-100 placeholder:text-zinc-400 outline-none focus:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:py-1.5 sm:text-xs"
+  return "w-full rounded-md border border-zinc-800 bg-zinc-900 py-2 pl-8 pr-2.5 text-base text-zinc-100 placeholder:text-zinc-400 outline-none focus:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:py-1.5 sm:text-sm"
 }
