@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { Banknote, Ban, Loader2, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Factura, OrdenTrabajo, Pago } from "../api/types"
@@ -17,15 +17,18 @@ import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { useCollection } from "../hooks/useCollection"
 import { getErrorMessage } from "../lib/errors"
 import { formatFecha, formatMoney } from "../lib/format"
 
 export function Facturas() {
   const toast = useToast()
-  const [facturas, setFacturas] = useState<Factura[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [estadoFiltro, setEstadoFiltro] = useState("")
+  const { items: facturas, loading, error, setError, refresh } = useCollection<Factura>(
+    "/api/facturas",
+    "Error cargando facturas",
+    { estado: estadoFiltro || undefined },
+  )
   const [createOpen, setCreateOpen] = useState(false)
   const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>([])
   const [ordenSel, setOrdenSel] = useState("")
@@ -49,52 +52,25 @@ export function Facturas() {
   const facturasIds = useMemo(() => new Set(facturas.map((f) => f.orden_id)), [facturas])
   const ordenesSinFactura = useMemo(() => ordenes.filter((o) => !facturasIds.has(o.id)), [ordenes, facturasIds])
 
-  async function fetchFacturas(estado?: string) {
-    const url = estado ? `/api/facturas?estado=${encodeURIComponent(estado)}` : "/api/facturas"
-    const data = await api<Factura[]>(url)
-    setFacturas(data ?? [])
-  }
-
-  async function load() {
-    setLoading(true)
-    setError(null)
+  const loadLookups = useCallback(async () => {
     try {
-      await fetchFacturas(estadoFiltro || undefined)
-    } catch (e) {
-      setError(getErrorMessage(e, "Error cargando facturas"))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const data = await api<Factura[]>("/api/facturas")
-        if (!cancelled) setFacturas(data ?? [])
-      } catch (e) {
-        if (!cancelled) setError(getErrorMessage(e, "Error cargando facturas"))
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+      const data = await api<OrdenTrabajo[]>("/api/ordenes")
+      setOrdenes(data ?? [])
+    } catch {
+      setCreateError("Error cargando órdenes")
     }
   }, [])
+
+  const reloadAll = useCallback(async () => {
+    await Promise.all([refresh(), loadLookups()])
+  }, [refresh, loadLookups])
 
   async function openCreate() {
     setCreateOpen(true)
     setOrdenSel("")
     setCreateError(null)
     if (ordenes.length === 0) {
-      try {
-        const data = await api<OrdenTrabajo[]>("/api/ordenes")
-        setOrdenes(data ?? [])
-      } catch {
-        setCreateError("Error cargando órdenes")
-      }
+      await loadLookups()
     }
   }
 
@@ -111,7 +87,7 @@ export function Facturas() {
       setCreateOpen(false)
       setOrdenSel("")
       toast.success("Factura creada")
-      await fetchFacturas(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setCreateError(getErrorMessage(e, "Error creando factura"))
     } finally {
@@ -155,16 +131,15 @@ export function Facturas() {
     setPagoSaving(true)
     try {
       await api(`/api/facturas/${detail.id}/pagos`, { method: "POST", body: { monto, metodo: pagoMetodo } })
-      const [pagosData, facturasData] = await Promise.all([
+      const [pagosData, updated] = await Promise.all([
         api<Pago[]>(`/api/facturas/${detail.id}/pagos`),
-        api<Factura[]>("/api/facturas"),
+        api<Factura>(`/api/facturas/${detail.id}`),
       ])
       setPagos(pagosData ?? [])
-      setFacturas(facturasData ?? [])
-      const updated = (facturasData ?? []).find((x) => x.id === detail.id)
-      if (updated) setDetail(updated)
+      setDetail(updated)
       setPagoMonto("")
       toast.success("Pago registrado")
+      await refresh()
     } catch (e) {
       setPagoError(getErrorMessage(e, "Error registrando pago"))
     } finally {
@@ -176,15 +151,14 @@ export function Facturas() {
     if (!detail) return
     try {
       await api(`/api/facturas/${detail.id}/pagos/${p.id}`, { method: "DELETE" })
-      const [pagosData, facturasData] = await Promise.all([
+      const [pagosData, updated] = await Promise.all([
         api<Pago[]>(`/api/facturas/${detail.id}/pagos`),
-        api<Factura[]>("/api/facturas"),
+        api<Factura>(`/api/facturas/${detail.id}`),
       ])
       setPagos(pagosData ?? [])
-      setFacturas(facturasData ?? [])
-      const updated = (facturasData ?? []).find((x) => x.id === detail.id)
-      if (updated) setDetail(updated)
+      setDetail(updated)
       toast.success("Pago eliminado")
+      await refresh()
     } catch (e) {
       setPagoError(getErrorMessage(e, "Error eliminando pago"))
     }
@@ -197,7 +171,7 @@ export function Facturas() {
       await api(`/api/facturas/${cancelTarget.id}/cancelar`, { method: "PATCH", body: {} })
       setCancelTarget(null)
       toast.success("Factura cancelada")
-      await fetchFacturas(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e, "Error cancelando factura"))
     } finally {
@@ -233,7 +207,7 @@ export function Facturas() {
       const updated = await api<Factura>(`/api/facturas/${target.id}`)
       setDetail((d) => (d && d.id === updated.id ? updated : d))
       toast.success("Factura actualizada")
-      await fetchFacturas(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setEditError(getErrorMessage(e, "Error actualizando factura"))
     } finally {
@@ -261,7 +235,7 @@ export function Facturas() {
           loadingText="Cargando facturas..."
           error={error}
           errorTitle="No se pudieron cargar las facturas"
-          onRetry={load}
+          onRetry={reloadAll}
           empty={
             facturas.length === 0
               ? estadoFiltro
@@ -269,13 +243,7 @@ export function Facturas() {
                     title: "Sin resultados para ese estado",
                     description: "Probá con otro estado o limpiá el filtro.",
                     action: (
-                      <button
-                        onClick={() => {
-                          setEstadoFiltro("")
-                          void fetchFacturas(undefined)
-                        }}
-                        className={buttonClassName("secondary")}
-                      >
+                      <button onClick={() => setEstadoFiltro("")} className={buttonClassName("secondary")}>
                         Limpiar filtros
                       </button>
                     ),
@@ -295,10 +263,7 @@ export function Facturas() {
             <div className="w-full sm:max-w-xs">
               <FilterSelect
                 value={estadoFiltro}
-                onChange={(v) => {
-                  setEstadoFiltro(v)
-                  void fetchFacturas(v || undefined)
-                }}
+                onChange={(v) => setEstadoFiltro(v)}
                 label="Filtrar facturas por estado"
                 busy={loading}
                 options={[{ value: "", label: "Todos los estados" }, ...FACTURA_ESTADOS.map((s) => ({ value: s.value, label: s.label }))]}
