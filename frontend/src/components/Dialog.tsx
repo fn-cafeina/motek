@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react"
+import { createPortal } from "react-dom"
 import { X } from "lucide-react"
 
 type DialogProps = {
@@ -12,6 +13,7 @@ type DialogProps = {
 
 export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", dismissible = true }: DialogProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
   const justOpened = useRef(false)
 
   useEffect(() => {
@@ -79,10 +81,22 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", 
     }
   }, [open, onClose, dismissible])
 
+  useEffect(() => {
+    if (!open) return
+    const container = rootRef.current
+    if (!container) return
+    const previousPointerEvents = container.style.pointerEvents
+    container.style.pointerEvents = "none"
+    return () => {
+      container.style.pointerEvents = previousPointerEvents
+    }
+  }, [open])
+
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
+      ref={rootRef}
       className="fixed inset-0 z-[var(--z-dialog)] flex items-end justify-center bg-black/60 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur-sm sm:items-center sm:px-4 sm:pb-4"
       onMouseDown={(e) => {
         if (dismissible && e.target === e.currentTarget) onClose()
@@ -108,6 +122,7 @@ export function Dialog({ open, title, onClose, children, maxWidth = "max-w-lg", 
         </div>
         <div className="overflow-y-auto overscroll-contain p-3 sm:p-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
