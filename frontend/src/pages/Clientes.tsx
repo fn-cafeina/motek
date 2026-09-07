@@ -4,6 +4,7 @@ import { api } from "../api/client"
 import type { Cliente } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
+import { Alert } from "../components/ui/Alert"
 import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
@@ -30,6 +31,7 @@ export function Clientes() {
   const [editing, setEditing] = useState<Cliente | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [fieldErrors, setFieldErrors] = useState<{ nombre?: string; email?: string }>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Cliente | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -44,6 +46,7 @@ export function Clientes() {
     setEditing(null)
     setForm(emptyForm)
     setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
@@ -51,6 +54,7 @@ export function Clientes() {
     setEditing(c)
     setForm({ nombre: c.nombre, telefono: c.telefono, email: c.email, direccion: c.direccion, notas: c.notas })
     setFieldErrors({})
+    setFormError(null)
     setDialogOpen(true)
   }
 
@@ -62,6 +66,7 @@ export function Clientes() {
     if (form.email && !isValidEmail(form.email)) next.email = "Email inválido"
     setFieldErrors(next)
     if (next.nombre || next.email) return
+    setFormError(null)
     setSaving(true)
     const isEdit = !!editing
     try {
@@ -73,7 +78,7 @@ export function Clientes() {
       toast.success(isEdit ? "Cliente actualizado" : "Cliente creado")
       await load()
     } catch (e) {
-      setFieldErrors({ nombre: getErrorMessage(e, "Error guardando cliente") })
+      setFormError(getErrorMessage(e, "Error guardando cliente"))
     } finally {
       setSaving(false)
     }
@@ -185,6 +190,7 @@ export function Clientes() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
+          {formError && <Alert>{formError}</Alert>}
           <Field label="Nombre *" id="cliente-nombre" error={fieldErrors.nombre}>
             <input
               id="cliente-nombre"
