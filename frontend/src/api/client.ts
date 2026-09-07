@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080"
+// Same-origin by default (vite dev proxies /api to the backend); set
+// VITE_API_URL to point somewhere else.
+const API_URL = import.meta.env.VITE_API_URL ?? ""
 
 export const TOKEN_KEY = "motek_token"
 export const UNAUTHORIZED_EVENT = "motek:unauthorized"

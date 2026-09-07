@@ -1,6 +1,6 @@
 # Motek — Frontend
 
-SPA Vite + React + TypeScript + Tailwind CSS (v4) + React Router v8. API `VITE_API_URL` (default `http://localhost:8080`).
+SPA Vite + React + TypeScript + Tailwind CSS (v4) + React Router v8. API `VITE_API_URL` (default same-origin: el dev server hace proxy de `/api` a `http://localhost:8080`).
 
 ## Inicio rápido
 
@@ -22,7 +22,7 @@ Backend debe estar corriendo (`cd ../backend && go build . && ./motek`).
 
 ## Env
 
-`VITE_API_URL` — base del backend. Solo `VITE_*` se expone al cliente.
+`VITE_API_URL` — base del backend. Por defecto es same-origin: `vite.config.ts` hace proxy de `/api` al backend en `http://localhost:8080` durante el desarrollo, sin CORS. Solo `VITE_*` se expone al cliente.
 
 ## Estructura
 
@@ -32,6 +32,12 @@ frontend/
 │   ├── main.tsx
 │   ├── App.tsx
 │   ├── index.css
+│   ├── api/            # cliente fetch + tipos
+│   ├── contexts/       # AuthContext
+│   ├── hooks/          # useCollection
+│   ├── lib/            # format, validate, errors
+│   ├── components/     # UI compartida (+ ui/, layout/)
+│   ├── pages/
 │   └── vite-env.d.ts   # ImportMetaEnv { VITE_API_URL }
 ├── vite.config.ts
 ├── .env.example
