@@ -10,7 +10,10 @@ export function formatMoney(value: number): string {
 
 export function formatFecha(iso: string | null | undefined): string {
   if (!iso) return "—"
-  const d = new Date(iso)
+  // Date-only values arrive as UTC midnight (e.g. "2026-09-10T00:00:00Z" from a
+  // date input); rendering them in local time (UTC-3) shifts the visible day.
+  const dateOnly = /^\d{4}-\d{2}-\d{2}(T00:00:00(\.\d+)?Z)?$/.test(iso)
+  const d = new Date(dateOnly ? `${iso.slice(0, 10)}T12:00:00` : iso)
   if (Number.isNaN(d.getTime())) return "—"
   return d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
