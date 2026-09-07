@@ -60,6 +60,7 @@ export function Ordenes() {
   const [addRepId, setAddRepId] = useState("")
   const [addRepCant, setAddRepCant] = useState("1")
   const [repError, setRepError] = useState<string | null>(null)
+  const [repLoading, setRepLoading] = useState(false)
   const [repSaving, setRepSaving] = useState(false)
   const [estadoUpdatingId, setEstadoUpdatingId] = useState<number | null>(null)
 
@@ -230,15 +231,23 @@ export function Ordenes() {
   async function openDetail(o: OrdenTrabajo) {
     setDetail(o)
     setRepuestos([])
+    setAllRepuestos([])
     setAddRepId("")
     setAddRepCant("1")
     setRepError(null)
-    const [or, reps] = await Promise.all([
-      api<OrdenRepuesto[]>(`/api/ordenes/${o.id}/repuestos`),
-      api<Repuesto[]>("/api/repuestos"),
-    ])
-    setRepuestos(or ?? [])
-    setAllRepuestos(reps ?? [])
+    setRepLoading(true)
+    try {
+      const [or, reps] = await Promise.all([
+        api<OrdenRepuesto[]>(`/api/ordenes/${o.id}/repuestos`),
+        api<Repuesto[]>("/api/repuestos"),
+      ])
+      setRepuestos(or ?? [])
+      setAllRepuestos(reps ?? [])
+    } catch (e) {
+      setRepError(getErrorMessage(e, "Error cargando repuestos de la orden"))
+    } finally {
+      setRepLoading(false)
+    }
   }
 
   async function onAddRepuesto(e: React.FormEvent) {
@@ -597,7 +606,11 @@ export function Ordenes() {
 
             <div>
               <p className="mb-1.5 text-xs font-medium tracking-wide text-zinc-400">Repuestos</p>
-              {repuestos.length === 0 ? (
+              {repLoading ? (
+                <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-400">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando repuestos...
+                </div>
+              ) : repuestos.length === 0 ? (
                 <p className="py-3 text-center text-xs text-zinc-400">Sin repuestos en esta orden.</p>
               ) : (
                 <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
