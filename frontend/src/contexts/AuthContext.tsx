@@ -1,21 +1,21 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { api } from "../api/client"
+import { UNAUTHORIZED_EVENT, TOKEN_KEY, api } from "../api/client"
 import type { User } from "../api/types"
 import { AuthContext } from "./authContext"
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem("motek_token"))
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem(TOKEN_KEY))
 
   useEffect(() => {
-    const token = localStorage.getItem("motek_token")
+    const token = localStorage.getItem(TOKEN_KEY)
     if (!token) return
     let cancelled = false
     api<User>("/api/auth/me")
       .then((me) => {
         if (!cancelled) setUser(me)
       })
-      .catch(() => localStorage.removeItem("motek_token"))
+      .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setLoading(false)
     }
-    window.addEventListener("motek:unauthorized", onUnauthorized)
-    return () => window.removeEventListener("motek:unauthorized", onUnauthorized)
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized)
   }, [])
 
   async function login(email: string, password: string) {
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       body: { email, password },
     })
-    localStorage.setItem("motek_token", res.token)
+    localStorage.setItem(TOKEN_KEY, res.token)
     const me = await api<User>("/api/auth/me")
     setUser(me)
   }
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
-    localStorage.removeItem("motek_token")
+    localStorage.removeItem(TOKEN_KEY)
     setUser(null)
   }
 

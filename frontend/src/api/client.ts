@@ -1,5 +1,10 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080"
 
+export const TOKEN_KEY = "motek_token"
+export const UNAUTHORIZED_EVENT = "motek:unauthorized"
+
+const DEFAULT_TIMEOUT_MS = 15_000
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) {
@@ -8,28 +13,48 @@ export class ApiError extends Error {
   }
 }
 
-type ApiOptions = Omit<RequestInit, "body"> & {
+type ApiOptions = Omit<RequestInit, "body" | "headers"> & {
   body?: unknown
+  headers?: Record<string, string>
+  timeoutMs?: number
 }
 
 export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
-  const token = localStorage.getItem("motek_token")
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(opts.headers as Record<string, string> | undefined),
-  }
+  const { body, headers: extraHeaders, timeoutMs, signal: externalSignal, ...rest } = opts
+
+  const token = localStorage.getItem(TOKEN_KEY)
+  const headers: Record<string, string> = { ...extraHeaders }
+  if (body !== undefined && !headers["Content-Type"]) headers["Content-Type"] = "application/json"
   if (token) headers["Authorization"] = `Bearer ${token}`
 
-  const res = await fetch(`${API_URL}${path}`, {
-    ...opts,
-    headers,
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-  })
+  const controller = new AbortController()
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort()
+    else externalSignal.addEventListener("abort", () => controller.abort(), { once: true })
+  }
+  const timer = setTimeout(() => controller.abort(), timeoutMs ?? DEFAULT_TIMEOUT_MS)
+
+  let res: Response
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...rest,
+      headers,
+      signal: controller.signal,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new ApiError(0, externalSignal?.aborted ? "Solicitud cancelada" : "La solicitud tardó demasiado. Probá de nuevo.")
+    }
+    throw new ApiError(0, "No se pudo conectar con el servidor")
+  } finally {
+    clearTimeout(timer)
+  }
 
   if (res.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/register" && path !== "/api/auth/me") {
-    localStorage.removeItem("motek_token")
+    localStorage.removeItem(TOKEN_KEY)
     if (window.location.pathname !== "/login" && window.location.pathname !== "/register") {
-      window.dispatchEvent(new CustomEvent("motek:unauthorized"))
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT))
     }
     throw new ApiError(401, "No autorizado")
   }
