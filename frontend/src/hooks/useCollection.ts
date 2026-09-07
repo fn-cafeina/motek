@@ -7,6 +7,19 @@ export function useCollection<T>(path: string, fallback: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Background refetch: keeps the current data visible (no spinner flash) and
+  // surfaces a non-blocking inline error if it fails. Intended for follow-ups
+  // after create/update/delete; use load() for an explicit full reload.
+  const refresh = useCallback(async () => {
+    setError(null)
+    try {
+      const data = await api<T[]>(path)
+      setItems(data ?? [])
+    } catch (e) {
+      setError(getErrorMessage(e, fallback))
+    }
+  }, [path, fallback])
+
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -37,5 +50,5 @@ export function useCollection<T>(path: string, fallback: string) {
     }
   }, [path, fallback])
 
-  return { items, setItems, loading, error, setError, load }
+  return { items, setItems, loading, error, setError, load, refresh }
 }

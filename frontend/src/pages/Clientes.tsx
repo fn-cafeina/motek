@@ -25,7 +25,7 @@ const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "
 
 export function Clientes() {
   const toast = useToast()
-  const { items: clientes, loading, error, setError, load } = useCollection<Cliente>("/api/clientes", "Error cargando clientes")
+  const { items: clientes, loading, error, setError, load, refresh } = useCollection<Cliente>("/api/clientes", "Error cargando clientes")
   const [q, setQ] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Cliente | null>(null)
@@ -76,7 +76,7 @@ export function Clientes() {
       setEditing(null)
       setForm(emptyForm)
       toast.success(isEdit ? "Cliente actualizado" : "Cliente creado")
-      await load()
+      await refresh()
     } catch (e) {
       setFormError(getErrorMessage(e, "Error guardando cliente"))
     } finally {
@@ -91,7 +91,7 @@ export function Clientes() {
       await api(`/api/clientes/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
       toast.success("Cliente eliminado")
-      await load()
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e, "Error eliminando cliente"))
     } finally {

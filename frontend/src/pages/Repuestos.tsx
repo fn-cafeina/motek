@@ -47,7 +47,7 @@ const emptyForm: FormState = {
 
 export function Repuestos() {
   const toast = useToast()
-  const { items, setItems, loading, error, setError, load } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos")
+  const { items, setItems, loading, error, setError, load, refresh } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos")
   const [q, setQ] = useState("")
   const [soloBajo, setSoloBajo] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -139,7 +139,7 @@ export function Repuestos() {
       setDialogOpen(false)
       setEditing(null)
       toast.success(isEdit ? "Repuesto actualizado" : "Repuesto creado")
-      await load()
+      await refresh()
     } catch (e) {
       setSubmitError(getErrorMessage(e, "Error guardando repuesto"))
     } finally {
@@ -154,7 +154,7 @@ export function Repuestos() {
       await api(`/api/repuestos/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
       toast.success("Repuesto eliminado")
-      await load()
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e, "Error eliminando repuesto"))
     } finally {
