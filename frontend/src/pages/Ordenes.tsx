@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Loader2, PackagePlus, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
@@ -16,6 +16,7 @@ import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { useCollection } from "../hooks/useCollection"
 import { getErrorMessage } from "../lib/errors"
 import { numberField, required } from "../lib/validate"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
@@ -40,12 +41,14 @@ const emptyForm: FormState = {
 
 export function Ordenes() {
   const toast = useToast()
-  const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>([])
+  const [estadoFiltro, setEstadoFiltro] = useState("")
+  const { items: ordenes, loading, error, setError, refresh } = useCollection<OrdenTrabajo>(
+    "/api/ordenes",
+    "Error cargando órdenes",
+    { estado: estadoFiltro || undefined },
+  )
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [motos, setMotos] = useState<Moto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [estadoFiltro, setEstadoFiltro] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<OrdenTrabajo | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
@@ -68,57 +71,43 @@ export function Ordenes() {
   const motoMap = useMemo(() => buildMap(motos), [motos])
   const repuestoMap = useMemo(() => buildMap(allRepuestos), [allRepuestos])
 
-  async function fetchOrdenes(estado?: string) {
-    const url = estado ? `/api/ordenes?estado=${encodeURIComponent(estado)}` : "/api/ordenes"
-    const data = await api<OrdenTrabajo[]>(url)
-    setOrdenes(data ?? [])
-  }
-
-  async function fetchLookups() {
-    const [cs, motosData] = await Promise.all([
-      api<Cliente[]>("/api/clientes"),
-      api<Moto[]>("/api/motos"),
-    ])
-    setClientes(cs ?? [])
-    setMotos((motosData as Moto[]) ?? [])
-  }
-
-  async function load() {
-    setLoading(true)
-    setError(null)
+  const loadLookups = useCallback(async () => {
     try {
-      await Promise.all([fetchOrdenes(estadoFiltro || undefined), fetchLookups()])
+      const [cs, motosData] = await Promise.all([
+        api<Cliente[]>("/api/clientes"),
+        api<Moto[]>("/api/motos"),
+      ])
+      setClientes(cs ?? [])
+      setMotos((motosData as Moto[]) ?? [])
     } catch (e) {
       setError(getErrorMessage(e, "Error cargando órdenes"))
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [setError])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        const [ordenesData, cs, motosData] = await Promise.all([
-          api<OrdenTrabajo[]>("/api/ordenes"),
+        const [cs, motosData] = await Promise.all([
           api<Cliente[]>("/api/clientes"),
           api<Moto[]>("/api/motos"),
         ])
         if (!cancelled) {
-          setOrdenes(ordenesData ?? [])
           setClientes(cs ?? [])
           setMotos((motosData as Moto[]) ?? [])
         }
       } catch (e) {
         if (!cancelled) setError(getErrorMessage(e, "Error cargando órdenes"))
-      } finally {
-        if (!cancelled) setLoading(false)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [setError])
+
+  const reloadAll = useCallback(async () => {
+    await Promise.all([refresh(), loadLookups()])
+  }, [refresh, loadLookups])
 
   const motosDeCliente = useMemo(() => {
     if (!form.cliente_id) return []
@@ -191,7 +180,7 @@ export function Ordenes() {
       setDialogOpen(false)
       setEditing(null)
       toast.success(isEdit ? "Orden actualizada" : "Orden creada")
-      await fetchOrdenes(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setFormError(getErrorMessage(e, "Error guardando orden"))
     } finally {
@@ -205,7 +194,7 @@ export function Ordenes() {
     try {
       await api(`/api/ordenes/${o.id}/estado`, { method: "PATCH", body: { estado } })
       toast.success("Estado actualizado")
-      await fetchOrdenes(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e, "Error actualizando estado"))
     } finally {
@@ -220,7 +209,7 @@ export function Ordenes() {
       await api(`/api/ordenes/${confirm.id}`, { method: "DELETE" })
       setConfirm(null)
       toast.success("Orden eliminada")
-      await fetchOrdenes(estadoFiltro || undefined)
+      await refresh()
     } catch (e) {
       setError(getErrorMessage(e, "Error eliminando orden"))
     } finally {
@@ -322,7 +311,7 @@ export function Ordenes() {
           loadingText="Cargando órdenes..."
           error={error}
           errorTitle="No se pudieron cargar las órdenes"
-          onRetry={load}
+          onRetry={reloadAll}
           empty={
             ordenes.length === 0
               ? estadoFiltro
@@ -331,10 +320,7 @@ export function Ordenes() {
                     description: "Probá con otro estado o limpiá el filtro para ver todas las órdenes.",
                     action: (
                       <button
-                        onClick={() => {
-                          setEstadoFiltro("")
-                          void fetchOrdenes(undefined)
-                        }}
+                        onClick={() => setEstadoFiltro("")}
                         className={buttonClassName("secondary")}
                       >
                         Limpiar filtros
@@ -356,10 +342,7 @@ export function Ordenes() {
             <div className="w-full sm:max-w-xs">
               <FilterSelect
                 value={estadoFiltro}
-                onChange={(v) => {
-                  setEstadoFiltro(v)
-                  void fetchOrdenes(v || undefined)
-                }}
+                onChange={(v) => setEstadoFiltro(v)}
                 label="Filtrar órdenes por estado"
                 busy={loading}
                 options={[{ value: "", label: "Todos los estados" }, ...ORDEN_ESTADOS.map((e) => ({ value: e.value, label: e.label }))]}
