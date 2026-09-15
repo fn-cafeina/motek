@@ -102,6 +102,9 @@ func (s *Store) UpdateOrdenEstado(ctx context.Context, id int64, estado string) 
 func (s *Store) DeleteOrden(ctx context.Context, id int64) error {
 	res, err := s.DB.ExecContext(ctx, "DELETE FROM ordenes_trabajo WHERE id = ?", id)
 	if err != nil {
+		if isFKViolation(err) {
+			return Conflict("no se puede eliminar: la orden tiene una factura emitida")
+		}
 		return err
 	}
 	n, err := res.RowsAffected()

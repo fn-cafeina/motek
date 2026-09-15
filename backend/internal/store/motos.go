@@ -85,6 +85,10 @@ func (s *Store) UpdateMoto(ctx context.Context, id int64, m Moto) (Moto, error) 
 func (s *Store) DeleteMoto(ctx context.Context, id int64) error {
 	res, err := s.DB.ExecContext(ctx, "DELETE FROM motos WHERE id = ?", id)
 	if err != nil {
+		// Mismo caso que DeleteCliente: la cascada choca con las facturas de sus órdenes.
+		if isFKViolation(err) {
+			return Conflict("no se puede eliminar: la moto tiene facturas emitidas")
+		}
 		return err
 	}
 	n, err := res.RowsAffected()

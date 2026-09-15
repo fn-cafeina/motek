@@ -69,6 +69,11 @@ func (s *Store) UpdateCliente(ctx context.Context, id int64, c Cliente) (Cliente
 func (s *Store) DeleteCliente(ctx context.Context, id int64) error {
 	res, err := s.DB.ExecContext(ctx, "DELETE FROM clientes WHERE id = ?", id)
 	if err != nil {
+		// La cascada llega hasta ordenes_trabajo; si alguna tiene factura, facturas.orden_id
+		// la frena. Sin esto el handler devolvía un 500 "error interno".
+		if isFKViolation(err) {
+			return Conflict("no se puede eliminar: el cliente tiene facturas emitidas")
+		}
 		return err
 	}
 	n, err := res.RowsAffected()
