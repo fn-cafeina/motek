@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Loader2, Plus } from "lucide-react"
 import { api } from "../api/client"
-import type { Cliente } from "../api/types"
+import type { Cliente, Moto } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Alert } from "../components/ui/Alert"
@@ -9,7 +9,7 @@ import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { MotosManager } from "../components/MotosManager"
-import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
@@ -17,16 +17,22 @@ import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
+import { useResumen } from "../contexts/resumenContext"
 import { useCollection } from "../hooks/useCollection"
+import { textoContador } from "../lib/contador"
 import { getErrorMessage } from "../lib/errors"
 import { isValidEmail, required } from "../lib/validate"
 
 type FormState = { nombre: string; telefono: string; email: string; direccion: string; notas: string }
 const emptyForm: FormState = { nombre: "", telefono: "", email: "", direccion: "", notas: "" }
 
+/** Lo que se lleva puesto borrar un cliente, para poder avisarlo antes. */
+type AlcanceBorrado = { motos: number; ordenes: number; facturas: number }
+
 export function Clientes() {
   const toast = useToast()
-  const { items: clientes, loading, error, setError, load, refresh } = useCollection<Cliente>("/api/clientes", "Error cargando clientes")
+  const { ordenes, facturas } = useResumen()
+  const { items: clientes, loading, error, load, refresh } = useCollection<Cliente>("/api/clientes", "Error cargando clientes")
   const [q, setQ] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Cliente | null>(null)
@@ -35,6 +41,7 @@ export function Clientes() {
   const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Cliente | null>(null)
+  const [alcance, setAlcance] = useState<AlcanceBorrado | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const filtered = useMemo(() => {
@@ -85,6 +92,25 @@ export function Clientes() {
     }
   }
 
+  // Antes de ofrecer el borrado se averigua qué se lleva puesto: las motos y las
+  // órdenes caen por cascada, y una factura emitida lo impide del todo.
+  async function pedirConfirmacion(c: Cliente) {
+    setConfirm(c)
+    setAlcance(null)
+    try {
+      const motos = await api<Moto[]>(`/api/clientes/${c.id}/motos`)
+      const propias = ordenes.filter((o) => o.cliente_id === c.id)
+      const ids = new Set(propias.map((o) => o.id))
+      setAlcance({
+        motos: (motos ?? []).length,
+        ordenes: propias.length,
+        facturas: facturas.filter((f) => ids.has(f.orden_id)).length,
+      })
+    } catch {
+      // Si no se pudo averiguar, se ofrece igual y el servidor decide.
+    }
+  }
+
   async function onDelete() {
     if (!confirm) return
     setDeleting(true)
@@ -94,7 +120,7 @@ export function Clientes() {
       toast.success("Cliente eliminado")
       await refresh()
     } catch (e) {
-      setError(getErrorMessage(e, "Error eliminando cliente"))
+      toast.error(getErrorMessage(e, "Error eliminando cliente"))
     } finally {
       setDeleting(false)
     }
@@ -103,23 +129,24 @@ export function Clientes() {
   const searchTerm = q.trim()
   const countLabel = loading
     ? undefined
-    : searchTerm
-      ? `${filtered.length} de ${clientes.length}`
-      : `${clientes.length} ${clientes.length === 1 ? "cliente" : "clientes"}`
+    : textoContador(filtered.length, clientes.length, searchTerm !== "", "cliente", "clientes")
   const empty = filtered.length === 0
     ? {
         title: searchTerm ? "Sin resultados" : "Aún no hay clientes",
         description: searchTerm
           ? "Probá con otro nombre, teléfono o email."
-          : "Registrá el dueño de la moto para abrir su ficha y cargar trabajos.",
+          : "Cargá el dueño de la moto para poder abrir órdenes de trabajo a su nombre.",
       }
     : null
+
+  const partes: string[] = []
+  if (alcance?.motos) partes.push(`${alcance.motos} ${alcance.motos === 1 ? "moto" : "motos"}`)
+  if (alcance?.ordenes) partes.push(`${alcance.ordenes} ${alcance.ordenes === 1 ? "orden de trabajo" : "órdenes de trabajo"}`)
+  const bloqueado = !!alcance && alcance.facturas > 0
 
   return (
     <>
       <PageStack>
-      <PageHeader title="Clientes" />
-
       {error && clientes.length > 0 && <InlineError message={error} />}
 
       <DataCard
@@ -142,7 +169,7 @@ export function Clientes() {
         }
       >
         <>
-          <Table>
+          <Table caption="Clientes registrados">
             <Thead>
               <tr>
                 <Th>Cliente</Th>
@@ -163,7 +190,7 @@ export function Clientes() {
                       extra={<MotosManager cliente={c} />}
                       onEdit={() => openEdit(c)}
                       editLabel={`Editar ${c.nombre}`}
-                      onDelete={() => setConfirm(c)}
+                      onDelete={() => pedirConfirmacion(c)}
                       deleteLabel={`Eliminar ${c.nombre}`}
                     />
                   </Td>
@@ -183,7 +210,7 @@ export function Clientes() {
                   extra={<MotosManager cliente={c} />}
                   onEdit={() => openEdit(c)}
                   editLabel={`Editar ${c.nombre}`}
-                  onDelete={() => setConfirm(c)}
+                  onDelete={() => pedirConfirmacion(c)}
                   deleteLabel={`Eliminar ${c.nombre}`}
                 />
               </li>
@@ -275,7 +302,7 @@ export function Clientes() {
               Cancelar
             </button>
             <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -285,7 +312,28 @@ export function Clientes() {
       <ConfirmDialog
         open={!!confirm}
         title="¿Eliminar cliente?"
-        description={confirm ? `${confirm.nombre} será eliminado.` : undefined}
+        description={
+          confirm && (
+            <>
+              <p>{confirm.nombre} se va a eliminar.</p>
+              {!bloqueado && partes.length > 0 && (
+                <p>
+                  {partes.length === 1 ? "También se borra" : "También se borran"}{" "}
+                  <span className="font-medium text-fg">{partes.join(" y ")}</span>.
+                </p>
+              )}
+            </>
+          )
+        }
+        blocked={
+          bloqueado
+            ? {
+                title: "Tiene facturas emitidas",
+                description:
+                  "No se puede eliminar mientras existan facturas de sus órdenes, para no perder el historial de facturación.",
+              }
+            : undefined
+        }
         busy={deleting}
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}

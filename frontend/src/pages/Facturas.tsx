@@ -14,13 +14,15 @@ import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { FilterBar } from "../components/ui/FilterBar"
 import { FilterSelect } from "../components/ui/FilterSelect"
 import { inputClassName, selectClassName } from "../components/inputStyles"
-import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { useCollection } from "../hooks/useCollection"
+import { useResumen } from "../contexts/resumenContext"
+import { textoContador } from "../lib/contador"
 import { getErrorMessage } from "../lib/errors"
 import { formatFecha, formatMoney } from "../lib/format"
 
@@ -33,11 +35,13 @@ export function Facturas() {
     (value: string) => setSearchParams(value ? { estado: value } : {}, { replace: true }),
     [setSearchParams],
   )
-  const { items: facturas, loading, error, setError, refresh } = useCollection<Factura>(
+  const { items: facturas, loading, error, refresh } = useCollection<Factura>(
     "/api/facturas",
     "Error cargando facturas",
     { estado: estadoFiltro || undefined },
   )
+  // El filtro es del servidor: el total sin filtrar sale del resumen del shell.
+  const { facturas: todasLasFacturas } = useResumen()
   const [createOpen, setCreateOpen] = useState(false)
   const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>([])
   const [ordenSel, setOrdenSel] = useState("")
@@ -182,7 +186,7 @@ export function Facturas() {
       toast.success("Factura cancelada")
       await refresh()
     } catch (e) {
-      setError(getErrorMessage(e, "Error cancelando factura"))
+      toast.error(getErrorMessage(e, "Error cancelando factura"))
     } finally {
       setCancelSaving(false)
     }
@@ -224,11 +228,13 @@ export function Facturas() {
     }
   }
 
+  const countLabel = loading
+    ? undefined
+    : textoContador(facturas.length, todasLasFacturas.length, estadoFiltro !== "", "factura", "facturas")
+
   return (
     <>
       <PageStack>
-        <PageHeader title="Facturas" />
-
         {error && facturas.length > 0 && <InlineError message={error} />}
 
         <DataCard
@@ -267,10 +273,8 @@ export function Facturas() {
                 />
               </div>
               <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
-                {!loading && facturas.length > 0 && (
-                  <span className="whitespace-nowrap text-[12px] text-muted">
-                    {facturas.length} {facturas.length === 1 ? "factura" : "facturas"}
-                  </span>
+                {countLabel && (
+                  <span className="whitespace-nowrap text-[12px] text-muted">{countLabel}</span>
                 )}
                 <button onClick={openCreate} className={buttonClassName("primary")}>
                   <Plus className="h-4 w-4" aria-hidden /> Nueva factura
@@ -310,8 +314,8 @@ export function Facturas() {
                     <Td>
                       <RowActions
                         actions={[
-                          { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="h-3.5 w-3.5" />, tone: "info" },
-                          ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="h-3.5 w-3.5" />, tone: "danger" as const }] : []),
+                          { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="size-3.5" />, tone: "info" },
+                          ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="size-3.5" />, tone: "danger" as const }] : []),
                         ]}
                         onEdit={() => openEdit(f)}
                         editLabel={`Editar factura #${f.id}`}
@@ -334,8 +338,8 @@ export function Facturas() {
                     <RowActions
                       variant="card"
                       actions={[
-                        { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="h-3.5 w-3.5" />, tone: "info" },
-                        ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="h-3.5 w-3.5" />, tone: "danger" as const }] : []),
+                        { onClick: () => openDetail(f), label: `Ver pagos de factura #${f.id}`, icon: <Banknote className="size-3.5" />, tone: "info" },
+                        ...(f.estado !== "cancelada" ? [{ onClick: () => setCancelTarget(f), label: `Cancelar factura #${f.id}`, icon: <Ban className="size-3.5" />, tone: "danger" as const }] : []),
                       ]}
                       onEdit={() => openEdit(f)}
                       editLabel={`Editar factura #${f.id}`}
@@ -383,7 +387,7 @@ export function Facturas() {
               aria-busy={creating}
               className={buttonClassName("primary")}
             >
-              {creating && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {creating && <Loader2 className="size-4 animate-spin" aria-hidden />}
               Crear
             </button>
           </FormActions>
@@ -416,25 +420,25 @@ export function Facturas() {
             </div>
 
             <dl className="divide-y divide-border rounded-md border border-border">
-              <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+              <div className="flex items-baseline justify-between gap-3 p-3 text-[13px]">
                 <dt className="text-muted">Mano de obra</dt>
                 <dd className="tabular-nums text-fg">{formatMoney(detail.subtotal_mano_obra)}</dd>
               </div>
-              <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+              <div className="flex items-baseline justify-between gap-3 p-3 text-[13px]">
                 <dt className="text-muted">Repuestos</dt>
                 <dd className="tabular-nums text-fg">{formatMoney(detail.subtotal_repuestos)}</dd>
               </div>
-              <div className="flex items-baseline justify-between gap-3 bg-raised/60 px-3 py-2.5">
+              <div className="flex items-baseline justify-between gap-3 bg-raised/60 p-3">
                 <dt className="text-[13px] font-semibold text-fg">Total</dt>
                 <dd className="text-[15px] font-semibold tabular-nums text-fg">{formatMoney(detail.total)}</dd>
               </div>
               {detail.estado !== "cancelada" && (
                 <>
-                  <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                  <div className="flex items-baseline justify-between gap-3 p-3 text-[13px]">
                     <dt className="text-muted">Pagado</dt>
                     <dd className="tabular-nums font-semibold text-ok">{formatMoney(totalPagado)}</dd>
                   </div>
-                  <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                  <div className="flex items-baseline justify-between gap-3 p-3 text-[13px]">
                     <dt className="text-muted">Saldo</dt>
                     <dd className={`tabular-nums font-semibold ${saldo > 0 ? "text-accent" : "text-fg"}`}>
                       {formatMoney(saldo)}
@@ -473,7 +477,7 @@ export function Facturas() {
               ) : (
                 <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
                   {pagos.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                    <li key={p.id} className="flex items-center justify-between gap-3 p-3">
                       <div className="min-w-0">
                         <div className="text-[13px] font-medium tabular-nums text-fg">{formatMoney(p.monto)}</div>
                         <div className="text-[12px] text-subtle">{p.metodo} · {formatFecha(p.fecha)}</div>
@@ -514,7 +518,7 @@ export function Facturas() {
                     </Field>
                     <div className="flex items-end pb-0.5">
                       <button type="submit" disabled={pagoSaving} className={buttonClassName("primary")}>
-                        {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+                        {pagoSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
                         Registrar pago
                       </button>
                     </div>
@@ -560,7 +564,7 @@ export function Facturas() {
               disabled={editSaving}
               className={buttonClassName("primary")}
             >
-              {editSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {editSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               Guardar
             </button>
           </FormActions>

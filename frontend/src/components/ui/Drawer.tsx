@@ -28,7 +28,7 @@ export function Drawer({
   const panelRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
 
-  useOverlayBehavior({ open, onClose, dismissible, panelRef })
+  useOverlayBehavior({ open, onClose, dismissible, panelRef, initialFocus: "panel" })
 
   if (!open) return null
 
@@ -47,7 +47,7 @@ export function Drawer({
         tabIndex={-1}
         className={`motek-drawer-enter flex h-dvh w-full ${width} flex-col border-l border-border bg-surface shadow-lg outline-none`}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
           <h2 id={titleId} className="motek-heading min-w-0 truncate text-[15px] font-semibold leading-[1.3] text-fg">
             {title}
           </h2>
@@ -55,14 +55,16 @@ export function Drawer({
             onClick={onClose}
             disabled={!dismissible}
             aria-label="Cerrar"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-raised hover:text-fg disabled:opacity-50"
+            className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-raised hover:text-fg disabled:opacity-50"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </button>
         </div>
+
         <div className="flex-1 overflow-y-auto overscroll-contain p-4">{children}</div>
+
         {footer && (
-          <div className="border-t border-border px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <div className="flex shrink-0 justify-end gap-2 border-t border-border px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
             {footer}
           </div>
         )}

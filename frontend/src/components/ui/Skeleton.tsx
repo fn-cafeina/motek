@@ -22,7 +22,7 @@ export function TableSkeleton({
     <div role="status" className="divide-y divide-border">
       <span className="sr-only">{label}</span>
       {Array.from({ length: rows }).map((_, row) => (
-        <div key={row} className="flex items-center gap-6 px-4 py-3.5">
+        <div key={row} className="flex items-center gap-6 px-4 py-3">
           {widths.map((width, col) => (
             <Skeleton key={col} className={`h-3.5 ${width}`} />
           ))}

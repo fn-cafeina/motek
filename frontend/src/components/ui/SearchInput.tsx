@@ -16,7 +16,7 @@ export function SearchInput({
   const id = useId()
   return (
     <div className="relative w-full sm:max-w-xs">
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" aria-hidden />
+      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
       <input
         id={id}
         type="search"
@@ -32,9 +32,9 @@ export function SearchInput({
           type="button"
           onClick={() => onChange("")}
           aria-label="Limpiar búsqueda"
-          className="absolute inset-y-0 right-0 flex items-center px-2.5 text-subtle transition-colors hover:text-fg"
+          className="absolute inset-y-0 right-0 flex items-center px-3 text-subtle transition-colors hover:text-fg"
         >
-          <X className="h-4 w-4" aria-hidden />
+          <X className="size-4" aria-hidden />
         </button>
       )}
     </div>

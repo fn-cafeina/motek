@@ -4,7 +4,7 @@ export function Brand({ subtitle, compact }: { subtitle?: string; compact?: bool
   return (
     <span className="inline-flex items-center gap-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-fg">
-        <Wrench className="h-4 w-4" aria-hidden />
+        <Wrench className="size-4" aria-hidden />
       </span>
       {!compact && (
         <span className="min-w-0 text-left">

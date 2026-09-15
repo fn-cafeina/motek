@@ -80,7 +80,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 key={toast.id}
                 role={toast.type === "error" ? "alert" : "status"}
                 aria-live={toast.type === "error" ? "assertive" : "polite"}
-                className={`pointer-events-auto flex w-full max-w-sm items-center gap-2.5 rounded-md border border-border bg-surface px-3 py-2.5 shadow-lg ${
+                className={`pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-md border border-border bg-surface px-3 py-2 shadow-lg ${
                   closing.has(toast.id) ? "motek-toast-exit" : "motek-enter"
                 }`}
               >
@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   aria-label="Cerrar"
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-subtle transition-colors hover:bg-raised hover:text-fg"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="size-3.5" />
                 </button>
               </div>
             )

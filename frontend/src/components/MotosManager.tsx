@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Bike, Loader2, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Cliente, Moto } from "../api/types"
@@ -12,6 +12,7 @@ import { EmptyState } from "./ui/EmptyState"
 import { RowActions } from "./ui/RowActions"
 import { useToast } from "./toastContext"
 import { buttonClassName } from "./buttonStyles"
+import { useResumen } from "../contexts/resumenContext"
 import { getErrorMessage } from "../lib/errors"
 import { numberField, required } from "../lib/validate"
 
@@ -37,6 +38,7 @@ const emptyForm: MotoForm = {
 
 export function MotosManager({ cliente }: { cliente: Cliente }) {
   const toast = useToast()
+  const { ordenes, facturas } = useResumen()
   const [listOpen, setListOpen] = useState(false)
   const [motos, setMotos] = useState<Moto[]>([])
   const [loading, setLoading] = useState(false)
@@ -48,9 +50,10 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
   const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirm, setConfirm] = useState<Moto | null>(null)
+  const [alcance, setAlcance] = useState<{ ordenes: number; facturas: number } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  async function loadMotos() {
+  const loadMotos = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -61,12 +64,12 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [cliente.id])
 
   useEffect(() => {
-    if (listOpen) loadMotos()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listOpen])
+    // oxlint-disable-next-line react-hooks/set-state-in-effect
+    if (listOpen) void loadMotos()
+  }, [listOpen, loadMotos])
 
   function openCreate() {
     setEditing(null)
@@ -129,6 +132,17 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     }
   }
 
+  // Las órdenes caen por cascada con la moto; una factura emitida lo impide del todo.
+  function pedirConfirmacion(m: Moto) {
+    setConfirm(m)
+    const propias = ordenes.filter((o) => o.moto_id === m.id)
+    const ids = new Set(propias.map((o) => o.id))
+    setAlcance({
+      ordenes: propias.length,
+      facturas: facturas.filter((f) => ids.has(f.orden_id)).length,
+    })
+  }
+
   async function onDelete() {
     if (!confirm) return
     setDeleting(true)
@@ -138,7 +152,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       toast.success("Moto eliminada")
       await loadMotos()
     } catch (e) {
-      setError(getErrorMessage(e, "Error eliminando moto"))
+      toast.error(getErrorMessage(e, "Error eliminando moto"))
     } finally {
       setDeleting(false)
     }
@@ -151,17 +165,28 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
         className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-raised hover:text-fg"
       >
-        <Bike className="h-3.5 w-3.5" aria-hidden />
+        <Bike className="size-3.5" aria-hidden />
         {motos.length > 0 && (
-          <span className="absolute -right-1 -top-1 min-w-4 rounded-md border border-border bg-raised px-1 text-center text-[10px] font-semibold leading-4 tabular-nums text-muted ring-2 ring-surface">
+          <span className="absolute -right-1 -top-1 min-w-4 rounded-md border border-border bg-raised px-1 text-center text-[11px] font-semibold leading-4 tabular-nums text-muted ring-2 ring-surface">
             {motos.length}
           </span>
         )}
       </button>
 
-      <Dialog open={listOpen} title={`Motos de ${cliente.nombre}`} onClose={() => setListOpen(false)}>
+      <Dialog
+        open={listOpen}
+        title={`Motos de ${cliente.nombre}${motos.length > 0 ? ` · ${motos.length}` : ""}`}
+        onClose={() => setListOpen(false)}
+        footer={
+          <div className="flex justify-end">
+            <button onClick={openCreate} className={buttonClassName("primary")}>
+              <Plus className="size-4" aria-hidden /> Nueva moto
+            </button>
+          </div>
+        }
+      >
         {error && (
-          <div className="mb-2.5">
+          <div className="mb-3">
             <Alert tone="danger" live>
               {error}
             </Alert>
@@ -169,50 +194,35 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         )}
         {loading ? (
           <div role="status" className="flex items-center justify-center gap-2 py-8 text-[13px] text-muted">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando motos
+            <Loader2 className="size-4 animate-spin" aria-hidden /> Cargando motos
           </div>
         ) : motos.length === 0 ? (
           <EmptyState
             title="Sin motos registradas"
             description="Agregá la primera moto de este cliente para poder abrir órdenes de trabajo."
-            action={
-              <button onClick={openCreate} className={buttonClassName("primary")}>
-                <Plus className="h-4 w-4" aria-hidden /> Nueva moto
-              </button>
-            }
           />
         ) : (
-          <>
-            <ul className="max-h-72 divide-y divide-border overflow-y-auto">
-              {motos.map((m) => (
-                <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
-                  <div className="min-w-0">
-                    <div className="truncate text-[13px] font-medium text-fg">
-                      {m.marca} {m.modelo}
-                      {m.anio ? ` (${m.anio})` : ""}
-                    </div>
-                    <div className="truncate text-[12px] text-subtle">
-                      {[m.placa, m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ") || "—"}
-                    </div>
+          <ul className="divide-y divide-border">
+            {motos.map((m) => (
+              <li key={m.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="min-w-0">
+                  <div className="truncate text-[13px] font-medium text-fg">
+                    {m.marca} {m.modelo}
+                    {m.anio ? ` (${m.anio})` : ""}
                   </div>
-                  <RowActions
-                    onEdit={() => openEdit(m)}
-                    editLabel={`Editar ${m.marca} ${m.modelo}`}
-                    onDelete={() => setConfirm(m)}
-                    deleteLabel={`Eliminar ${m.marca} ${m.modelo}`}
-                  />
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 flex justify-end">
-              <button
-                onClick={openCreate}
-                className={buttonClassName("primary")}
-              >
-                <Plus className="h-3.5 w-3.5" /> Nueva moto
-              </button>
-            </div>
-          </>
+                  <div className="truncate text-[12px] text-subtle">
+                    {[m.placa, m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ") || "—"}
+                  </div>
+                </div>
+                <RowActions
+                  onEdit={() => openEdit(m)}
+                  editLabel={`Editar ${m.marca} ${m.modelo}`}
+                  onDelete={() => pedirConfirmacion(m)}
+                  deleteLabel={`Eliminar ${m.marca} ${m.modelo}`}
+                />
+              </li>
+            ))}
+          </ul>
         )}
       </Dialog>
 
@@ -321,7 +331,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
               aria-busy={saving}
               className={buttonClassName("primary")}
             >
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -332,7 +342,32 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         open={!!confirm}
         busy={deleting}
         title="¿Eliminar moto?"
-        description={confirm ? `${confirm.marca} ${confirm.modelo} será eliminada.` : undefined}
+        description={
+          confirm && (
+            <>
+              <p>
+                {confirm.marca} {confirm.modelo} se va a eliminar.
+              </p>
+              {alcance && alcance.ordenes > 0 && !(alcance.facturas > 0) && (
+                <p>
+                  {alcance.ordenes === 1 ? "También se borra" : "También se borran"}{" "}
+                  <span className="font-medium text-fg">
+                    {alcance.ordenes} {alcance.ordenes === 1 ? "orden de trabajo" : "órdenes de trabajo"}
+                  </span>
+                  .
+                </p>
+              )}
+            </>
+          )
+        }
+        blocked={
+          alcance && alcance.facturas > 0
+            ? {
+                title: "Tiene facturas emitidas",
+                description: "No se puede eliminar mientras existan facturas de sus órdenes.",
+              }
+            : undefined
+        }
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />

@@ -44,7 +44,7 @@ export function NavItem({
       >
         {active && <span className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary" aria-hidden />}
         <span className="relative">
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
+          <Icon className="size-5" aria-hidden />
           {showDot && <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-accent" aria-hidden />}
         </span>
         <span className="max-w-full truncate tracking-tight">{label}</span>
@@ -63,7 +63,7 @@ export function NavItem({
           active ? "bg-primary-soft text-primary" : "text-muted hover:bg-raised hover:text-fg"
         }`}
       >
-        <Icon className="h-[18px] w-[18px]" aria-hidden />
+        <Icon className="size-5" aria-hidden />
         {showDot && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" aria-hidden />}
       </Link>
     )
@@ -73,14 +73,14 @@ export function NavItem({
     <Link
       to={to}
       aria-current={active ? "page" : undefined}
-      className={`relative flex h-9 items-center gap-2.5 rounded-md px-2.5 text-[13px] transition-colors ${
+      className={`relative flex h-9 items-center gap-3 rounded-md px-3 text-[13px] transition-colors ${
         active ? "bg-primary-soft font-semibold text-primary" : "font-medium text-muted hover:bg-raised hover:text-fg"
       }`}
     >
       {active && (
         <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" aria-hidden />
       )}
-      <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+      <Icon className="size-5 shrink-0" aria-hidden />
       <span className="truncate">{label}</span>
       {showBadge && (
         <span

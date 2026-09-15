@@ -3,7 +3,6 @@ import { ClipboardList } from "lucide-react"
 import { ORDEN_ESTADOS } from "../api/types"
 import { EstadoBadge } from "../components/Badge"
 import { Card } from "../components/Card"
-import { PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { Alert } from "../components/ui/Alert"
 import { buttonClassName } from "../components/buttonStyles"
@@ -32,7 +31,6 @@ export function Inicio() {
   if (loading) {
     return (
       <PageStack>
-        <PageHeader title="Inicio" />
         <StatSkeleton />
       </PageStack>
     )
@@ -41,7 +39,6 @@ export function Inicio() {
   if (error) {
     return (
       <PageStack>
-        <PageHeader title="Inicio" />
         <Alert tone="danger" live>
           {error}
         </Alert>
@@ -59,7 +56,6 @@ export function Inicio() {
   if (sinMovimiento) {
     return (
       <PageStack>
-        <PageHeader title="Inicio" />
         <Card>
           <EmptyState
             icon={<ClipboardList className="h-5 w-5" />}
@@ -78,8 +74,6 @@ export function Inicio() {
 
   return (
     <PageStack>
-      <PageHeader title="Inicio" />
-
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Órdenes activas"

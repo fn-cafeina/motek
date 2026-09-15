@@ -3,9 +3,13 @@ import { useEffect, useRef, type RefObject } from "react"
 const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+const FIELDS = 'input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled])'
+
 // Pila de overlays abiertos. Solo el último responde a Escape y atrapa el tabulador,
 // así un diálogo abierto encima de un panel lateral no cierra también el panel.
 const openStack: symbol[] = []
+
+export type InitialFocus = "panel" | "first-field"
 
 /**
  * Comportamiento compartido por Dialog y Drawer: foco inicial, trampa de tabulación,
@@ -16,11 +20,13 @@ export function useOverlayBehavior({
   onClose,
   dismissible = true,
   panelRef,
+  initialFocus = "first-field",
 }: {
   open: boolean
   onClose: () => void
   dismissible?: boolean
   panelRef: RefObject<HTMLElement | null>
+  initialFocus?: InitialFocus
 }) {
   const restoreRef = useRef<HTMLElement | null>(null)
   const tokenRef = useRef<symbol | null>(null)
@@ -31,10 +37,14 @@ export function useOverlayBehavior({
     tokenRef.current = token
     openStack.push(token)
 
-    restoreRef.current = document.activeElement as HTMLElement | null
+    // Un formulario arranca en su primer campo; un panel de lectura enfoca el panel,
+    // para no saltar a un campo que puede estar fuera de vista al final del contenido.
     const panel = panelRef.current
-    const first = panel?.querySelector<HTMLElement>(FOCUSABLE)
-    ;(first ?? panel)?.focus()
+    const field = initialFocus === "first-field" ? panel?.querySelector<HTMLElement>(FIELDS) : null
+    const target = field ?? panel
+
+    restoreRef.current = document.activeElement as HTMLElement | null
+    target?.focus({ preventScroll: true })
 
     return () => {
       const index = openStack.indexOf(token)
@@ -42,7 +52,7 @@ export function useOverlayBehavior({
       tokenRef.current = null
       restoreRef.current?.focus()
     }
-  }, [open, panelRef])
+  }, [open, panelRef, initialFocus])
 
   useEffect(() => {
     if (!open) return

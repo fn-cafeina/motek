@@ -5,6 +5,7 @@ import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
 import { Alert } from "../components/ui/Alert"
+import { Form } from "../components/ui/Form"
 import { buttonClassName } from "../components/buttonStyles"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
@@ -64,92 +65,87 @@ export function Login() {
 
   return (
     <AuthCard title="Iniciar sesión">
-      <form onSubmit={onSubmit} noValidate>
+      <Form onSubmit={onSubmit}>
         {error && (
-          <div className="mb-2.5">
-            <Alert tone="danger" live>{error}</Alert>
-          </div>
+          <Alert tone="danger" live>
+            {error}
+          </Alert>
         )}
-        <div className="mb-2">
-          <Field label="Email" id="login-email" error={emailInvalid ? fieldErrors.email : undefined}>
-            <input
-              ref={emailRef}
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              spellCheck={false}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                if (submitted && fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
-                if (error) setError("")
-              }}
-              onBlur={() => {
-                if (submitted) validate()
-              }}
-              required
-              aria-invalid={emailInvalid}
-              aria-describedby={emailInvalid ? "login-email-error" : undefined}
-              className={inputClassName(emailInvalid)}
-            />
-          </Field>
-        </div>
-        <div className="mb-2.5">
-          <Field
-            label="Contraseña"
-            id="login-pass"
-            error={passInvalid ? fieldErrors.password : undefined}
-            rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowPass((v) => !v)}
-                aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
-                aria-pressed={showPass}
-                className="absolute inset-y-0 right-0 flex items-center px-2 text-subtle transition-colors hover:text-fg"
-              >
-                {showPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-              </button>
-            }
-          >
-            <input
-              ref={passRef}
-              id="login-pass"
-              name="password"
-              type={showPass ? "text" : "password"}
-              autoComplete="current-password"
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                if (submitted && fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
-                if (error) setError("")
-              }}
-              required
-              aria-invalid={passInvalid}
-              aria-describedby={passInvalid ? "login-pass-error" : undefined}
-              className={inputClassName(passInvalid)}
-            />
-          </Field>
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          aria-busy={loading}
-          className={`w-full justify-center ${buttonClassName("primary")}`}
+
+        <Field label="Email" id="login-email" error={emailInvalid ? fieldErrors.email : undefined}>
+          <input
+            ref={emailRef}
+            id="login-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            spellCheck={false}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (submitted && fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
+              if (error) setError("")
+            }}
+            onBlur={() => {
+              if (submitted) validate()
+            }}
+            required
+            aria-invalid={emailInvalid}
+            aria-describedby={emailInvalid ? "login-email-error" : undefined}
+            className={inputClassName(emailInvalid)}
+          />
+        </Field>
+
+        <Field
+          label="Contraseña"
+          id="login-pass"
+          error={passInvalid ? fieldErrors.password : undefined}
+          rightSlot={
+            <button
+              type="button"
+              onClick={() => setShowPass((v) => !v)}
+              aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={showPass}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-subtle transition-colors hover:text-fg"
+            >
+              {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          }
         >
-          {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+          <input
+            ref={passRef}
+            id="login-pass"
+            name="password"
+            type={showPass ? "text" : "password"}
+            autoComplete="current-password"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (submitted && fieldErrors.password) setFieldErrors((p) => ({ ...p, password: undefined }))
+              if (error) setError("")
+            }}
+            required
+            aria-invalid={passInvalid}
+            aria-describedby={passInvalid ? "login-pass-error" : undefined}
+            className={`${inputClassName(passInvalid)} pr-10`}
+          />
+        </Field>
+
+        <button type="submit" disabled={loading} aria-busy={loading} className={`w-full ${buttonClassName("primary")}`}>
+          {loading && <Loader2 className="size-4 animate-spin" aria-hidden />}
           {loading ? "Entrando..." : "Entrar"}
         </button>
-        <p className="mt-2.5 text-center text-[13px] text-muted">
+
+        <p className="text-center text-[13px] text-muted">
           ¿Sin cuenta?{" "}
           <Link to="/register" className="font-medium text-primary underline-offset-4 hover:underline">
             Registrate
           </Link>
         </p>
-      </form>
+      </Form>
     </AuthCard>
   )
 }

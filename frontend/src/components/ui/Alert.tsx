@@ -25,7 +25,7 @@ export function Alert({
       role={live ? "alert" : undefined}
       className={`flex items-start gap-2 rounded-md border px-3 py-2 text-[13px] leading-[1.5] ${className}`}
     >
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
       <span className="min-w-0">{children}</span>
     </p>
   )

@@ -48,12 +48,12 @@ export function RowActions({
       ))}
       {onEdit && (
         <button onClick={onEdit} aria-label={editLabel} className={`${base} ${TONES.default}`}>
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="size-3.5" />
         </button>
       )}
       {onDelete && (
         <button onClick={onDelete} aria-label={deleteLabel} className={`${base} ${TONES.danger}`}>
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="size-3.5" />
         </button>
       )}
     </div>

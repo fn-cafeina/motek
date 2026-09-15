@@ -7,7 +7,7 @@ import { Form, FormActions } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { Alert } from "../components/ui/Alert"
 import { inputClassName } from "../components/inputStyles"
-import { DataCard, EmptyCheckIcon, InlineError, PageHeader } from "../components/PageShell"
+import { DataCard, EmptyCheckIcon, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
@@ -16,6 +16,7 @@ import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Ta
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { useCollection } from "../hooks/useCollection"
+import { textoContador } from "../lib/contador"
 import { getErrorMessage } from "../lib/errors"
 
 export function Alertas() {
@@ -60,6 +61,11 @@ export function Alertas() {
     }
   }
 
+  const searchTerm = q.trim()
+  const countLabel = loading
+    ? undefined
+    : textoContador(filtered.length, items.length, searchTerm !== "", "repuesto", "repuestos")
+
   const empty = filtered.length === 0
     ? q
       ? {
@@ -81,8 +87,6 @@ export function Alertas() {
   return (
     <>
       <PageStack>
-        <PageHeader title="Alertas de stock" />
-
         {error && items.length > 0 && <InlineError message={error} />}
 
         <DataCard
@@ -96,10 +100,8 @@ export function Alertas() {
             <FilterBar>
               <SearchInput value={q} onChange={setQ} placeholder="Buscar por código o nombre" />
               <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
-                {!loading && items.length > 0 && (
-                  <span className="whitespace-nowrap text-[12px] text-muted">
-                    {items.length} {items.length === 1 ? "repuesto" : "repuestos"}
-                  </span>
+                {countLabel && (
+                  <span className="whitespace-nowrap text-[12px] text-muted">{countLabel}</span>
                 )}
                 <button onClick={load} className={buttonClassName("secondary")}>
                   <RotateCw className="h-4 w-4" aria-hidden /> Actualizar
@@ -131,7 +133,7 @@ export function Alertas() {
                     <Td align="right" className="text-muted">{a.stock_minimo}</Td>
                     <Td>
                       <RowActions
-                        actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                        actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                       />
                     </Td>
                   </Tr>
@@ -150,7 +152,7 @@ export function Alertas() {
                   </div>
                   <RowActions
                     variant="card"
-                    actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                    actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                   />
                 </li>
               ))}
@@ -192,7 +194,7 @@ export function Alertas() {
               Cancelar
             </button>
             <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               Surtir
             </button>
           </FormActions>

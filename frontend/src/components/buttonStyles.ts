@@ -8,7 +8,7 @@ const BASE =
 
 // 40px en móvil para el pulgar, 36px en desktop para no inflar las tablas.
 const SIZES: Record<ButtonSize, string> = {
-  sm: "h-8 px-2.5 text-[13px]",
+  sm: "h-8 px-3 text-[13px]",
   md: "h-10 px-3 text-[13px] sm:h-9",
 }
 

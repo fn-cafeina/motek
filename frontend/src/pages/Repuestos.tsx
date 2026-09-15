@@ -8,7 +8,7 @@ import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { Field } from "../components/Field"
 import { inputClassName } from "../components/inputStyles"
 import { Alert } from "../components/ui/Alert"
-import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
@@ -17,6 +17,7 @@ import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Ta
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { useCollection } from "../hooks/useCollection"
+import { textoContador } from "../lib/contador"
 import { getErrorMessage } from "../lib/errors"
 import { numberField, required } from "../lib/validate"
 import { formatMoney } from "../lib/format"
@@ -47,7 +48,7 @@ const emptyForm: FormState = {
 
 export function Repuestos() {
   const toast = useToast()
-  const { items, setItems, loading, error, setError, load, refresh } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos")
+  const { items, setItems, loading, error, load, refresh } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos")
   const [q, setQ] = useState("")
   const [soloBajo, setSoloBajo] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -156,7 +157,7 @@ export function Repuestos() {
       toast.success("Repuesto eliminado")
       await refresh()
     } catch (e) {
-      setError(getErrorMessage(e, "Error eliminando repuesto"))
+      toast.error(getErrorMessage(e, "Error eliminando repuesto"))
     } finally {
       setDeleting(false)
     }
@@ -184,7 +185,7 @@ export function Repuestos() {
         body: { cantidad: delta },
       })
       setStockTarget(null)
-      toast.success("Stock ajustado")
+      toast.success("Stock actualizado")
       setItems((prev) => prev.map((r) => (r.id === stockTarget.id ? { ...r, stock: res.stock } : r)))
     } catch (e) {
       setStockError(getErrorMessage(e, "Error ajustando stock"))
@@ -200,9 +201,7 @@ export function Repuestos() {
   }
   const countLabel = loading
     ? undefined
-    : hasFilter
-      ? `${filtered.length} de ${items.length}`
-      : `${items.length} ${items.length === 1 ? "repuesto" : "repuestos"}`
+    : textoContador(filtered.length, items.length, hasFilter, "repuesto", "repuestos")
   const empty = filtered.length === 0
     ? hasFilter
       ? {
@@ -223,8 +222,6 @@ export function Repuestos() {
   return (
     <>
       <PageStack>
-        <PageHeader title="Repuestos" />
-
         {error && items.length > 0 && <InlineError message={error} />}
 
         <DataCard
@@ -283,7 +280,7 @@ export function Repuestos() {
                     </Td>
                     <Td>
                       <RowActions
-                        actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                        actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                         onEdit={() => openEdit(r)}
                         editLabel={`Editar ${r.nombre || r.codigo}`}
                         onDelete={() => setConfirm(r)}
@@ -314,7 +311,7 @@ export function Repuestos() {
                   <div className="mt-2 flex justify-end gap-1.5">
                     <RowActions
                       variant="card"
-                      actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                      actions={[{ onClick: () => openStock(r), label: `Ajustar stock de ${r.nombre || r.codigo}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                       onEdit={() => openEdit(r)}
                       editLabel={`Editar ${r.nombre || r.codigo}`}
                       onDelete={() => setConfirm(r)}
@@ -450,7 +447,7 @@ export function Repuestos() {
               Cancelar
             </button>
             <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -490,7 +487,7 @@ export function Repuestos() {
               Cancelar
             </button>
             <button type="submit" disabled={stockSaving} aria-busy={stockSaving} className={buttonClassName("primary")}>
-              {stockSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {stockSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               Ajustar
             </button>
           </FormActions>

@@ -72,10 +72,10 @@ export function Sidebar() {
           aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
           title={collapsed ? "Expandir menú" : "Contraer menú"}
           className={`flex h-9 items-center gap-2 rounded-md text-[13px] font-medium text-muted transition-colors hover:bg-raised hover:text-fg ${
-            collapsed ? "w-9 justify-center" : "w-full px-2.5"
+            collapsed ? "w-9 justify-center" : "w-full px-3"
           }`}
         >
-          <CollapseIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+          <CollapseIcon className="size-5 shrink-0" aria-hidden />
           {!collapsed && <span>Contraer</span>}
         </button>
       </div>

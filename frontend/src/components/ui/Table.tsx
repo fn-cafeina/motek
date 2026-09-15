@@ -47,7 +47,7 @@ export function Td({
 }) {
   return (
     <td
-      className={`px-4 py-2.5 align-middle ${align === "right" ? "text-right tabular-nums" : ""} ${className}`}
+      className={`px-4 py-3 align-middle ${align === "right" ? "text-right tabular-nums" : ""} ${className}`}
     >
       {children}
     </td>

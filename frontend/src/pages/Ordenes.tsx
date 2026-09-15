@@ -15,13 +15,15 @@ import { Form, FormActions, FormGrid } from "../components/ui/Form"
 import { FilterBar } from "../components/ui/FilterBar"
 import { FilterSelect } from "../components/ui/FilterSelect"
 import { estadoSelectClassName, inputClassName, selectClassName } from "../components/inputStyles"
-import { DataCard, InlineError, PageHeader } from "../components/PageShell"
+import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
 import { useCollection } from "../hooks/useCollection"
+import { useResumen } from "../contexts/resumenContext"
+import { textoContador } from "../lib/contador"
 import { getErrorMessage } from "../lib/errors"
 import { numberField, required } from "../lib/validate"
 import { buildMap, formatFecha, formatMoney } from "../lib/format"
@@ -58,6 +60,8 @@ export function Ordenes() {
     "Error cargando órdenes",
     { estado: estadoFiltro || undefined },
   )
+  // El filtro es del servidor: el total sin filtrar sale del resumen del shell.
+  const { ordenes: todasLasOrdenes, facturas } = useResumen()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [motos, setMotos] = useState<Moto[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -222,7 +226,7 @@ export function Ordenes() {
       toast.success("Orden eliminada")
       await refresh()
     } catch (e) {
-      setError(getErrorMessage(e, "Error eliminando orden"))
+      toast.error(getErrorMessage(e, "Error eliminando orden"))
     } finally {
       setDeleting(false)
     }
@@ -302,11 +306,14 @@ export function Ordenes() {
     return r ? r.stock : 0
   }
 
+  const countLabel = loading
+    ? undefined
+    : textoContador(ordenes.length, todasLasOrdenes.length, estadoFiltro !== "", "orden", "órdenes")
+  const facturaDeOrden = (id: number) => facturas.some((f) => f.orden_id === id)
+
   return (
     <>
       <PageStack>
-        <PageHeader title="Órdenes" />
-
         {error && ordenes.length > 0 && <InlineError message={error} />}
 
         <DataCard
@@ -329,7 +336,8 @@ export function Ordenes() {
                   }
                 : {
                     title: "Aún no hay órdenes",
-                    description: "Abrí la ficha de un cliente, elegí su moto y detallá el trabajo a realizar.",
+                    description:
+                      "Cargá la primera con el botón de arriba: elegís el cliente, su moto y el trabajo a realizar.",
                   }
               : null
           }
@@ -345,13 +353,9 @@ export function Ordenes() {
                 />
               </div>
               <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
-                {!loading && ordenes.length > 0 && (
-                  <span className="whitespace-nowrap text-[12px] text-muted">
-                    {ordenes.length} {ordenes.length === 1 ? "orden" : "órdenes"}
-                  </span>
-                )}
+                {countLabel && <span className="whitespace-nowrap text-[12px] text-muted">{countLabel}</span>}
                 <button onClick={openCreate} className={buttonClassName("primary")}>
-                  <Plus className="h-4 w-4" aria-hidden /> Nueva orden
+                  <Plus className="size-4" aria-hidden /> Nueva orden
                 </button>
               </div>
             </FilterBar>
@@ -407,7 +411,7 @@ export function Ordenes() {
                       <Td align="right" className="text-muted">{formatMoney(o.total_mano_obra)}</Td>
                       <Td>
                         <RowActions
-                          actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                          actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                           onEdit={() => openEdit(o)}
                           editLabel={`Editar ${o.descripcion}`}
                           onDelete={() => setConfirm(o)}
@@ -451,7 +455,7 @@ export function Ordenes() {
                       </select>
                       <RowActions
                         variant="card"
-                        actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
+                        actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="size-3.5" />, tone: "info" }]}
                         onEdit={() => openEdit(o)}
                         editLabel={`Editar ${o.descripcion}`}
                         onDelete={() => setConfirm(o)}
@@ -581,7 +585,7 @@ export function Ordenes() {
               aria-busy={saving}
               className={buttonClassName("primary")}
             >
-              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -689,7 +693,7 @@ export function Ordenes() {
                   {repuestos.map((line) => {
                     const rep = repuestoMap.get(line.repuesto_id)
                     return (
-                      <li key={line.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <li key={line.id} className="flex items-center justify-between gap-3 p-3">
                         <div className="min-w-0">
                           <div className="truncate text-[13px] font-medium text-fg">
                             {rep?.nombre || `#${line.repuesto_id}`}
@@ -745,7 +749,7 @@ export function Ordenes() {
                 </Field>
                 <div className="flex items-end pb-0.5">
                   <button type="submit" disabled={repSaving || !addRepId} className={buttonClassName("primary")}>
-                    {repSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+                    {repSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
                     Agregar
                   </button>
                 </div>
@@ -762,8 +766,15 @@ export function Ordenes() {
         open={!!confirm}
         busy={deleting}
         title="¿Eliminar orden?"
-        description={confirm ? `${confirm.descripcion} será eliminada.` : undefined}
-        confirmLabel="Eliminar"
+        description={confirm ? `${confirm.descripcion} se va a eliminar.` : undefined}
+        blocked={
+          confirm && facturaDeOrden(confirm.id)
+            ? {
+                title: "Tiene una factura emitida",
+                description: "No se puede eliminar mientras exista su factura, para no perder el historial.",
+              }
+            : undefined
+        }
         onClose={() => !deleting && setConfirm(null)}
         onConfirm={onDelete}
       />

@@ -30,6 +30,7 @@ export function Layout() {
           <Topbar title={title} />
           <main
             id="main-content"
+            aria-labelledby="page-title"
             tabIndex={-1}
             className="min-w-0 flex-1 px-4 pb-[max(calc(var(--shell-bottom-nav-h)+1rem),env(safe-area-inset-bottom))] pt-4 outline-none lg:px-6 lg:pb-8 lg:pt-6"
           >

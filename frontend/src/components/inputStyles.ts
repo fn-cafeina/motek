@@ -1,7 +1,7 @@
 // Los campos van a 16px en móvil: por debajo de eso iOS hace zoom al enfocar y
 // descoloca el layout. En desktop bajan a 13px por densidad.
 const FIELD =
-  "w-full rounded-md border border-border-strong bg-surface px-2.5 text-base text-fg placeholder:text-subtle outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:text-[13px]"
+  "w-full rounded-md border border-border-strong bg-surface px-3 text-base text-fg placeholder:text-subtle outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:text-[13px]"
 
 export function inputClassName(invalid?: boolean) {
   return `${FIELD} h-10 sm:h-9 ${invalid ? "border-danger" : "focus:border-primary"}`

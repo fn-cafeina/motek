@@ -5,18 +5,6 @@ import { Alert } from "./ui/Alert"
 import { EmptyState, type EmptyStateProps } from "./ui/EmptyState"
 import { TableSkeleton } from "./ui/Skeleton"
 
-/**
- * En escritorio el título vive en el topbar. Acá solo se muestra en móvil, donde el
- * topbar carga la marca, para que no haya dos H1 en la misma pantalla.
- */
-export function PageHeader({ title }: { title: string }) {
-  return (
-    <div className="lg:hidden">
-      <h1 className="motek-heading text-[20px] font-semibold leading-tight tracking-tight text-fg">{title}</h1>
-    </div>
-  )
-}
-
 export function InlineError({ message }: { message: string }) {
   return (
     <Alert tone="danger" live>
