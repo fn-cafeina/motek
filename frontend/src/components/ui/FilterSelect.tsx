@@ -21,7 +21,7 @@ export function FilterSelect({
       onChange={(e) => onChange(e.target.value)}
       aria-label={label}
       aria-busy={busy}
-      className={`w-full appearance-none border-zinc-800 bg-zinc-900 ${selectClassName()}`}
+      className={`${selectClassName()} sm:max-w-[13rem]`}
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>

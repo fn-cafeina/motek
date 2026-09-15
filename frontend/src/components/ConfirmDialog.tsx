@@ -25,7 +25,7 @@ export function ConfirmDialog({ open, title, description, confirmLabel = "Elimin
 
   return (
     <Dialog open={open} title={title} onClose={onClose} maxWidth="max-w-sm">
-      {description && <p className="text-xs text-zinc-400">{description}</p>}
+      {description && <p className="text-[13px] leading-[1.5] text-muted">{description}</p>}
       <div className={`flex justify-end gap-2 ${description ? "mt-4" : "mt-0"}`}>
         <button ref={cancelRef} onClick={onClose} disabled={busy} className={buttonClassName("secondary")}>
           Cancelar

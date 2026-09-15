@@ -73,7 +73,7 @@ export function Register() {
       <form onSubmit={onSubmit} noValidate>
         {error && (
           <div className="mb-2.5">
-            <Alert>{error}</Alert>
+            <Alert tone="danger" live>{error}</Alert>
           </div>
         )}
         <div className="mb-2">
@@ -112,7 +112,7 @@ export function Register() {
                 onClick={() => setShowPass((v) => !v)}
                 aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                 aria-pressed={showPass}
-                className="absolute inset-y-0 right-0 flex items-center px-2 text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="absolute inset-y-0 right-0 flex items-center px-2 text-subtle transition-colors hover:text-fg"
               >
                 {showPass ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
@@ -141,7 +141,7 @@ export function Register() {
           </Field>
           <p
             id="register-pass-hint"
-            className={`mt-1.5 flex items-center gap-1.5 text-xs ${hint.ok ? "text-emerald-400" : "text-zinc-500"}`}
+            className={`mt-1.5 flex items-center gap-1.5 text-[12px] ${hint.ok ? "text-ok" : "text-subtle"}`}
             aria-live="polite"
           >
             {hint.ok && <Check className="h-3 w-3 shrink-0" aria-hidden />}
@@ -157,9 +157,9 @@ export function Register() {
           {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
           {loading ? "Creando cuenta..." : "Registrarse"}
         </button>
-        <p className="mt-2.5 text-center text-xs text-zinc-400">
+        <p className="mt-2.5 text-center text-[13px] text-muted">
           ¿Ya tenés cuenta?{" "}
-          <Link to="/login" className="font-medium text-amber-500 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+          <Link to="/login" className="font-medium text-primary underline-offset-4 hover:underline">
             Iniciá sesión
           </Link>
         </p>

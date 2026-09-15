@@ -1,10 +1,17 @@
-export function Brand({ subtitle }: { subtitle?: string }) {
+import { Wrench } from "lucide-react"
+
+export function Brand({ subtitle, compact }: { subtitle?: string; compact?: boolean }) {
   return (
-    <div className="text-center">
-      <span className="text-base font-bold tracking-tight text-zinc-100">
-        <span className="text-amber-500">Mo</span>tek
+    <span className="inline-flex items-center gap-2">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-primary-fg">
+        <Wrench className="h-4 w-4" aria-hidden />
       </span>
-      {subtitle && <p className="mt-1 text-xs text-zinc-400">{subtitle}</p>}
-    </div>
+      {!compact && (
+        <span className="min-w-0 text-left">
+          <span className="block text-[15px] font-semibold leading-tight tracking-tight text-fg">Motek</span>
+          {subtitle && <span className="block truncate text-[11px] leading-tight text-muted">{subtitle}</span>}
+        </span>
+      )}
+    </span>
   )
 }

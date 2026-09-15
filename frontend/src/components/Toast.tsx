@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { CheckCircle2, XCircle, X } from "lucide-react"
+import { CheckCircle2, Info, XCircle, X } from "lucide-react"
 import { ToastContext, type ToastContextValue } from "./toastContext"
 
-type Toast = { id: number; type: "success" | "error"; message: string }
+type ToastType = "success" | "error" | "info"
+type Toast = { id: number; type: ToastType; message: string }
+
+const ICONS: Record<ToastType, { Icon: typeof Info; className: string }> = {
+  success: { Icon: CheckCircle2, className: "text-ok" },
+  error: { Icon: XCircle, className: "text-danger" },
+  info: { Icon: Info, className: "text-info" },
+}
 
 let nextId = 0
 
@@ -28,20 +35,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     (id: number) => {
       setClosing((prev) => {
         if (prev.has(id)) return prev
-        const next = new Set(prev).add(id)
-        return next
+        return new Set(prev).add(id)
       })
-      setTimeout(() => remove(id), 200)
+      setTimeout(() => remove(id), 150)
     },
     [remove],
   )
 
   const show = useCallback(
-    (type: Toast["type"], message: string) => {
+    (type: ToastType, message: string) => {
       const id = ++nextId
       setToasts((prev) => [...prev, { id, type, message }])
-      const duration = type === "error" ? 4000 : 3000
-      const timer = setTimeout(() => dismiss(id), duration)
+      const timer = setTimeout(() => dismiss(id), type === "error" ? 5000 : 3000)
       timers.current.set(id, timer)
     },
     [dismiss],
@@ -49,15 +54,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const success = useCallback((message: string) => show("success", message), [show])
   const error = useCallback((message: string) => show("error", message), [show])
+  const info = useCallback((message: string) => show("info", message), [show])
 
   useEffect(() => {
     const timersRef = timers.current
     return () => {
-      timersRef.forEach((t) => clearTimeout(t))
+      timersRef.forEach((timer) => clearTimeout(timer))
     }
   }, [])
 
-  const value: ToastContextValue = { success, error }
+  const value: ToastContextValue = { success, error, info }
 
   return (
     <ToastContext.Provider value={value}>
@@ -65,32 +71,31 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {createPortal(
         <div
           aria-live="polite"
-          className="pointer-events-none fixed inset-x-0 bottom-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] z-[100] flex flex-col items-center gap-2 p-3 sm:bottom-[max(16px,env(safe-area-inset-bottom))] sm:items-end sm:p-4"
+          className="pointer-events-none fixed inset-x-0 bottom-[max(calc(var(--shell-bottom-nav-h)+0.5rem),env(safe-area-inset-bottom))] z-[var(--z-toast)] flex flex-col items-center gap-2 p-3 sm:bottom-[max(16px,env(safe-area-inset-bottom))] sm:items-end sm:p-4"
         >
-          {toasts.map((t) => (
-            <div
-              key={t.id}
-              role={t.type === "error" ? "alert" : "status"}
-              aria-live={t.type === "error" ? "assertive" : "polite"}
-              className={`pointer-events-auto flex w-full max-w-sm items-center gap-2.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 shadow-lg ring-1 ring-white/[0.04] ${
-                closing.has(t.id) ? "motek-toast-exit" : "motek-enter"
-              }`}
-            >
-              {t.type === "success" ? (
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden />
-              ) : (
-                <XCircle className="h-4 w-4 shrink-0 text-red-400" aria-hidden />
-              )}
-              <span className="min-w-0 flex-1 text-xs text-zinc-200">{t.message}</span>
-              <button
-                onClick={() => dismiss(t.id)}
-                aria-label="Cerrar"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+          {toasts.map((toast) => {
+            const { Icon, className } = ICONS[toast.type]
+            return (
+              <div
+                key={toast.id}
+                role={toast.type === "error" ? "alert" : "status"}
+                aria-live={toast.type === "error" ? "assertive" : "polite"}
+                className={`pointer-events-auto flex w-full max-w-sm items-center gap-2.5 rounded-md border border-border bg-surface px-3 py-2.5 shadow-lg ${
+                  closing.has(toast.id) ? "motek-toast-exit" : "motek-enter"
+                }`}
               >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
+                <Icon className={`h-4 w-4 shrink-0 ${className}`} aria-hidden />
+                <span className="min-w-0 flex-1 text-[13px] leading-[1.4] text-fg">{toast.message}</span>
+                <button
+                  onClick={() => dismiss(toast.id)}
+                  aria-label="Cerrar"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-subtle transition-colors hover:bg-raised hover:text-fg"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )
+          })}
         </div>,
         document.body,
       )}

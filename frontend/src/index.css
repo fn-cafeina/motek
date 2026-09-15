@@ -1,78 +1,147 @@
 @import "tailwindcss";
 
-@theme {
-  --color-zinc-50: oklch(0.985 0.004 70);
-  --color-zinc-100: oklch(0.97 0.005 70);
-  --color-zinc-200: oklch(0.92 0.008 70);
-  --color-zinc-300: oklch(0.87 0.01 70);
-  --color-zinc-400: oklch(0.71 0.015 70);
-  --color-zinc-500: oklch(0.64 0.015 70);
-  --color-zinc-600: oklch(0.56 0.013 70);
-  --color-zinc-700: oklch(0.39 0.01 70);
-  --color-zinc-800: oklch(0.27 0.01 70);
-  --color-zinc-900: oklch(0.21 0.011 70);
-  --color-zinc-950: oklch(0.145 0.01 70);
+/*
+ * Sistema visual de Motek.
+ *
+ * Los tokens se declaran por ROL (surface, border, fg, primary) y no por color,
+ * así el tema se cambia reescribiendo valores y no tocando componentes.
+ * `@theme inline` es necesario: hace que las utilidades generadas referencien la
+ * variable en vez de copiar el valor, de modo que `.dark` las reescriba en runtime.
+ *
+ * Reglas de uso: azul = "esto se toca", naranja = "esto requiere que mires",
+ * gris = "esto ya está". El acento nunca supera ~10% de la superficie.
+ */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger-fg: var(--danger-fg);
 
-  --color-amber-50: oklch(0.975 0.03 70);
-  --color-amber-100: oklch(0.95 0.06 70);
-  --color-amber-200: oklch(0.9 0.1 70);
-  --color-amber-300: oklch(0.84 0.13 70);
-  --color-amber-400: oklch(0.79 0.15 70);
-  --color-amber-500: oklch(0.74 0.16 70);
-  --color-amber-600: oklch(0.66 0.15 70);
-  --color-amber-700: oklch(0.56 0.13 70);
-  --color-amber-800: oklch(0.47 0.1 70);
-  --color-amber-900: oklch(0.39 0.07 70);
-  --color-amber-950: oklch(0.28 0.05 70);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 
-  --color-motek-amber: oklch(0.74 0.16 70);
-  --color-motek-border: oklch(0.27 0.01 70);
-  --color-motek-surface: oklch(0.21 0.011 70);
-  --color-motek-bg: oklch(0.145 0.01 70);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.2);
-  --shadow-3: 0 25px 50px rgb(0 0 0 / 0.5);
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-8: 2rem;
-  --duration-fast: 150ms;
-  --duration-normal: 220ms;
-  --duration-enter: 280ms;
-  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
-  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
-  --color-focus: oklch(0.74 0.16 70);
-  --color-focus-ring: oklch(0.74 0.16 70 / 0.5);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+:root {
+  color-scheme: light;
+
+  --canvas: #f6f7f9;
+  --surface: #ffffff;
+  --raised: #f1f3f7;
+  --border: #e2e6ec;
+  --border-strong: #89919e;
+  --fg: #12161c;
+  --muted: #4d5563;
+  --subtle: #656d7a;
+  --primary: #1e4e8c;
+  --primary-hover: #17406f;
+  --primary-fg: #ffffff;
+  --primary-soft: #e8eff9;
+  --accent: #b23c0b;
+  --accent-soft: #fcede4;
+  --ok: #0f6b32;
+  --ok-soft: #e7f5ec;
+  --danger: #b91c1c;
+  --danger-soft: #fcecec;
+  --danger-fg: #ffffff;
+  --info: #0b6ba8;
+  --info-soft: #e8f2fa;
+  --focus: #1e4e8c;
+
+  --shell-header-h: 56px;
+  --shell-sidebar-w: 14rem;
+  --shell-sidebar-rail: 4rem;
+  --shell-bottom-nav-h: 64px;
+  --content-max: 1360px;
 
   --z-header: 10;
   --z-dialog: 50;
   --z-toast: 100;
-  --shell-header-h: 44px;
-  --shell-sidebar-w: 12rem;
-  --shell-bottom-nav-h: 60px;
-  --content-max: 1120px;
-  --content-gutter: 0.875rem;
+
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* Sistema visual: zinc/amber/red/sky/emerald + radius-md/lg. */
-
-:root {
+.dark {
   color-scheme: dark;
+
+  --canvas: #0e1116;
+  --surface: #161b22;
+  --raised: #1c222b;
+  --border: #262d38;
+  --border-strong: #616b78;
+  --fg: #e6eaf0;
+  --muted: #a5b0bf;
+  --subtle: #808b9a;
+  --primary: #5695e0;
+  --primary-hover: #6ba1e4;
+  --primary-fg: #0b1220;
+  --primary-soft: #16283f;
+  --accent: #fb923c;
+  --accent-soft: #3a2415;
+  --ok: #3fb950;
+  --ok-soft: #132a19;
+  --danger: #f85149;
+  --danger-soft: #361a19;
+  --danger-fg: #2a0d0b;
+  --info: #4aa8d8;
+  --info-soft: #10283a;
+  --focus: #6ba1e4;
 }
 
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
 
-body {
-  font-variant-ligatures: common-ligatures;
-  font-variant-numeric: tabular-nums;
-  font-optical-sizing: auto;
+  body {
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-variant-ligatures: common-ligatures;
+  }
+
+  /* Un solo indicador de foco en toda la app. Los componentes no dibujan su
+     propio anillo: usan `focus-visible:outline-none` solo cuando aportan algo. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--fg);
+  }
+
+  /* Los números se alinean solo donde importan (montos, stock), no en todo el body. */
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
 }
 
 .motek-prose {
@@ -88,16 +157,8 @@ body {
 .scrollbar-none {
   scrollbar-width: none;
 }
-.scrollbar-none::-webkit-scrollbar { display: none; }
-
-:focus-visible {
-  outline: 2px solid oklch(0.74 0.16 70);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: oklch(0.74 0.16 70 / 0.28);
-  color: oklch(0.97 0.005 70);
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 .sr-only {
@@ -114,52 +175,88 @@ body {
 
 @media (prefers-reduced-motion: no-preference) {
   .motek-enter {
-    animation: motek-enter 280ms cubic-bezier(0.2, 0, 0, 1) both;
+    animation: motek-enter var(--duration-normal) var(--ease-enter) both;
   }
   .motek-enter-2 {
-    animation: motek-enter 280ms cubic-bezier(0.2, 0, 0, 1) 90ms both;
+    animation: motek-enter var(--duration-normal) var(--ease-enter) 60ms both;
   }
-  .motek-press {
-    transition: transform 150ms cubic-bezier(0.2, 0, 0, 1);
-  }
-  .motek-press:active {
-    transform: scale(0.975);
+  .motek-overlay-enter {
+    animation: motek-fade var(--duration-normal) var(--ease-enter) both;
   }
   .motek-dialog-enter {
-    animation: motek-dialog-enter 220ms cubic-bezier(0.2, 0, 0, 1) both;
+    animation: motek-dialog-enter var(--duration-normal) var(--ease-enter) both;
+  }
+  .motek-drawer-enter {
+    animation: motek-drawer-enter 220ms var(--ease-enter) both;
+  }
+  .motek-sheet-enter {
+    animation: motek-sheet-enter 220ms var(--ease-enter) both;
+  }
+  .motek-press {
+    transition: transform var(--duration-fast) var(--ease-enter);
+  }
+  .motek-press:active {
+    transform: translateY(0.5px);
+  }
+}
+
+@keyframes motek-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
 @keyframes motek-dialog-enter {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(6px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
+  }
+}
+
+@keyframes motek-drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes motek-sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
   }
 }
 
 @keyframes motek-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
 @keyframes motek-toast-exit {
   from {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
   to {
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
+    transform: translateY(-6px);
   }
 }
 
@@ -170,7 +267,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .motek-enter,
   .motek-enter-2,
+  .motek-overlay-enter,
   .motek-dialog-enter,
+  .motek-drawer-enter,
+  .motek-sheet-enter,
   .motek-press,
   .motek-toast-exit {
     animation: none !important;

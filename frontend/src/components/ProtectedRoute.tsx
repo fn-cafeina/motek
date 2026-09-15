@@ -5,7 +5,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-500">Cargando...</div>
+    return (
+      <div role="status" className="flex min-h-dvh items-center justify-center bg-canvas text-[13px] text-muted">
+        Cargando la sesión
+      </div>
+    )
   }
 
   if (!user) return <Navigate to="/login" replace />

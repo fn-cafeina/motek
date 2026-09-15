@@ -18,35 +18,41 @@ type RowActionsProps = {
   variant?: "table" | "card"
 }
 
-export function RowActions({ onEdit, onDelete, editLabel = "", deleteLabel = "", extra, actions = [], variant = "table" }: RowActionsProps) {
-  const btnBase = variant === "table"
-    ? "flex h-8 w-8 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2"
-    : "flex h-9 w-9 items-center justify-center rounded-md bg-zinc-800 focus-visible:outline-none focus-visible:ring-2"
-  const editCls = variant === "table"
-    ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:ring-amber-500"
-    : "text-zinc-300 hover:bg-zinc-700 focus-visible:ring-amber-500"
-  const deleteCls = "hover:bg-red-950/50 hover:text-red-400 focus-visible:ring-red-500 " + (variant === "table" ? "text-zinc-500" : "text-zinc-400")
-  const tones: Record<NonNullable<RowActionButton["tone"]>, string> = {
-    default: editCls,
-    info: "text-sky-400 hover:bg-sky-500/10 focus-visible:ring-amber-500",
-    danger: "text-red-400 hover:bg-red-950/50 focus-visible:ring-red-500",
-  }
+const TONES: Record<NonNullable<RowActionButton["tone"]>, string> = {
+  default: "text-muted hover:bg-raised hover:text-fg",
+  info: "text-info hover:bg-info-soft",
+  danger: "text-danger hover:bg-danger-soft",
+}
+
+// Un solo estilo de acción por fila: ghost neutro y el destructivo en rojo.
+// Siempre visibles (no solo al pasar el mouse) para que también sirvan en táctil.
+export function RowActions({
+  onEdit,
+  onDelete,
+  editLabel = "",
+  deleteLabel = "",
+  extra,
+  actions = [],
+  variant = "table",
+}: RowActionsProps) {
+  const size = variant === "table" ? "h-8 w-8" : "h-9 w-9"
+  const base = `flex items-center justify-center rounded-md transition-colors ${size}`
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-0.5">
       {extra}
       {actions.map((a) => (
-        <button key={a.label} onClick={a.onClick} aria-label={a.label} className={`${btnBase} ${tones[a.tone ?? "default"]}`}>
+        <button key={a.label} onClick={a.onClick} aria-label={a.label} className={`${base} ${TONES[a.tone ?? "default"]}`}>
           {a.icon}
         </button>
       ))}
       {onEdit && (
-        <button onClick={onEdit} aria-label={editLabel} className={`${btnBase} ${editCls}`}>
+        <button onClick={onEdit} aria-label={editLabel} className={`${base} ${TONES.default}`}>
           <Pencil className="h-3.5 w-3.5" />
         </button>
       )}
       {onDelete && (
-        <button onClick={onDelete} aria-label={deleteLabel} className={`${btnBase} ${deleteCls}`}>
+        <button onClick={onDelete} aria-label={deleteLabel} className={`${base} ${TONES.danger}`}>
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       )}

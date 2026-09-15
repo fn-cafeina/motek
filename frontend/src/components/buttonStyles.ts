@@ -1,13 +1,28 @@
-type ButtonVariant = "primary" | "secondary" | "danger"
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "dangerGhost" | "link"
+export type ButtonSize = "sm" | "md"
 
-const BASE = "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 sm:py-1.5"
+// El foco lo dibuja el outline global de index.css: ningún botón agrega su propio
+// anillo, así no hay dos indicadores superpuestos.
+const BASE =
+  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50"
 
-const VARIANTS: Record<ButtonVariant, string> = {
-  primary: `${BASE} motek-press font-semibold bg-amber-500 text-zinc-900 hover:bg-amber-400 focus-visible:ring-amber-500 disabled:opacity-50`,
-  secondary: `${BASE} bg-zinc-800 text-zinc-300 hover:bg-zinc-700 focus-visible:ring-amber-500 disabled:opacity-50`,
-  danger: `${BASE} font-semibold bg-red-600 text-white hover:bg-red-500 focus-visible:ring-red-500 disabled:opacity-50`,
+// 40px en móvil para el pulgar, 36px en desktop para no inflar las tablas.
+const SIZES: Record<ButtonSize, string> = {
+  sm: "h-8 px-2.5 text-[13px]",
+  md: "h-10 px-3 text-[13px] sm:h-9",
 }
 
-export function buttonClassName(variant: ButtonVariant = "primary"): string {
-  return VARIANTS[variant]
+const VARIANTS: Record<Exclude<ButtonVariant, "link">, string> = {
+  primary: "motek-press bg-primary font-semibold text-primary-fg hover:bg-primary-hover",
+  secondary: "border border-border-strong bg-surface text-fg hover:bg-raised",
+  ghost: "text-muted hover:bg-raised hover:text-fg",
+  danger: "motek-press bg-danger font-semibold text-danger-fg hover:brightness-95",
+  dangerGhost: "text-danger hover:bg-danger-soft",
+}
+
+export function buttonClassName(variant: ButtonVariant = "primary", size: ButtonSize = "md"): string {
+  if (variant === "link") {
+    return `${BASE} h-auto text-[13px] text-primary underline-offset-4 hover:underline`
+  }
+  return `${BASE} ${SIZES[size]} ${VARIANTS[variant]}`
 }

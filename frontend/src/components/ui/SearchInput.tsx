@@ -1,3 +1,4 @@
+import { useId } from "react"
 import { Search, X } from "lucide-react"
 import { searchInputClassName } from "../inputStyles"
 
@@ -12,10 +13,10 @@ export function SearchInput({
   placeholder: string
   label?: string
 }) {
-  const id = `search-${placeholder.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
+  const id = useId()
   return (
-    <div className="relative w-full sm:flex-1">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" aria-hidden />
+    <div className="relative w-full sm:max-w-xs">
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" aria-hidden />
       <input
         id={id}
         type="search"
@@ -24,16 +25,16 @@ export function SearchInput({
         placeholder={placeholder}
         aria-label={label ?? placeholder}
         inputMode="search"
-        className={`${searchInputClassName()} pr-8 [&::-webkit-search-cancel-button]:hidden`}
+        className={`${searchInputClassName()} [&::-webkit-search-cancel-button]:hidden`}
       />
       {value && (
         <button
           type="button"
           onClick={() => onChange("")}
           aria-label="Limpiar búsqueda"
-          className="absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+          className="absolute inset-y-0 right-0 flex items-center px-2.5 text-subtle transition-colors hover:text-fg"
         >
-          <X className="h-3.5 w-3.5" aria-hidden />
+          <X className="h-4 w-4" aria-hidden />
         </button>
       )}
     </div>

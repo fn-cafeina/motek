@@ -21,16 +21,17 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children
 
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-zinc-950 p-8 text-center text-zinc-100">
-        <p className="text-sm font-semibold">Algo salió mal</p>
-        <p className="max-w-md text-xs leading-[1.6] text-zinc-400">
-          Ocurrió un error inesperado en la aplicación. Recargá para volver a intentarlo; si persiste, avisanos qué estabas haciendo.
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-canvas p-8 text-center">
+        <p className="text-[15px] font-semibold text-fg">Algo salió mal</p>
+        <p className="max-w-md text-[13px] leading-[1.6] text-muted">
+          Ocurrió un error inesperado en la aplicación. Recargá para volver a intentarlo; si persiste,
+          avisanos qué estabas haciendo.
         </p>
-        <pre className="max-w-md overflow-x-auto rounded-md border border-zinc-800 bg-zinc-900 p-3 text-left text-[11px] text-red-400">
+        <pre className="max-w-md overflow-x-auto rounded-md border border-border bg-raised p-3 text-left text-[12px] text-danger">
           {error.message}
         </pre>
         <button onClick={() => window.location.reload()} className={buttonClassName("primary")}>
-          <RotateCw className="h-3.5 w-3.5" aria-hidden /> Recargar
+          <RotateCw className="h-4 w-4" aria-hidden /> Recargar
         </button>
       </div>
     )

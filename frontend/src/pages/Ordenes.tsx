@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Loader2, PackagePlus, Plus } from "lucide-react"
+import { useSearchParams } from "react-router"
+import { Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { api } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
 import { ORDEN_ESTADOS } from "../api/types"
+import { EstadoBadge } from "../components/Badge"
+import { badgeToneClassName, estadoTone } from "../components/badgeTones"
 import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { Alert } from "../components/ui/Alert"
+import { Drawer } from "../components/ui/Drawer"
 import { Form, FormActions, FormGrid } from "../components/ui/Form"
+import { FilterBar } from "../components/ui/FilterBar"
 import { FilterSelect } from "../components/ui/FilterSelect"
-import { inlineSelectClassName, inputClassName, selectClassName } from "../components/inputStyles"
+import { estadoSelectClassName, inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { RowActions } from "../components/ui/RowActions"
@@ -41,7 +46,13 @@ const emptyForm: FormState = {
 
 export function Ordenes() {
   const toast = useToast()
-  const [estadoFiltro, setEstadoFiltro] = useState("")
+  // El filtro vive en la URL para que el tablero pueda enlazar a una vista filtrada.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const estadoFiltro = searchParams.get("estado") ?? ""
+  const setEstadoFiltro = useCallback(
+    (value: string) => setSearchParams(value ? { estado: value } : {}, { replace: true }),
+    [setSearchParams],
+  )
   const { items: ordenes, loading, error, setError, refresh } = useCollection<OrdenTrabajo>(
     "/api/ordenes",
     "Error cargando órdenes",
@@ -294,21 +305,13 @@ export function Ordenes() {
   return (
     <>
       <PageStack>
-        <PageHeader
-          title="Órdenes"
-          count={!loading && ordenes.length > 0 ? ordenes.length : undefined}
-          action={
-            <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nueva orden
-            </button>
-          }
-        />
+        <PageHeader title="Órdenes" />
 
         {error && ordenes.length > 0 && <InlineError message={error} />}
 
         <DataCard
           loading={loading}
-          loadingText="Cargando órdenes..."
+          loadingText="Cargando órdenes"
           error={error}
           errorTitle="No se pudieron cargar las órdenes"
           onRetry={reloadAll}
@@ -319,80 +322,89 @@ export function Ordenes() {
                     title: "Sin resultados para ese estado",
                     description: "Probá con otro estado o limpiá el filtro para ver todas las órdenes.",
                     action: (
-                      <button
-                        onClick={() => setEstadoFiltro("")}
-                        className={buttonClassName("secondary")}
-                      >
-                        Limpiar filtros
+                      <button onClick={() => setEstadoFiltro("")} className={buttonClassName("secondary")}>
+                        Limpiar filtro
                       </button>
                     ),
                   }
                 : {
                     title: "Aún no hay órdenes",
                     description: "Abrí la ficha de un cliente, elegí su moto y detallá el trabajo a realizar.",
-                    action: (
-                      <button onClick={openCreate} className={buttonClassName("primary")}>
-                        <Plus className="h-3.5 w-3.5" /> Nueva orden
-                      </button>
-                    ),
                   }
               : null
           }
           toolbar={
-            <div className="w-full sm:max-w-xs">
-              <FilterSelect
-                value={estadoFiltro}
-                onChange={(v) => setEstadoFiltro(v)}
-                label="Filtrar órdenes por estado"
-                busy={loading}
-                options={[{ value: "", label: "Todos los estados" }, ...ORDEN_ESTADOS.map((e) => ({ value: e.value, label: e.label }))]}
-              />
-            </div>
+            <FilterBar>
+              <div className="w-full sm:max-w-[13rem]">
+                <FilterSelect
+                  value={estadoFiltro}
+                  onChange={setEstadoFiltro}
+                  label="Filtrar órdenes por estado"
+                  busy={loading}
+                  options={[{ value: "", label: "Todos los estados" }, ...ORDEN_ESTADOS.map((e) => ({ value: e.value, label: e.label }))]}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+                {!loading && ordenes.length > 0 && (
+                  <span className="whitespace-nowrap text-[12px] text-muted">
+                    {ordenes.length} {ordenes.length === 1 ? "orden" : "órdenes"}
+                  </span>
+                )}
+                <button onClick={openCreate} className={buttonClassName("primary")}>
+                  <Plus className="h-4 w-4" aria-hidden /> Nueva orden
+                </button>
+              </div>
+            </FilterBar>
           }
         >
           <>
-            <Table>
+            <Table caption="Órdenes de trabajo">
               <Thead>
                 <tr>
-                  <Th>Descripción</Th>
+                  <Th>Trabajo</Th>
                   <Th>Cliente</Th>
                   <Th>Moto</Th>
                   <Th>Estado</Th>
-                  <Th className="text-right">M. obra</Th>
-                  <Th className="w-28 text-right"></Th>
+                  <Th align="right">M. obra</Th>
+                  <Th className="w-28" align="right">
+                    <span className="sr-only">Acciones</span>
+                  </Th>
                 </tr>
               </Thead>
               <Tbody>
                 {ordenes.map((o) => {
                   const moto = motoMap.get(o.moto_id)
                   const cliente = clienteMap.get(o.cliente_id)
+                  const actualizando = estadoUpdatingId === o.id
                   return (
                     <Tr key={o.id}>
-                      <Td className="max-w-[200px]">
-                        <button onClick={() => openDetail(o)} title={o.descripcion} className="block truncate text-left font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
+                      <Td className="max-w-[220px]">
+                        <button
+                          onClick={() => openDetail(o)}
+                          title={o.descripcion}
+                          className="block max-w-full truncate text-left font-medium text-fg underline-offset-4 hover:text-primary hover:underline"
+                        >
                           {o.descripcion}
                         </button>
-                        <div className="text-xs text-zinc-400">{formatFecha(o.fecha_recibido)}</div>
+                        <div className="text-[12px] text-subtle">{formatFecha(o.fecha_recibido)}</div>
                       </Td>
-                      <Td className="text-zinc-300">{cliente?.nombre ?? `#${o.cliente_id}`}</Td>
-                      <Td className="text-zinc-400">
-                        {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`}
-                      </Td>
+                      <Td className="text-muted">{cliente?.nombre ?? `#${o.cliente_id}`}</Td>
+                      <Td className="text-muted">{moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`}</Td>
                       <Td>
                         <select
                           value={o.estado}
                           onChange={(e) => onChangeEstado(o, e.target.value as OrdenEstado)}
-                          disabled={estadoUpdatingId === o.id}
+                          disabled={actualizando}
                           aria-label={`Cambiar estado de ${o.descripcion}`}
-                          aria-busy={estadoUpdatingId === o.id}
-                          className={inlineSelectClassName()}
+                          aria-busy={actualizando}
+                          className={`${estadoSelectClassName()} ${badgeToneClassName(estadoTone(o.estado))}`}
                         >
                           {ORDEN_ESTADOS.map((e) => (
                             <option key={e.value} value={e.value}>{e.label}</option>
                           ))}
                         </select>
                       </Td>
-                      <Td className="text-right text-zinc-300">{formatMoney(o.total_mano_obra)}</Td>
+                      <Td align="right" className="text-muted">{formatMoney(o.total_mano_obra)}</Td>
                       <Td>
                         <RowActions
                           actions={[{ onClick: () => openDetail(o), label: `Ver repuestos de ${o.descripcion}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
@@ -412,17 +424,17 @@ export function Ordenes() {
                 const moto = motoMap.get(o.moto_id)
                 const cliente = clienteMap.get(o.cliente_id)
                 return (
-                  <li key={o.id} className="min-w-0 px-3 py-3">
+                  <li key={o.id} className="min-w-0 px-4 py-3">
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <button onClick={() => openDetail(o)} title={o.descripcion} className="block w-full truncate text-left text-sm font-medium text-zinc-100 hover:text-amber-400">
+                        <button onClick={() => openDetail(o)} title={o.descripcion} className="block w-full truncate text-left text-[13px] font-medium text-fg">
                           {o.descripcion}
                         </button>
-                        <div className="mt-0.5 truncate text-xs text-zinc-500">
+                        <div className="mt-0.5 truncate text-[12px] text-subtle">
                           {cliente?.nombre ?? `#${o.cliente_id}`} · {moto ? `${moto.marca} ${moto.modelo}` : `#${o.moto_id}`} · {formatFecha(o.fecha_recibido)}
                         </div>
                       </div>
-                      <div className="shrink-0 text-right text-sm font-semibold text-zinc-200">{formatMoney(o.total_mano_obra)}</div>
+                      <div className="shrink-0 text-right text-[13px] font-semibold tabular-nums text-fg">{formatMoney(o.total_mano_obra)}</div>
                     </div>
                     <div className="mt-2 flex min-w-0 items-center justify-between gap-2">
                       <select
@@ -431,7 +443,7 @@ export function Ordenes() {
                         disabled={estadoUpdatingId === o.id}
                         aria-label={`Cambiar estado de ${o.descripcion}`}
                         aria-busy={estadoUpdatingId === o.id}
-                        className={`${inlineSelectClassName()} max-w-[60%] truncate`}
+                        className={`${estadoSelectClassName()} max-w-[60%] ${badgeToneClassName(estadoTone(o.estado))}`}
                       >
                         {ORDEN_ESTADOS.map((e) => (
                           <option key={e.value} value={e.value}>{e.label}</option>
@@ -456,7 +468,11 @@ export function Ordenes() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar orden" : "Nueva orden"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          {formError && <Alert>{formError}</Alert>}
+          {formError && (
+            <Alert tone="danger" live>
+              {formError}
+            </Alert>
+          )}
           {!editing ? (
             <FormGrid>
               <Field label="Cliente *" id="ord-cliente" error={fieldErrors.cliente}>
@@ -495,13 +511,13 @@ export function Ordenes() {
                     <option key={m.id} value={m.id}>{m.marca} {m.modelo}{m.anio ? ` (${m.anio})` : ""}</option>
                   ))}
                 </select>
-                {!form.cliente_id && <p className="mt-1 text-xs text-zinc-400">Elegí un cliente para listar sus motos.</p>}
+                {!form.cliente_id && <p className="mt-1.5 text-[12px] text-subtle">Elegí un cliente para listar sus motos.</p>}
               </Field>
             </FormGrid>
           ) : (
-            <div className="rounded-md bg-zinc-800/50 px-3 py-2 text-xs text-zinc-400">
-              Cliente: <span className="text-zinc-200">{clienteMap.get(editing.cliente_id)?.nombre ?? `#${editing.cliente_id}`}</span>
-              {" · "}Moto: <span className="text-zinc-200">{(() => { const m = motoMap.get(editing.moto_id); return m ? `${m.marca} ${m.modelo}` : `#${editing.moto_id}` })()}</span>
+            <div className="rounded-md bg-raised px-3 py-2 text-[13px] text-muted">
+              Cliente: <span className="text-fg">{clienteMap.get(editing.cliente_id)?.nombre ?? `#${editing.cliente_id}`}</span>
+              {" · "}Moto: <span className="text-fg">{(() => { const m = motoMap.get(editing.moto_id); return m ? `${m.marca} ${m.modelo}` : `#${editing.moto_id}` })()}</span>
             </div>
           )}
           <Field label="Descripción *" id="ord-descripcion" error={fieldErrors.descripcion}>
@@ -572,45 +588,118 @@ export function Ordenes() {
         </Form>
       </Dialog>
 
-      <Dialog
+      <Drawer
         open={!!detail}
-        title={detail ? `Repuestos · ${detail.descripcion}` : "Detalle"}
+        title={detail ? `Orden #${detail.id}` : "Orden"}
         onClose={() => setDetail(null)}
-        maxWidth="max-w-2xl"
+        footer={
+          detail ? (
+            <>
+              <button
+                onClick={() => {
+                  const target = detail
+                  setDetail(null)
+                  setConfirm(target)
+                }}
+                className={buttonClassName("dangerGhost")}
+              >
+                <Trash2 className="h-4 w-4" aria-hidden /> Eliminar
+              </button>
+              <button
+                onClick={() => {
+                  const target = detail
+                  setDetail(null)
+                  openEdit(target)
+                }}
+                className={buttonClassName("secondary")}
+              >
+                <Pencil className="h-4 w-4" aria-hidden /> Editar
+              </button>
+            </>
+          ) : undefined
+        }
       >
         {detail && (
-          <div className="space-y-3">
-            <div className="rounded-md bg-zinc-800/50 px-3 py-2 text-xs text-zinc-400">
-              Cliente: <span className="text-zinc-200">{clienteMap.get(detail.cliente_id)?.nombre ?? `#${detail.cliente_id}`}</span>
-              {" · "}Mano de obra: <span className="text-zinc-200">{formatMoney(detail.total_mano_obra)}</span>
+          <div className="space-y-5">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <EstadoBadge estado={detail.estado} />
+                <span className="text-[12px] text-subtle">Recibida el {formatFecha(detail.fecha_recibido)}</span>
+              </div>
+              <p className="mt-2 text-[15px] font-semibold leading-[1.35] text-fg">{detail.descripcion}</p>
             </div>
 
-            {repError && <Alert>{repError}</Alert>}
+            <dl className="space-y-2 rounded-md border border-border bg-raised/60 px-3 py-3 text-[13px]">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted">Cliente</dt>
+                <dd className="min-w-0 truncate text-right text-fg">
+                  {clienteMap.get(detail.cliente_id)?.nombre ?? `#${detail.cliente_id}`}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted">Moto</dt>
+                <dd className="min-w-0 truncate text-right text-fg">
+                  {(() => {
+                    const m = motoMap.get(detail.moto_id)
+                    return m ? `${m.marca} ${m.modelo}${m.anio ? ` (${m.anio})` : ""}` : `#${detail.moto_id}`
+                  })()}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted">Mano de obra</dt>
+                <dd className="tabular-nums text-fg">{formatMoney(detail.total_mano_obra)}</dd>
+              </div>
+            </dl>
+
+            {detail.diagnostico && (
+              <div>
+                <p className="mb-1 text-[12px] font-medium text-muted">Diagnóstico</p>
+                <p className="motek-prose text-[13px] leading-[1.6] text-fg">{detail.diagnostico}</p>
+              </div>
+            )}
+
+            {detail.notas && (
+              <div>
+                <p className="mb-1 text-[12px] font-medium text-muted">Notas</p>
+                <p className="motek-prose text-[13px] leading-[1.6] text-fg">{detail.notas}</p>
+              </div>
+            )}
 
             <div>
-              <p className="mb-1.5 text-xs font-medium tracking-wide text-zinc-400">Repuestos</p>
+              <p className="mb-2 text-[13px] font-semibold text-fg">Repuestos</p>
+
+              {repError && (
+                <div className="mb-2">
+                  <Alert tone="danger" live>
+                    {repError}
+                  </Alert>
+                </div>
+              )}
+
               {repLoading ? (
-                <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-400">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando repuestos...
+                <div role="status" className="flex items-center justify-center gap-2 py-6 text-[13px] text-muted">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando repuestos
                 </div>
               ) : repuestos.length === 0 ? (
-                <p className="py-3 text-center text-xs text-zinc-400">Sin repuestos en esta orden.</p>
+                <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-[13px] text-muted">
+                  Sin repuestos en esta orden.
+                </p>
               ) : (
-                <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+                <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
                   {repuestos.map((line) => {
                     const rep = repuestoMap.get(line.repuesto_id)
                     return (
-                      <li key={line.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                      <li key={line.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-zinc-100">
+                          <div className="truncate text-[13px] font-medium text-fg">
                             {rep?.nombre || `#${line.repuesto_id}`}
                           </div>
-                          <div className="text-xs text-zinc-500">
+                          <div className="text-[12px] tabular-nums text-subtle">
                             {line.cantidad} × {formatMoney(line.precio_unitario)}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-zinc-200">{formatMoney(line.subtotal)}</span>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <span className="text-[13px] font-semibold tabular-nums text-fg">{formatMoney(line.subtotal)}</span>
                           <RowActions
                             onDelete={() => onRemoveRepuesto(line)}
                             deleteLabel={`Quitar ${rep?.nombre || "repuesto"}`}
@@ -621,11 +710,11 @@ export function Ordenes() {
                   })}
                 </ul>
               )}
-            </div>
 
-            <div className="flex items-center justify-between border-t border-zinc-800 pt-2 text-xs">
-              <span className="text-zinc-400">Total repuestos</span>
-              <span className="text-sm font-semibold text-zinc-100">{formatMoney(totalRepuestos)}</span>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-[13px] text-muted">Total repuestos</span>
+                <span className="text-[15px] font-semibold tabular-nums text-fg">{formatMoney(totalRepuestos)}</span>
+              </div>
             </div>
 
             <Form onSubmit={onAddRepuesto}>
@@ -655,23 +744,19 @@ export function Ordenes() {
                   />
                 </Field>
                 <div className="flex items-end pb-0.5">
-                  <button
-                    type="submit"
-                    disabled={repSaving || !addRepId}
-                    className={buttonClassName("primary")}
-                  >
+                  <button type="submit" disabled={repSaving || !addRepId} className={buttonClassName("primary")}>
                     {repSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
                     Agregar
                   </button>
                 </div>
               </FormGrid>
               {addRepId && disponible(addRepId) <= 0 && (
-                <Alert>Sin stock disponible para este repuesto.</Alert>
+                <Alert tone="accent">Sin stock disponible para este repuesto.</Alert>
               )}
             </Form>
           </div>
         )}
-      </Dialog>
+      </Drawer>
 
       <ConfirmDialog
         open={!!confirm}

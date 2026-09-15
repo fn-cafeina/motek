@@ -3,13 +3,13 @@ import { Brand } from "./layout/Brand"
 
 export function AuthCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-zinc-950 px-3 pt-[max(16px,env(safe-area-inset-top))] pb-[max(16px,env(safe-area-inset-bottom))] sm:px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-canvas px-4 pt-[max(16px,env(safe-area-inset-top))] pb-[max(16px,env(safe-area-inset-bottom))]">
       <div className="w-full max-w-sm">
-        <div className="motek-enter mb-4">
+        <div className="motek-enter mb-5 flex justify-center">
           <Brand subtitle="Taller especializado en motocicletas" />
         </div>
-        <Card className="motek-enter-2 p-4 sm:p-5">
-          <h1 className="mb-3 text-sm font-semibold tracking-wide text-zinc-100">{title}</h1>
+        <Card className="motek-enter-2 p-5">
+          <h1 className="mb-4 text-[15px] font-semibold text-fg">{title}</h1>
           {children}
         </Card>
       </div>

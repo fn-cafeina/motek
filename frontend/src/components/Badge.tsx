@@ -1,34 +1,19 @@
 import { facturaEstadoLabel, ordenEstadoLabel } from "../api/types"
+import { badgeToneClassName, estadoTone, type BadgeTone } from "./badgeTones"
 
-type BadgeProps = {
-  tone?: "amber" | "green" | "red" | "zinc" | "blue"
-  children: React.ReactNode
-}
-
-const TONES: Record<NonNullable<BadgeProps["tone"]>, string> = {
-  amber: "bg-amber-500/15 text-amber-500 border-amber-500/30",
-  green: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  red: "bg-red-500/15 text-red-400 border-red-500/30",
-  zinc: "bg-zinc-800 text-zinc-400 border-zinc-700",
-  blue: "bg-sky-500/15 text-sky-400 border-sky-500/30",
-}
-
-export function Badge({ tone = "zinc", children }: BadgeProps) {
+// El punto hereda el color del texto: el estado nunca se comunica solo por color.
+export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; children: React.ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium leading-4 ${TONES[tone]}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-0.5 text-[12px] font-medium leading-5 ${badgeToneClassName(tone)}`}
     >
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden />
       {children}
     </span>
   )
 }
 
 export function EstadoBadge({ estado }: { estado: string }) {
-  let tone: BadgeProps["tone"] = "zinc"
-  if (estado === "entregado" || estado === "pagada") tone = "green"
-  else if (estado === "esperando_repuestos" || estado === "cancelada") tone = "red"
-  else if (estado === "recibido" || estado === "pendiente") tone = "amber"
-  else if (estado === "en_progreso" || estado === "parcial" || estado === "terminado") tone = "blue"
   const label = ordenEstadoLabel(estado) !== estado ? ordenEstadoLabel(estado) : facturaEstadoLabel(estado)
-  return <Badge tone={tone}>{label}</Badge>
+  return <Badge tone={estadoTone(estado)}>{label}</Badge>
 }

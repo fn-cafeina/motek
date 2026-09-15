@@ -1,8 +1,8 @@
-export function Table({ children }: { children: React.ReactNode }) {
+export function Table({ children, caption = "Listado" }: { children: React.ReactNode; caption?: string }) {
   return (
     <div className="hidden overflow-x-auto sm:block">
-      <table className="w-full text-left text-xs">
-        <caption className="sr-only">Listado</caption>
+      <table className="w-full text-left text-[13px] text-fg">
+        <caption className="sr-only">{caption}</caption>
         {children}
       </table>
     </div>
@@ -10,29 +10,54 @@ export function Table({ children }: { children: React.ReactNode }) {
 }
 
 export function Thead({ children }: { children: React.ReactNode }) {
-  return <thead className="border-b border-zinc-800 text-zinc-400">{children}</thead>
+  return <thead className="border-b border-border bg-raised">{children}</thead>
 }
 
 export function Tbody({ children }: { children: React.ReactNode }) {
-  return <tbody className="divide-y divide-zinc-800/60">{children}</tbody>
+  return <tbody className="divide-y divide-border">{children}</tbody>
 }
 
-export function Th({ children, className = "" }: { children?: React.ReactNode; className?: string }) {
+export function Th({
+  children,
+  className = "",
+  align = "left",
+}: {
+  children?: React.ReactNode
+  className?: string
+  align?: "left" | "right"
+}) {
   return (
-    <th scope="col" className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-widest text-zinc-400 ${className}`}>
+    <th
+      scope="col"
+      className={`h-10 px-4 text-[12px] font-semibold text-muted ${align === "right" ? "text-right" : "text-left"} ${className}`}
+    >
       {children}
     </th>
   )
 }
 
-export function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-3 py-2.5 ${className}`}>{children}</td>
+export function Td({
+  children,
+  className = "",
+  align = "left",
+}: {
+  children: React.ReactNode
+  className?: string
+  align?: "left" | "right"
+}) {
+  return (
+    <td
+      className={`px-4 py-2.5 align-middle ${align === "right" ? "text-right tabular-nums" : ""} ${className}`}
+    >
+      {children}
+    </td>
+  )
 }
 
 export function Tr({ children }: { children: React.ReactNode }) {
-  return <tr className="transition-colors hover:bg-zinc-800/50">{children}</tr>
+  return <tr className="transition-colors hover:bg-raised/70">{children}</tr>
 }
 
 export function MobileList({ children }: { children: React.ReactNode }) {
-  return <ul className="divide-y divide-zinc-800/60 sm:hidden">{children}</ul>
+  return <ul className="divide-y divide-border sm:hidden">{children}</ul>
 }

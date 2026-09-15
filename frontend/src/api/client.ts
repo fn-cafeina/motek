@@ -4,8 +4,15 @@ const API_URL = import.meta.env.VITE_API_URL ?? ""
 
 export const TOKEN_KEY = "motek_token"
 export const UNAUTHORIZED_EVENT = "motek:unauthorized"
+/** Se emite después de cada escritura exitosa, para que el resumen del shell no quede viejo. */
+export const MUTATED_EVENT = "motek:mutated"
 
 const DEFAULT_TIMEOUT_MS = 15_000
+
+function notifyMutation(method: string | undefined) {
+  if ((method ?? "GET").toUpperCase() === "GET") return
+  window.dispatchEvent(new CustomEvent(MUTATED_EVENT))
+}
 
 export class ApiError extends Error {
   status: number
@@ -61,10 +68,16 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     throw new ApiError(401, "No autorizado")
   }
 
-  if (res.status === 204) return null as T
+  if (res.status === 204) {
+    notifyMutation(rest.method)
+    return null as T
+  }
 
   const text = await res.text()
-  if (!text) return null as T
+  if (!text) {
+    notifyMutation(rest.method)
+    return null as T
+  }
 
   let data: unknown
   try {
@@ -80,7 +93,11 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
     throw new ApiError(res.status, msg)
   }
 
-  if (data === null) return [] as unknown as T
+  if (data === null) {
+    notifyMutation(rest.method)
+    return [] as unknown as T
+  }
 
+  notifyMutation(rest.method)
   return data as T
 }

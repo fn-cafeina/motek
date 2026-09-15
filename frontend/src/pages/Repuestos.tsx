@@ -198,6 +198,11 @@ export function Repuestos() {
     setQ("")
     setSoloBajo(false)
   }
+  const countLabel = loading
+    ? undefined
+    : hasFilter
+      ? `${filtered.length} de ${items.length}`
+      : `${items.length} ${items.length === 1 ? "repuesto" : "repuestos"}`
   const empty = filtered.length === 0
     ? hasFilter
       ? {
@@ -212,32 +217,19 @@ export function Repuestos() {
       : {
           title: "Aún no hay repuestos",
           description: "Cargá el repuesto con código y stock para descontarlo en las órdenes.",
-          action: (
-            <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
-            </button>
-          ),
         }
     : null
 
   return (
     <>
       <PageStack>
-        <PageHeader
-          title="Repuestos"
-          count={!loading && items.length > 0 ? (hasFilter ? `${filtered.length} de ${items.length}` : items.length) : undefined}
-          action={
-            <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nuevo repuesto
-            </button>
-          }
-        />
+        <PageHeader title="Repuestos" />
 
         {error && items.length > 0 && <InlineError message={error} />}
 
         <DataCard
           loading={loading}
-          loadingText="Cargando repuestos..."
+          loadingText="Cargando repuestos"
           error={error}
           errorTitle="No se pudieron cargar los repuestos"
           onRetry={load}
@@ -250,36 +242,44 @@ export function Repuestos() {
                 aria-pressed={soloBajo}
                 className={buttonClassName(soloBajo ? "primary" : "secondary")}
               >
-                <AlertTriangle className="h-3.5 w-3.5" /> Stock bajo
+                <AlertTriangle className="h-4 w-4" aria-hidden /> Stock bajo
               </button>
+              <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+                {countLabel && <span className="whitespace-nowrap text-[12px] text-muted">{countLabel}</span>}
+                <button onClick={openCreate} className={buttonClassName("primary")}>
+                  <Plus className="h-4 w-4" aria-hidden /> Nuevo repuesto
+                </button>
+              </div>
             </FilterBar>
           }
         >
           <>
-            <Table>
+            <Table caption="Inventario de repuestos">
               <Thead>
                 <tr>
                   <Th>Repuesto</Th>
                   <Th>Categoría</Th>
-                  <Th className="text-right">P. venta</Th>
-                  <Th className="text-right">Stock</Th>
-                  <Th className="w-28 text-right"></Th>
+                  <Th align="right">P. venta</Th>
+                  <Th align="right">Stock</Th>
+                  <Th className="w-28" align="right">
+                    <span className="sr-only">Acciones</span>
+                  </Th>
                 </tr>
               </Thead>
               <Tbody>
                 {filtered.map((r) => (
                   <Tr key={r.id}>
                     <Td>
-                      <div className="font-medium text-zinc-100">{r.nombre || r.codigo}</div>
-                      <div className="truncate text-xs text-zinc-500">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
+                      <div className="font-medium text-fg">{r.nombre || r.codigo}</div>
+                      <div className="truncate text-[12px] text-subtle">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
                     </Td>
-                    <Td className="text-zinc-400">{r.categoria || "—"}</Td>
-                    <Td className="text-right text-zinc-300">{formatMoney(r.precio_venta)}</Td>
-                    <Td className="text-right">
-                      <span className={r.stock <= r.stock_minimo ? "font-semibold text-red-400" : "text-zinc-300"}>
+                    <Td className="text-muted">{r.categoria || "—"}</Td>
+                    <Td align="right" className="text-muted">{formatMoney(r.precio_venta)}</Td>
+                    <Td align="right" className="whitespace-nowrap">
+                      <span className={r.stock <= r.stock_minimo ? "font-semibold text-accent" : "text-fg"}>
                         {r.stock}
                       </span>
-                      <span className="text-zinc-500"> / {r.stock_minimo}</span>
+                      <span className="text-subtle"> de {r.stock_minimo} mín.</span>
                     </Td>
                     <Td>
                       <RowActions
@@ -296,18 +296,18 @@ export function Repuestos() {
             </Table>
             <MobileList>
               {filtered.map((r) => (
-                <li key={r.id} className="min-w-0 px-3 py-3">
+                <li key={r.id} className="min-w-0 px-4 py-3">
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-zinc-100">{r.nombre || r.codigo}</div>
-                      <div className="truncate text-xs text-zinc-500">
+                      <div className="truncate text-[13px] font-medium text-fg">{r.nombre || r.codigo}</div>
+                      <div className="truncate text-[12px] text-subtle">
                         {r.codigo}{r.categoria ? ` · ${r.categoria}` : ""}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="text-sm font-semibold text-zinc-200">{formatMoney(r.precio_venta)}</div>
-                      <div className={r.stock <= r.stock_minimo ? "text-xs font-semibold text-red-400" : "text-xs text-zinc-500"}>
-                        {r.stock} / {r.stock_minimo}
+                      <div className="text-[13px] font-semibold tabular-nums text-fg">{formatMoney(r.precio_venta)}</div>
+                      <div className={r.stock <= r.stock_minimo ? "text-[12px] font-semibold tabular-nums text-accent" : "text-[12px] tabular-nums text-muted"}>
+                        {r.stock} de {r.stock_minimo} mín.
                       </div>
                     </div>
                   </div>
@@ -330,7 +330,11 @@ export function Repuestos() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar repuesto" : "Nuevo repuesto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          {submitError && <Alert>{submitError}</Alert>}
+          {submitError && (
+            <Alert tone="danger" live>
+              {submitError}
+            </Alert>
+          )}
           <FormGrid>
             <Field label="Código *" id="rep-codigo" error={fieldErrors.codigo}>
               <input
@@ -459,11 +463,15 @@ export function Repuestos() {
         onClose={() => setStockTarget(null)}
       >
         <Form onSubmit={onAdjustStock}>
-          <p className="text-xs text-zinc-400">
-            Stock actual: <span className="font-semibold text-zinc-200">{stockTarget?.stock ?? 0}</span>
-            {" · "}Mínimo: <span className="text-zinc-200">{stockTarget?.stock_minimo ?? 0}</span>
+          <p className="text-[13px] text-muted">
+            Stock actual: <span className="font-semibold tabular-nums text-fg">{stockTarget?.stock ?? 0}</span>
+            {" · "}Mínimo: <span className="tabular-nums text-fg">{stockTarget?.stock_minimo ?? 0}</span>
           </p>
-          {stockError && <Alert>{stockError}</Alert>}
+          {stockError && (
+            <Alert tone="danger" live>
+              {stockError}
+            </Alert>
+          )}
           <Field label="Cantidad (positivo suma, negativo resta)" id="rep-delta">
             <input
               id="rep-delta"

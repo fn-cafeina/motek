@@ -11,6 +11,7 @@ import { inputClassName } from "../components/inputStyles"
 import { MotosManager } from "../components/MotosManager"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
+import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
 import { RowActions } from "../components/ui/RowActions"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
@@ -99,42 +100,46 @@ export function Clientes() {
     }
   }
 
-  const headerCount = !loading && clientes.length > 0 ? (q.trim() ? `${filtered.length} de ${clientes.length}` : clientes.length) : undefined
+  const searchTerm = q.trim()
+  const countLabel = loading
+    ? undefined
+    : searchTerm
+      ? `${filtered.length} de ${clientes.length}`
+      : `${clientes.length} ${clientes.length === 1 ? "cliente" : "clientes"}`
   const empty = filtered.length === 0
     ? {
-        title: q ? "Sin resultados" : "Aún no hay clientes",
-        description: q ? "Probá con otro nombre o teléfono." : "Registrá el dueño de la moto para abrir su ficha y cargar trabajos.",
-        action: !q ? (
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nuevo cliente
-          </button>
-        ) : undefined,
+        title: searchTerm ? "Sin resultados" : "Aún no hay clientes",
+        description: searchTerm
+          ? "Probá con otro nombre, teléfono o email."
+          : "Registrá el dueño de la moto para abrir su ficha y cargar trabajos.",
       }
     : null
 
   return (
     <>
       <PageStack>
-      <PageHeader
-        title="Clientes"
-        count={headerCount}
-        action={
-          <button onClick={openCreate} className={buttonClassName("primary")}>
-            <Plus className="h-3.5 w-3.5" /> Nuevo cliente
-          </button>
-        }
-      />
+      <PageHeader title="Clientes" />
 
       {error && clientes.length > 0 && <InlineError message={error} />}
 
       <DataCard
         loading={loading}
-        loadingText="Cargando clientes..."
+        loadingText="Cargando clientes"
         error={error}
         errorTitle="No se pudieron cargar los clientes"
         onRetry={load}
         empty={empty}
-        toolbar={<SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" />}
+        toolbar={
+          <FilterBar>
+            <SearchInput value={q} onChange={setQ} placeholder="Buscar cliente" />
+            <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+              {countLabel && <span className="whitespace-nowrap text-[12px] text-muted">{countLabel}</span>}
+              <button onClick={openCreate} className={buttonClassName("primary")}>
+                <Plus className="h-4 w-4" aria-hidden /> Nuevo cliente
+              </button>
+            </div>
+          </FilterBar>
+        }
       >
         <>
           <Table>
@@ -149,10 +154,10 @@ export function Clientes() {
               {filtered.map((c) => (
                 <Tr key={c.id}>
                   <Td>
-                    <div className="font-medium text-zinc-100">{c.nombre}</div>
-                    {c.email && <div className="truncate text-xs text-zinc-500">{c.email}</div>}
+                    <div className="font-medium text-fg">{c.nombre}</div>
+                    {c.email && <div className="truncate text-[12px] text-subtle">{c.email}</div>}
                   </Td>
-                  <Td className="text-zinc-400">{c.telefono || "—"}</Td>
+                  <Td className="text-muted">{c.telefono || "—"}</Td>
                   <Td>
                     <RowActions
                       extra={<MotosManager cliente={c} />}
@@ -168,10 +173,10 @@ export function Clientes() {
           </Table>
           <MobileList>
             {filtered.map((c) => (
-              <li key={c.id} className="flex min-w-0 items-center justify-between gap-3 px-3 py-3">
+              <li key={c.id} className="flex min-w-0 items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium text-zinc-100">{c.nombre}</div>
-                  <div className="truncate text-xs text-zinc-500">{c.telefono || c.email || "—"}</div>
+                  <div className="truncate text-[13px] font-medium text-fg">{c.nombre}</div>
+                  <div className="truncate text-[12px] text-muted">{c.telefono || c.email || "—"}</div>
                 </div>
                 <RowActions
                   variant="card"
@@ -190,7 +195,11 @@ export function Clientes() {
 
       <Dialog open={dialogOpen} title={editing ? "Editar cliente" : "Nuevo cliente"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          {formError && <Alert>{formError}</Alert>}
+          {formError && (
+            <Alert tone="danger" live>
+              {formError}
+            </Alert>
+          )}
           <Field label="Nombre *" id="cliente-nombre" error={fieldErrors.nombre}>
             <input
               id="cliente-nombre"

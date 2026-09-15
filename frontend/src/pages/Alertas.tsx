@@ -81,21 +81,13 @@ export function Alertas() {
   return (
     <>
       <PageStack>
-        <PageHeader
-          title="Alertas de stock"
-          count={!loading && items.length > 0 ? items.length : undefined}
-          action={
-            <button onClick={load} className={buttonClassName("secondary")}>
-              <RotateCw className="h-3.5 w-3.5" /> Actualizar
-            </button>
-          }
-        />
+        <PageHeader title="Alertas de stock" />
 
         {error && items.length > 0 && <InlineError message={error} />}
 
         <DataCard
           loading={loading}
-          loadingText="Cargando alertas..."
+          loadingText="Cargando alertas"
           error={error}
           errorTitle="No se pudieron cargar las alertas"
           onRetry={load}
@@ -103,28 +95,40 @@ export function Alertas() {
           toolbar={
             <FilterBar>
               <SearchInput value={q} onChange={setQ} placeholder="Buscar por código o nombre" />
+              <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+                {!loading && items.length > 0 && (
+                  <span className="whitespace-nowrap text-[12px] text-muted">
+                    {items.length} {items.length === 1 ? "repuesto" : "repuestos"}
+                  </span>
+                )}
+                <button onClick={load} className={buttonClassName("secondary")}>
+                  <RotateCw className="h-4 w-4" aria-hidden /> Actualizar
+                </button>
+              </div>
             </FilterBar>
           }
         >
           <>
-            <Table>
+            <Table caption="Repuestos por debajo del stock mínimo">
               <Thead>
                 <tr>
                   <Th>Repuesto</Th>
-                  <Th className="text-right">Stock</Th>
-                  <Th className="text-right">Mínimo</Th>
-                  <Th className="w-28 text-right"><span className="sr-only">Acciones</span></Th>
+                  <Th align="right">Stock</Th>
+                  <Th align="right">Mínimo</Th>
+                  <Th className="w-28" align="right">
+                    <span className="sr-only">Acciones</span>
+                  </Th>
                 </tr>
               </Thead>
               <Tbody>
                 {filtered.map((a) => (
                   <Tr key={a.id}>
                     <Td>
-                      <div className="font-medium text-zinc-100">{a.nombre || a.codigo}</div>
-                      <div className="text-xs text-zinc-500">{a.codigo}</div>
+                      <div className="font-medium text-fg">{a.nombre || a.codigo}</div>
+                      <div className="text-[12px] text-subtle">{a.codigo}</div>
                     </Td>
-                    <Td className="text-right font-semibold text-red-400">{a.stock}</Td>
-                    <Td className="text-right text-zinc-400">{a.stock_minimo}</Td>
+                    <Td align="right" className="font-semibold text-accent">{a.stock}</Td>
+                    <Td align="right" className="text-muted">{a.stock_minimo}</Td>
                     <Td>
                       <RowActions
                         actions={[{ onClick: () => { setTarget(a); setDelta(""); setFormError(null) }, label: `Surtir ${a.nombre || a.codigo}`, icon: <PackagePlus className="h-3.5 w-3.5" />, tone: "info" }]}
@@ -136,11 +140,12 @@ export function Alertas() {
             </Table>
             <MobileList>
               {filtered.map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-3 px-3 py-3">
+                <li key={a.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-zinc-100">{a.nombre || a.codigo}</div>
-                    <div className="truncate text-xs text-zinc-500">
-                      {a.codigo} · <span className="font-semibold text-red-400">{a.stock}</span> / {a.stock_minimo}
+                    <div className="truncate text-[13px] font-medium text-fg">{a.nombre || a.codigo}</div>
+                    <div className="truncate text-[12px] text-muted">
+                      {a.codigo} ·{" "}
+                      <span className="font-semibold tabular-nums text-accent">{a.stock}</span> de {a.stock_minimo} mín.
                     </div>
                   </div>
                   <RowActions
@@ -160,11 +165,15 @@ export function Alertas() {
         dismissible={!saving} onClose={() => setTarget(null)}
       >
         <Form onSubmit={onSubmit}>
-          <p className="text-xs text-zinc-400">
-            Stock actual: <span className="font-semibold text-red-400">{target?.stock ?? 0}</span>
-            {" · "}Mínimo: <span className="text-zinc-200">{target?.stock_minimo ?? 0}</span>
+          <p className="text-[13px] text-muted">
+            Stock actual: <span className="font-semibold tabular-nums text-accent">{target?.stock ?? 0}</span>
+            {" · "}Mínimo: <span className="tabular-nums text-fg">{target?.stock_minimo ?? 0}</span>
           </p>
-          {formError && <Alert>{formError}</Alert>}
+          {formError && (
+            <Alert tone="danger" live>
+              {formError}
+            </Alert>
+          )}
           <Field label="Cantidad a sumar" id="alerta-cantidad">
             <input
               id="alerta-cantidad"

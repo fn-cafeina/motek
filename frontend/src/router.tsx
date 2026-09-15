@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router"
+import { createBrowserRouter } from "react-router"
 import { Layout } from "./components/Layout"
 import { NotFound } from "./components/NotFound"
 import { ProtectedRoute } from "./components/ProtectedRoute"
@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to="/clientes" replace /> },
+      { index: true, lazy: () => import("./pages/Inicio").then((m) => ({ Component: m.Inicio })) },
       { path: "clientes", lazy: () => import("./pages/Clientes").then((m) => ({ Component: m.Clientes })) },
       { path: "ordenes", lazy: () => import("./pages/Ordenes").then((m) => ({ Component: m.Ordenes })) },
       { path: "repuestos", lazy: () => import("./pages/Repuestos").then((m) => ({ Component: m.Repuestos })) },

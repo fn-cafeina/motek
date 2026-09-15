@@ -1,17 +1,27 @@
-const INPUT_BASE = "w-full rounded-md border bg-zinc-800 px-2.5 py-2 text-base text-zinc-100 placeholder:text-zinc-400 outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-50 sm:py-1.5 sm:text-sm"
+// Los campos van a 16px en móvil: por debajo de eso iOS hace zoom al enfocar y
+// descoloca el layout. En desktop bajan a 13px por densidad.
+const FIELD =
+  "w-full rounded-md border border-border-strong bg-surface px-2.5 text-base text-fg placeholder:text-subtle outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:text-[13px]"
 
 export function inputClassName(invalid?: boolean) {
-  return `${INPUT_BASE} ${invalid ? "border-red-500 focus:border-red-500 focus-visible:ring-red-500" : "border-zinc-700 focus:border-amber-500"}`
+  return `${FIELD} h-10 sm:h-9 ${invalid ? "border-danger" : "focus:border-primary"}`
 }
 
 export function selectClassName(invalid?: boolean) {
   return inputClassName(invalid)
 }
 
+// Select compacto para celdas de tabla: neutro en reposo, con borde al pasar el mouse.
 export function inlineSelectClassName() {
-  return "rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-100 outline-none focus:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:opacity-60"
+  return "h-7 max-w-[11rem] rounded-md border border-transparent bg-raised px-2 text-[13px] text-fg outline-none hover:border-border-strong focus:border-primary"
 }
 
 export function searchInputClassName() {
-  return "w-full rounded-md border border-zinc-800 bg-zinc-900 py-2 pl-8 pr-2.5 text-base text-zinc-100 placeholder:text-zinc-400 outline-none focus:border-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:py-1.5 sm:text-sm"
+  return `${FIELD} h-10 pl-9 pr-8 focus:border-primary sm:h-9`
+}
+
+// Select de estado para celdas de tabla. Solo layout y tipografía: los colores los
+// aporta el tono del estado, así no hay clases en conflicto.
+export function estadoSelectClassName() {
+  return "h-7 w-full max-w-[11rem] rounded-md border px-2 text-[12px] font-medium outline-none disabled:opacity-60"
 }

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react"
+import { useSearchParams } from "react-router"
 import { Banknote, Ban, Loader2, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Factura, OrdenTrabajo, Pago } from "../api/types"
@@ -8,7 +9,9 @@ import { ConfirmDialog } from "../components/ConfirmDialog"
 import { Dialog } from "../components/Dialog"
 import { Field } from "../components/Field"
 import { Alert } from "../components/ui/Alert"
+import { Drawer } from "../components/ui/Drawer"
 import { Form, FormActions, FormGrid } from "../components/ui/Form"
+import { FilterBar } from "../components/ui/FilterBar"
 import { FilterSelect } from "../components/ui/FilterSelect"
 import { inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError, PageHeader } from "../components/PageShell"
@@ -23,7 +26,13 @@ import { formatFecha, formatMoney } from "../lib/format"
 
 export function Facturas() {
   const toast = useToast()
-  const [estadoFiltro, setEstadoFiltro] = useState("")
+  // El filtro vive en la URL para que el tablero pueda enlazar a una vista filtrada.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const estadoFiltro = searchParams.get("estado") ?? ""
+  const setEstadoFiltro = useCallback(
+    (value: string) => setSearchParams(value ? { estado: value } : {}, { replace: true }),
+    [setSearchParams],
+  )
   const { items: facturas, loading, error, setError, refresh } = useCollection<Factura>(
     "/api/facturas",
     "Error cargando facturas",
@@ -218,21 +227,13 @@ export function Facturas() {
   return (
     <>
       <PageStack>
-        <PageHeader
-          title="Facturas"
-          count={!loading && facturas.length > 0 ? facturas.length : undefined}
-          action={
-            <button onClick={openCreate} className={buttonClassName("primary")}>
-              <Plus className="h-3.5 w-3.5" /> Nueva factura
-            </button>
-          }
-        />
+        <PageHeader title="Facturas" />
 
         {error && facturas.length > 0 && <InlineError message={error} />}
 
         <DataCard
           loading={loading}
-          loadingText="Cargando facturas..."
+          loadingText="Cargando facturas"
           error={error}
           errorTitle="No se pudieron cargar las facturas"
           onRetry={reloadAll}
@@ -244,56 +245,68 @@ export function Facturas() {
                     description: "Probá con otro estado o limpiá el filtro.",
                     action: (
                       <button onClick={() => setEstadoFiltro("")} className={buttonClassName("secondary")}>
-                        Limpiar filtros
+                        Limpiar filtro
                       </button>
                     ),
                   }
                 : {
                     title: "Aún no hay facturas",
                     description: "Facturá una orden entregada para liquidar mano de obra y repuestos.",
-                    action: (
-                      <button onClick={openCreate} className={buttonClassName("primary")}>
-                        <Plus className="h-3.5 w-3.5" /> Nueva factura
-                      </button>
-                    ),
                   }
               : null
           }
           toolbar={
-            <div className="w-full sm:max-w-xs">
-              <FilterSelect
-                value={estadoFiltro}
-                onChange={(v) => setEstadoFiltro(v)}
-                label="Filtrar facturas por estado"
-                busy={loading}
-                options={[{ value: "", label: "Todos los estados" }, ...FACTURA_ESTADOS.map((s) => ({ value: s.value, label: s.label }))]}
-              />
-            </div>
+            <FilterBar>
+              <div className="w-full sm:max-w-[13rem]">
+                <FilterSelect
+                  value={estadoFiltro}
+                  onChange={setEstadoFiltro}
+                  label="Filtrar facturas por estado"
+                  busy={loading}
+                  options={[{ value: "", label: "Todos los estados" }, ...FACTURA_ESTADOS.map((s) => ({ value: s.value, label: s.label }))]}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+                {!loading && facturas.length > 0 && (
+                  <span className="whitespace-nowrap text-[12px] text-muted">
+                    {facturas.length} {facturas.length === 1 ? "factura" : "facturas"}
+                  </span>
+                )}
+                <button onClick={openCreate} className={buttonClassName("primary")}>
+                  <Plus className="h-4 w-4" aria-hidden /> Nueva factura
+                </button>
+              </div>
+            </FilterBar>
           }
         >
           <>
-            <Table>
+            <Table caption="Facturas emitidas">
               <Thead>
                 <tr>
                   <Th>Factura</Th>
                   <Th>Estado</Th>
-                  <Th className="text-right">Total</Th>
+                  <Th align="right">Total</Th>
                   <Th>Emisión</Th>
-                  <Th className="w-24 text-right"></Th>
+                  <Th className="w-24" align="right">
+                    <span className="sr-only">Acciones</span>
+                  </Th>
                 </tr>
               </Thead>
               <Tbody>
                 {facturas.map((f) => (
                   <Tr key={f.id}>
                     <Td>
-                      <button onClick={() => openDetail(f)} className="font-medium text-zinc-100 hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 rounded">
+                      <button
+                        onClick={() => openDetail(f)}
+                        className="font-medium text-fg underline-offset-4 hover:text-primary hover:underline"
+                      >
                         #{f.id}
                       </button>
-                      <div className="text-xs text-zinc-500">Orden #{f.orden_id}</div>
+                      <div className="text-[12px] text-subtle">Orden #{f.orden_id}</div>
                     </Td>
                     <Td><EstadoBadge estado={f.estado} /></Td>
-                    <Td className="text-right font-semibold text-zinc-100">{formatMoney(f.total)}</Td>
-                    <Td className="text-zinc-400">{formatFecha(f.fecha_emision)}</Td>
+                    <Td align="right" className="font-semibold text-fg">{formatMoney(f.total)}</Td>
+                    <Td className="text-muted">{formatFecha(f.fecha_emision)}</Td>
                     <Td>
                       <RowActions
                         actions={[
@@ -310,12 +323,12 @@ export function Facturas() {
             </Table>
             <MobileList>
               {facturas.map((f) => (
-                <li key={f.id} className="min-w-0 px-3 py-3">
+                <li key={f.id} className="min-w-0 px-4 py-3">
                   <div className="flex min-w-0 items-center justify-between gap-3">
-                    <button onClick={() => openDetail(f)} className="text-sm font-medium text-zinc-100 hover:text-amber-400">#{f.id}</button>
-                    <span className="text-sm font-semibold text-zinc-100">{formatMoney(f.total)}</span>
+                    <button onClick={() => openDetail(f)} className="text-[13px] font-medium text-fg">#{f.id}</button>
+                    <span className="text-[13px] font-semibold tabular-nums text-fg">{formatMoney(f.total)}</span>
                   </div>
-                  <div className="mt-0.5 text-xs text-zinc-500">Orden #{f.orden_id} · {formatFecha(f.fecha_emision)}</div>
+                  <div className="mt-0.5 text-[12px] text-subtle">Orden #{f.orden_id} · {formatFecha(f.fecha_emision)}</div>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <EstadoBadge estado={f.estado} />
                     <RowActions
@@ -337,7 +350,11 @@ export function Facturas() {
 
       <Dialog open={createOpen} title="Nueva factura" dismissible={!creating} onClose={() => setCreateOpen(false)}>
         <Form onSubmit={onCreate}>
-          {createError && <Alert>{createError}</Alert>}
+          {createError && (
+            <Alert tone="danger" live>
+              {createError}
+            </Alert>
+          )}
           <Field label="Orden de trabajo *" id="fac-orden">
             <select
               id="fac-orden"
@@ -373,124 +390,149 @@ export function Facturas() {
         </Form>
       </Dialog>
 
-      <Dialog
+      <Drawer
         open={!!detail}
         title={detail ? `Factura #${detail.id}` : "Factura"}
         onClose={() => setDetail(null)}
-        maxWidth="max-w-2xl"
-      >
-        {detail && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <EstadoBadge estado={detail.estado} />
-              <span className="text-xs text-zinc-500">Emisión: {formatFecha(detail.fecha_emision)}</span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 rounded-lg border border-zinc-800 p-3 text-center sm:grid-cols-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-400">Mano de obra</p>
-                <p className="text-sm font-medium text-zinc-100">{formatMoney(detail.subtotal_mano_obra)}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-400">Repuestos</p>
-                <p className="text-sm font-medium text-zinc-100">{formatMoney(detail.subtotal_repuestos)}</p>
-              </div>
-              <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-400">Total</p>
-                <p className="text-sm font-semibold text-amber-400">{formatMoney(detail.total)}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium tracking-wide text-zinc-400">Pagos</p>
-              {detail.estado !== "cancelada" && (
-                <span className="text-xs text-zinc-400">
-                  Pagado: <span className="font-semibold text-emerald-400">{formatMoney(totalPagado)}</span>
-                  {" · "}Saldo: <span className="font-semibold text-zinc-200">{formatMoney(saldo)}</span>
-                </span>
-              )}
-            </div>
-
-            {pagoError && <Alert>{pagoError}</Alert>}
-
-            {pagosLoading ? (
-              <div className="flex items-center justify-center gap-2 py-4 text-xs text-zinc-400">
-                <Loader2 className="h-4 w-4 animate-spin" /> Cargando pagos...
-              </div>
-            ) : pagos.length === 0 ? (
-              <p className="py-3 text-center text-xs text-zinc-400">Sin pagos registrados.</p>
-            ) : (
-              <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
-                {pagos.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <div>
-                      <div className="text-sm font-medium text-zinc-100">{formatMoney(p.monto)}</div>
-                      <div className="text-xs text-zinc-500">{p.metodo} · {formatFecha(p.fecha)}</div>
-                    </div>
-                    <RowActions
-                      onDelete={() => onRemovePago(p)}
-                      deleteLabel={`Eliminar pago de ${formatMoney(p.monto)}`}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {detail.estado !== "cancelada" && detail.estado !== "pagada" && (
-              <Form onSubmit={onAddPago}>
-                <FormGrid cols={3}>
-                  <Field label="Monto" id="pago-monto">
-                    <input
-                      id="pago-monto"
-                      value={pagoMonto}
-                      inputMode="numeric"
-                      onChange={(e) => { setPagoMonto(e.target.value); if (pagoError) setPagoError(null) }}
-                      className={inputClassName(!!pagoError)}
-                      placeholder={`Hasta ${formatMoney(saldo)}`}
-                    />
-                  </Field>
-                  <Field label="Método" id="pago-metodo">
-                    <select
-                      id="pago-metodo"
-                      value={pagoMetodo}
-                      onChange={(e) => setPagoMetodo(e.target.value)}
-                      className={selectClassName()}
-                    >
-                      {PAGO_METODOS.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </Field>
-                  <div className="flex items-end pb-0.5">
-                    <button
-                      type="submit"
-                      disabled={pagoSaving}
-                      className={buttonClassName("primary")}
-                    >
-                      {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
-                      Pagar
-                    </button>
-                  </div>
-                </FormGrid>
-              </Form>
-            )}
-
-            <div className="flex justify-end border-t border-zinc-800 pt-2">
+        footer={
+          detail ? (
+            <div className="flex justify-end">
               <button
                 onClick={() => openEdit(detail)}
                 disabled={detail.estado === "cancelada"}
                 className={buttonClassName("secondary")}
               >
-                Editar notas / vencimiento
+                Editar notas y vencimiento
               </button>
+            </div>
+          ) : undefined
+        }
+      >
+        {detail && (
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <EstadoBadge estado={detail.estado} />
+              <span className="text-[12px] text-subtle">Emitida el {formatFecha(detail.fecha_emision)}</span>
+            </div>
+
+            <dl className="divide-y divide-border rounded-md border border-border">
+              <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                <dt className="text-muted">Mano de obra</dt>
+                <dd className="tabular-nums text-fg">{formatMoney(detail.subtotal_mano_obra)}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                <dt className="text-muted">Repuestos</dt>
+                <dd className="tabular-nums text-fg">{formatMoney(detail.subtotal_repuestos)}</dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3 bg-raised/60 px-3 py-2.5">
+                <dt className="text-[13px] font-semibold text-fg">Total</dt>
+                <dd className="text-[15px] font-semibold tabular-nums text-fg">{formatMoney(detail.total)}</dd>
+              </div>
+              {detail.estado !== "cancelada" && (
+                <>
+                  <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                    <dt className="text-muted">Pagado</dt>
+                    <dd className="tabular-nums font-semibold text-ok">{formatMoney(totalPagado)}</dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-[13px]">
+                    <dt className="text-muted">Saldo</dt>
+                    <dd className={`tabular-nums font-semibold ${saldo > 0 ? "text-accent" : "text-fg"}`}>
+                      {formatMoney(saldo)}
+                    </dd>
+                  </div>
+                </>
+              )}
+            </dl>
+
+            {detail.notas && (
+              <div>
+                <p className="mb-1 text-[12px] font-medium text-muted">Notas</p>
+                <p className="motek-prose text-[13px] leading-[1.6] text-fg">{detail.notas}</p>
+              </div>
+            )}
+
+            <div>
+              <p className="mb-2 text-[13px] font-semibold text-fg">Pagos</p>
+
+              {pagoError && (
+                <div className="mb-2">
+                  <Alert tone="danger" live>
+                    {pagoError}
+                  </Alert>
+                </div>
+              )}
+
+              {pagosLoading ? (
+                <div role="status" className="flex items-center justify-center gap-2 py-6 text-[13px] text-muted">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando pagos
+                </div>
+              ) : pagos.length === 0 ? (
+                <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-[13px] text-muted">
+                  Sin pagos registrados.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border overflow-hidden rounded-md border border-border">
+                  {pagos.map((p) => (
+                    <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-medium tabular-nums text-fg">{formatMoney(p.monto)}</div>
+                        <div className="text-[12px] text-subtle">{p.metodo} · {formatFecha(p.fecha)}</div>
+                      </div>
+                      <RowActions
+                        onDelete={() => onRemovePago(p)}
+                        deleteLabel={`Eliminar pago de ${formatMoney(p.monto)}`}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {detail.estado !== "cancelada" && detail.estado !== "pagada" && (
+                <Form onSubmit={onAddPago}>
+                  <FormGrid cols={3}>
+                    <Field label="Monto" id="pago-monto">
+                      <input
+                        id="pago-monto"
+                        value={pagoMonto}
+                        inputMode="numeric"
+                        onChange={(e) => { setPagoMonto(e.target.value); if (pagoError) setPagoError(null) }}
+                        className={inputClassName(!!pagoError)}
+                        placeholder={`Hasta ${formatMoney(saldo)}`}
+                      />
+                    </Field>
+                    <Field label="Método" id="pago-metodo">
+                      <select
+                        id="pago-metodo"
+                        value={pagoMetodo}
+                        onChange={(e) => setPagoMetodo(e.target.value)}
+                        className={selectClassName()}
+                      >
+                        {PAGO_METODOS.map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </Field>
+                    <div className="flex items-end pb-0.5">
+                      <button type="submit" disabled={pagoSaving} className={buttonClassName("primary")}>
+                        {pagoSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />}
+                        Registrar pago
+                      </button>
+                    </div>
+                  </FormGrid>
+                </Form>
+              )}
             </div>
           </div>
         )}
-      </Dialog>
+      </Drawer>
 
       <Dialog open={editOpen} title="Editar factura" dismissible={!editSaving} onClose={() => setEditOpen(false)}>
         <Form onSubmit={onEdit}>
-          {editError && <Alert>{editError}</Alert>}
+          {editError && (
+            <Alert tone="danger" live>
+              {editError}
+            </Alert>
+          )}
           <Field label="Notas" id="fac-notas">
             <textarea
               id="fac-notas"

@@ -149,11 +149,11 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       <button
         onClick={() => setListOpen(true)}
         aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
-        className="relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 sm:h-8 sm:w-8"
+        className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-raised hover:text-fg"
       >
         <Bike className="h-3.5 w-3.5" aria-hidden />
         {motos.length > 0 && (
-          <span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-[10px] font-bold leading-4 text-zinc-900">
+          <span className="absolute -right-1 -top-1 min-w-4 rounded-md border border-border bg-raised px-1 text-center text-[10px] font-semibold leading-4 tabular-nums text-muted ring-2 ring-surface">
             {motos.length}
           </span>
         )}
@@ -162,37 +162,36 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       <Dialog open={listOpen} title={`Motos de ${cliente.nombre}`} onClose={() => setListOpen(false)}>
         {error && (
           <div className="mb-2.5">
-            <Alert>{error}</Alert>
+            <Alert tone="danger" live>
+              {error}
+            </Alert>
           </div>
         )}
         {loading ? (
-          <div className="flex items-center justify-center gap-2 py-8 text-xs text-zinc-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Cargando motos...
+          <div role="status" className="flex items-center justify-center gap-2 py-8 text-[13px] text-muted">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando motos
           </div>
         ) : motos.length === 0 ? (
           <EmptyState
             title="Sin motos registradas"
-            description="Agregá la primera moto de este cliente."
+            description="Agregá la primera moto de este cliente para poder abrir órdenes de trabajo."
             action={
-              <button
-                onClick={openCreate}
-                className={buttonClassName("primary")}
-              >
-                <Plus className="h-3.5 w-3.5" /> Nueva moto
+              <button onClick={openCreate} className={buttonClassName("primary")}>
+                <Plus className="h-4 w-4" aria-hidden /> Nueva moto
               </button>
             }
           />
         ) : (
           <>
-            <ul className="max-h-72 divide-y divide-zinc-800 overflow-y-auto">
+            <ul className="max-h-72 divide-y divide-border overflow-y-auto">
               {motos.map((m) => (
                 <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-zinc-100">
+                    <div className="truncate text-[13px] font-medium text-fg">
                       {m.marca} {m.modelo}
                       {m.anio ? ` (${m.anio})` : ""}
                     </div>
-                    <div className="truncate text-xs text-zinc-500">
+                    <div className="truncate text-[12px] text-subtle">
                       {[m.placa, m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ") || "—"}
                     </div>
                   </div>
@@ -219,7 +218,11 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
 
       <Dialog open={dialogOpen} title={editing ? "Editar moto" : "Nueva moto"} dismissible={!saving} onClose={() => setDialogOpen(false)}>
         <Form onSubmit={onSubmit}>
-          {formError && <Alert>{formError}</Alert>}
+          {formError && (
+            <Alert tone="danger" live>
+              {formError}
+            </Alert>
+          )}
           <FormGrid>
             <Field label="Marca *" id="moto-marca" error={fieldErrors.marca}>
               <input
