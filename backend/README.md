@@ -1,6 +1,6 @@
 # Motek — Backend
 
-API para taller mecánico (Go `net/http` + MySQL + JWT).
+API para taller mecánico (Go `net/http` + MySQL + JWT). Documentación completa en [`docs/`](../docs/): [arquitectura](../docs/desarrollo/arquitectura.md), [base de datos](../docs/desarrollo/base-de-datos.md), [reglas](../docs/desarrollo/reglas.md), [referencia de la API](../docs/api/README.md).
 
 ## Inicio rápido
 

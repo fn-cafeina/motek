@@ -1,6 +1,6 @@
 # Motek — Frontend
 
-SPA Vite + React + TypeScript + Tailwind CSS (v4) + React Router v8. API `VITE_API_URL` (default same-origin: el dev server hace proxy de `/api` a `http://localhost:8080`).
+SPA Vite + React + TypeScript + Tailwind CSS (v4) + React Router v8. API `VITE_API_URL` (default same-origin: el dev server hace proxy de `/api` a `http://localhost:8080`). Documentación completa en [`docs/`](../docs/): [frontend](../docs/desarrollo/frontend.md), [sistema visual](../docs/desarrollo/diseno.md), [manual de usuario](../docs/usuario/README.md).
 
 ## Inicio rápido
 

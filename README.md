@@ -7,6 +7,10 @@ Sistema para taller mecánico especializado en motocicletas.
 - `backend/` — API Go + MySQL + JWT (`http://localhost:8080`) — ver [backend/README.md](backend/README.md)
 - `frontend/` — SPA Vite + React + Tailwind (`http://localhost:5173`) — ver [frontend/README.md](frontend/README.md)
 
+## Documentación
+
+- [`docs/`](docs/README.md) — [manual de usuario](docs/usuario/README.md), [referencia de la API](docs/api/README.md) y [guía de desarrollo](docs/desarrollo/README.md).
+
 ## Inicio rápido
 
 ```bash
