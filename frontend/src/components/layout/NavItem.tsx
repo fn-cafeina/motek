@@ -73,8 +73,8 @@ export function NavItem({
     <Link
       to={to}
       aria-current={active ? "page" : undefined}
-      className={`relative flex h-9 items-center gap-3 rounded-md px-3 text-[13px] transition-colors ${
-        active ? "bg-primary-soft font-semibold text-primary" : "font-medium text-muted hover:bg-raised hover:text-fg"
+      className={`relative flex h-9 items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors ${
+        active ? "bg-primary-soft text-primary" : "text-muted hover:bg-raised hover:text-fg"
       }`}
     >
       {active && (
