@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Bike, Loader2, Plus } from "lucide-react"
+import { Bike, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Cliente, Moto } from "../api/types"
 import { ConfirmDialog } from "./ConfirmDialog"
@@ -10,6 +10,7 @@ import { inputClassName } from "./inputStyles"
 import { Alert } from "./ui/Alert"
 import { EmptyState } from "./ui/EmptyState"
 import { RowActions } from "./ui/RowActions"
+import { Spinner } from "./ui/Spinner"
 import { useToast } from "./toastContext"
 import { buttonClassName } from "./buttonStyles"
 import { useResumen } from "../contexts/resumenContext"
@@ -194,7 +195,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
         )}
         {loading ? (
           <div role="status" className="flex items-center justify-center gap-2 py-8 text-[13px] text-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden /> Cargando motos
+            <Spinner /> Cargando motos
           </div>
         ) : motos.length === 0 ? (
           <EmptyState
@@ -336,7 +337,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
               aria-busy={saving}
               className={buttonClassName("primary")}
             >
-              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {saving && <Spinner />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>

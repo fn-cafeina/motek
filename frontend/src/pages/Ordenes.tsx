@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router"
-import { Loader2, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
+import { PackagePlus, Pencil, Plus, Trash2 } from "lucide-react"
 import { api } from "../api/client"
 import type { Cliente, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto } from "../api/types"
 import { ORDEN_ESTADOS } from "../api/types"
@@ -18,6 +18,7 @@ import { estadoSelectClassName, inputClassName, selectClassName } from "../compo
 import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { RowActions } from "../components/ui/RowActions"
+import { Spinner } from "../components/ui/Spinner"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
@@ -585,7 +586,7 @@ export function Ordenes() {
               aria-busy={saving}
               className={buttonClassName("primary")}
             >
-              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {saving && <Spinner />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -682,7 +683,7 @@ export function Ordenes() {
 
               {repLoading ? (
                 <div role="status" className="flex items-center justify-center gap-2 py-6 text-[13px] text-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando repuestos
+                  <Spinner /> Cargando repuestos
                 </div>
               ) : repuestos.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-[13px] text-muted">
@@ -749,7 +750,7 @@ export function Ordenes() {
                 </Field>
                 <div className="flex items-end pb-0.5">
                   <button type="submit" disabled={repSaving || !addRepId} className={buttonClassName("primary")}>
-                    {repSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                    {repSaving && <Spinner />}
                     Agregar
                   </button>
                 </div>

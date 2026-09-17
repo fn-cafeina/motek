@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { AlertTriangle, Loader2, PackagePlus, Plus } from "lucide-react"
+import { AlertTriangle, PackagePlus, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Repuesto } from "../api/types"
 import { ConfirmDialog } from "../components/ConfirmDialog"
@@ -13,6 +13,7 @@ import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
 import { RowActions } from "../components/ui/RowActions"
+import { Spinner } from "../components/ui/Spinner"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
@@ -451,7 +452,7 @@ export function Repuestos() {
               Cancelar
             </button>
             <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
-              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {saving && <Spinner />}
               {editing ? "Guardar" : "Crear"}
             </button>
           </FormActions>
@@ -491,7 +492,7 @@ export function Repuestos() {
               Cancelar
             </button>
             <button type="submit" disabled={stockSaving} aria-busy={stockSaving} className={buttonClassName("primary")}>
-              {stockSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {stockSaving && <Spinner />}
               Ajustar
             </button>
           </FormActions>

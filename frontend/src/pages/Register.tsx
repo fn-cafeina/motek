@@ -1,11 +1,12 @@
 import { useRef, useState } from "react"
 import { Link, useNavigate } from "react-router"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { ApiError } from "../api/client"
 import { AuthCard } from "../components/AuthCard"
 import { Field } from "../components/Field"
 import { Alert } from "../components/ui/Alert"
 import { Form } from "../components/ui/Form"
+import { Spinner } from "../components/ui/Spinner"
 import { buttonClassName } from "../components/buttonStyles"
 import { inputClassName } from "../components/inputStyles"
 import { useAuth } from "../contexts/authContext"
@@ -141,7 +142,7 @@ export function Register() {
         </Field>
 
         <button type="submit" disabled={loading} aria-busy={loading} className={`w-full ${buttonClassName("primary")}`}>
-          {loading && <Loader2 className="size-4 animate-spin" aria-hidden />}
+          {loading && <Spinner />}
           {loading ? "Creando cuenta..." : "Registrarse"}
         </button>
 

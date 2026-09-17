@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Loader2, PackagePlus, RotateCw } from "lucide-react"
+import { PackagePlus, RotateCw } from "lucide-react"
 import { api } from "../api/client"
 import type { AlertaStock } from "../api/types"
 import { Dialog } from "../components/Dialog"
@@ -12,6 +12,7 @@ import { PageStack } from "../components/layout/PageStack"
 import { FilterBar } from "../components/ui/FilterBar"
 import { SearchInput } from "../components/ui/SearchInput"
 import { RowActions } from "../components/ui/RowActions"
+import { Spinner } from "../components/ui/Spinner"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
@@ -194,7 +195,7 @@ export function Alertas() {
               Cancelar
             </button>
             <button type="submit" disabled={saving} aria-busy={saving} className={buttonClassName("primary")}>
-              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {saving && <Spinner />}
               Surtir
             </button>
           </FormActions>

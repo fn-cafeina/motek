@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { useSearchParams } from "react-router"
-import { Banknote, Ban, Loader2, Plus } from "lucide-react"
+import { Banknote, Ban, Plus } from "lucide-react"
 import { api } from "../api/client"
 import type { Factura, OrdenTrabajo, Pago } from "../api/types"
 import { FACTURA_ESTADOS, PAGO_METODOS } from "../api/types"
@@ -17,6 +17,7 @@ import { inputClassName, selectClassName } from "../components/inputStyles"
 import { DataCard, InlineError } from "../components/PageShell"
 import { PageStack } from "../components/layout/PageStack"
 import { RowActions } from "../components/ui/RowActions"
+import { Spinner } from "../components/ui/Spinner"
 import { MobileList, Table, Tbody, Th, Thead, Td, Tr } from "../components/ui/Table"
 import { useToast } from "../components/toastContext"
 import { buttonClassName } from "../components/buttonStyles"
@@ -389,7 +390,7 @@ export function Facturas() {
               aria-busy={creating}
               className={buttonClassName("primary")}
             >
-              {creating && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {creating && <Spinner />}
               Crear
             </button>
           </FormActions>
@@ -470,7 +471,7 @@ export function Facturas() {
 
               {pagosLoading ? (
                 <div role="status" className="flex items-center justify-center gap-2 py-6 text-[13px] text-muted">
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Cargando pagos
+                  <Spinner /> Cargando pagos
                 </div>
               ) : pagos.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-[13px] text-muted">
@@ -520,7 +521,7 @@ export function Facturas() {
                     </Field>
                     <div className="flex items-end pb-0.5">
                       <button type="submit" disabled={pagoSaving} className={buttonClassName("primary")}>
-                        {pagoSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+                        {pagoSaving && <Spinner />}
                         Registrar pago
                       </button>
                     </div>
@@ -566,7 +567,7 @@ export function Facturas() {
               disabled={editSaving}
               className={buttonClassName("primary")}
             >
-              {editSaving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {editSaving && <Spinner />}
               Guardar
             </button>
           </FormActions>
