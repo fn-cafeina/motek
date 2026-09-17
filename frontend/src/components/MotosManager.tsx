@@ -203,25 +203,30 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
           />
         ) : (
           <ul className="divide-y divide-border">
-            {motos.map((m) => (
-              <li key={m.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                <div className="min-w-0">
-                  <div className="truncate text-[13px] font-medium text-fg">
-                    {m.marca} {m.modelo}
-                    {m.anio ? ` (${m.anio})` : ""}
+            {motos.map((m) => {
+              const detalle = [m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ")
+              return (
+                <li key={m.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] font-medium text-fg">
+                      {m.marca} {m.modelo}
+                      {m.anio ? ` (${m.anio})` : ""}
+                    </div>
+                    <div className="truncate text-[12px] text-subtle">
+                      {m.placa && <span className="motek-code">{m.placa}</span>}
+                      {m.placa && detalle ? " · " : ""}
+                      {detalle || (m.placa ? "" : "—")}
+                    </div>
                   </div>
-                  <div className="truncate text-[12px] text-subtle">
-                    {[m.placa, m.color, m.kilometraje ? `${m.kilometraje} km` : ""].filter(Boolean).join(" · ") || "—"}
-                  </div>
-                </div>
-                <RowActions
-                  onEdit={() => openEdit(m)}
-                  editLabel={`Editar ${m.marca} ${m.modelo}`}
-                  onDelete={() => pedirConfirmacion(m)}
-                  deleteLabel={`Eliminar ${m.marca} ${m.modelo}`}
-                />
-              </li>
-            ))}
+                  <RowActions
+                    onEdit={() => openEdit(m)}
+                    editLabel={`Editar ${m.marca} ${m.modelo}`}
+                    onDelete={() => pedirConfirmacion(m)}
+                    deleteLabel={`Eliminar ${m.marca} ${m.modelo}`}
+                  />
+                </li>
+              )
+            })}
           </ul>
         )}
       </Dialog>

@@ -164,7 +164,7 @@ export function Inicio() {
                 <li key={alerta.id} className="flex items-center gap-3 px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-medium text-fg">{alerta.nombre}</p>
-                    <p className="truncate text-[12px] text-subtle">{alerta.codigo}</p>
+                    <p className="motek-code truncate text-[12px] text-subtle">{alerta.codigo}</p>
                   </div>
                   <span className="shrink-0 text-[13px] font-semibold tabular-nums text-accent">
                     {alerta.stock}

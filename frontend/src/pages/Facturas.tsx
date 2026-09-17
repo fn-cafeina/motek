@@ -306,7 +306,7 @@ export function Facturas() {
                       >
                         #{f.id}
                       </button>
-                      <div className="text-[12px] text-subtle">Orden #{f.orden_id}</div>
+                      <div className="motek-code text-[12px] text-subtle">Orden #{f.orden_id}</div>
                     </Td>
                     <Td><EstadoBadge estado={f.estado} /></Td>
                     <Td align="right" className="font-semibold text-fg">{formatMoney(f.total)}</Td>
@@ -332,7 +332,9 @@ export function Facturas() {
                     <button onClick={() => openDetail(f)} className="text-[13px] font-medium text-fg">#{f.id}</button>
                     <span className="text-[13px] font-semibold tabular-nums text-fg">{formatMoney(f.total)}</span>
                   </div>
-                  <div className="mt-0.5 text-[12px] text-subtle">Orden #{f.orden_id} · {formatFecha(f.fecha_emision)}</div>
+                  <div className="mt-0.5 text-[12px] text-subtle">
+                    <span className="motek-code">Orden #{f.orden_id}</span> · {formatFecha(f.fecha_emision)}
+                  </div>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <EstadoBadge estado={f.estado} />
                     <RowActions

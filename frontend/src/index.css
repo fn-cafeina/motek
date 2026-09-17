@@ -168,6 +168,14 @@
   overflow-wrap: break-word;
 }
 
+/* Identificadores del taller: códigos de repuesto, patentes, numeración de
+   documentos. Van en ancho fijo porque se leen en columna y de un vistazo, y
+   porque un dígito que cambia de ancho hace bailar la fila entera. */
+.motek-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

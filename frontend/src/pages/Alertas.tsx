@@ -127,7 +127,7 @@ export function Alertas() {
                   <Tr key={a.id}>
                     <Td>
                       <div className="font-medium text-fg">{a.nombre || a.codigo}</div>
-                      <div className="text-[12px] text-subtle">{a.codigo}</div>
+                      <div className="motek-code text-[12px] text-subtle">{a.codigo}</div>
                     </Td>
                     <Td align="right" className="font-semibold text-accent">{a.stock}</Td>
                     <Td align="right" className="text-muted">{a.stock_minimo}</Td>
@@ -146,7 +146,7 @@ export function Alertas() {
                   <div className="min-w-0">
                     <div className="truncate text-[13px] font-medium text-fg">{a.nombre || a.codigo}</div>
                     <div className="truncate text-[12px] text-muted">
-                      {a.codigo} ·{" "}
+                      <span className="motek-code">{a.codigo}</span> ·{" "}
                       <span className="font-semibold tabular-nums text-accent">{a.stock}</span> de {a.stock_minimo} mín.
                     </div>
                   </div>

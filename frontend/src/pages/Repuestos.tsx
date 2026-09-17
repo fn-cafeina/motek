@@ -268,7 +268,10 @@ export function Repuestos() {
                   <Tr key={r.id}>
                     <Td>
                       <div className="font-medium text-fg">{r.nombre || r.codigo}</div>
-                      <div className="truncate text-[12px] text-subtle">{r.codigo}{r.ubicacion ? ` · ${r.ubicacion}` : ""}</div>
+                      <div className="truncate text-[12px] text-subtle">
+                        <span className="motek-code">{r.codigo}</span>
+                        {r.ubicacion ? ` · ${r.ubicacion}` : ""}
+                      </div>
                     </Td>
                     <Td className="text-muted">{r.categoria || "—"}</Td>
                     <Td align="right" className="text-muted">{formatMoney(r.precio_venta)}</Td>
@@ -298,7 +301,8 @@ export function Repuestos() {
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] font-medium text-fg">{r.nombre || r.codigo}</div>
                       <div className="truncate text-[12px] text-subtle">
-                        {r.codigo}{r.categoria ? ` · ${r.categoria}` : ""}
+                        <span className="motek-code">{r.codigo}</span>
+                        {r.categoria ? ` · ${r.categoria}` : ""}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
