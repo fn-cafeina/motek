@@ -37,7 +37,17 @@ const emptyForm: MotoForm = {
   kilometraje: "",
 }
 
-export function MotosManager({ cliente }: { cliente: Cliente }) {
+export function MotosManager({
+  cliente,
+  motoCount,
+  onMotosChange,
+}: {
+  cliente: Cliente
+  /** Conteo que ya trae la lista de clientes, para el badge sin abrir el modal. */
+  motoCount: number
+  /** Avisa al padre que el conteo cambió, después de crear o eliminar. */
+  onMotosChange: () => void
+}) {
   const toast = useToast()
   const { ordenes, facturas } = useResumen()
   const [listOpen, setListOpen] = useState(false)
@@ -126,6 +136,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       setEditing(null)
       toast.success(isEdit ? "Moto actualizada" : "Moto creada")
       await loadMotos()
+      onMotosChange()
     } catch (e) {
       setFormError(getErrorMessage(e, "Error guardando moto"))
     } finally {
@@ -152,6 +163,7 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
       setConfirm(null)
       toast.success("Moto eliminada")
       await loadMotos()
+      onMotosChange()
     } catch (e) {
       toast.error(getErrorMessage(e, "Error eliminando moto"))
     } finally {
@@ -163,13 +175,13 @@ export function MotosManager({ cliente }: { cliente: Cliente }) {
     <>
       <button
         onClick={() => setListOpen(true)}
-        aria-label={`Motos de ${cliente.nombre}${motos.length ? ` (${motos.length})` : ""}`}
+        aria-label={`Motos de ${cliente.nombre}${motoCount ? ` (${motoCount})` : ""}`}
         className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-raised hover:text-fg"
       >
         <Bike className="size-3.5" aria-hidden />
-        {motos.length > 0 && (
+        {motoCount > 0 && (
           <span className="absolute -right-1 -top-1 min-w-4 rounded-md border border-border bg-raised px-1 text-center text-[11px] font-semibold leading-4 tabular-nums text-muted ring-2 ring-surface">
-            {motos.length}
+            {motoCount}
           </span>
         )}
       </button>

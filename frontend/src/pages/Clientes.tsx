@@ -45,6 +45,18 @@ export function Clientes() {
   const [alcance, setAlcance] = useState<AlcanceBorrado | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  // El contador de motos de cada fila tiene que estar antes de abrir el modal, y el
+  // endpoint por cliente obligaría a una request por fila: se traen todas de una vez
+  // y se agrupan acá. El modal carga las suyas aparte y sigue funcionando igual.
+  const { items: motos, refresh: refreshMotos } = useCollection<Moto>("/api/motos", "Error cargando motos")
+  const motosPorCliente = useMemo(() => {
+    const conteo = new Map<number, number>()
+    for (const moto of motos) {
+      conteo.set(moto.cliente_id, (conteo.get(moto.cliente_id) ?? 0) + 1)
+    }
+    return conteo
+  }, [motos])
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase()
     if (!term) return clientes
@@ -188,7 +200,13 @@ export function Clientes() {
                   <Td className="text-muted">{c.telefono || "—"}</Td>
                   <Td>
                     <RowActions
-                      extra={<MotosManager cliente={c} />}
+                      extra={
+                        <MotosManager
+                          cliente={c}
+                          motoCount={motosPorCliente.get(c.id) ?? 0}
+                          onMotosChange={refreshMotos}
+                        />
+                      }
                       onEdit={() => openEdit(c)}
                       editLabel={`Editar ${c.nombre}`}
                       onDelete={() => pedirConfirmacion(c)}
@@ -208,7 +226,13 @@ export function Clientes() {
                 </div>
                 <RowActions
                   variant="card"
-                  extra={<MotosManager cliente={c} />}
+                  extra={
+                    <MotosManager
+                      cliente={c}
+                      motoCount={motosPorCliente.get(c.id) ?? 0}
+                      onMotosChange={refreshMotos}
+                    />
+                  }
                   onEdit={() => openEdit(c)}
                   editLabel={`Editar ${c.nombre}`}
                   onDelete={() => pedirConfirmacion(c)}
