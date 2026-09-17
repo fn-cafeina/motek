@@ -40,10 +40,14 @@ export function Sidebar() {
         collapsed ? "w-[var(--shell-sidebar-rail)]" : "w-[var(--shell-sidebar-w)]"
       }`}
     >
-      <div className={`flex h-14 shrink-0 items-center border-b border-border ${collapsed ? "justify-center px-2" : "px-4"}`}>
-        <Link to="/" aria-label="Ir al inicio" className="min-w-0">
-          <Brand compact={collapsed} />
-        </Link>
+      {/* Misma estructura que la Topbar: el borde va fuera de la fila, así las dos
+          líneas del chrome caen en el mismo píxel. */}
+      <div className="shrink-0 border-b border-border">
+        <div className={`flex h-[var(--shell-header-h)] items-center ${collapsed ? "justify-center px-2" : "px-4"}`}>
+          <Link to="/" aria-label="Ir al inicio" className="min-w-0">
+            <Brand compact={collapsed} />
+          </Link>
+        </div>
       </div>
 
       <nav aria-label="Principal" className={`flex-1 overflow-y-auto py-4 ${collapsed ? "px-2" : "px-3"}`}>
