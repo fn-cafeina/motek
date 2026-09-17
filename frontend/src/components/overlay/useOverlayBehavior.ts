@@ -37,6 +37,13 @@ export function useOverlayBehavior({
     tokenRef.current = token
     openStack.push(token)
 
+    // El overlay se monta en `body`, fuera de `#root`, así que marcar `#root` inerte
+    // no lo alcanza. `aria-modal` solo no basta: sin esto, el cursor virtual de un
+    // lector de pantalla sigue recorriendo la app por detrás del diálogo.
+    const root = document.getElementById("root")
+    const locksBackground = openStack.length === 1
+    if (locksBackground && root) root.inert = true
+
     // Un formulario arranca en su primer campo; un panel de lectura enfoca el panel,
     // para no saltar a un campo que puede estar fuera de vista al final del contenido.
     const panel = panelRef.current
@@ -50,6 +57,8 @@ export function useOverlayBehavior({
       const index = openStack.indexOf(token)
       if (index >= 0) openStack.splice(index, 1)
       tokenRef.current = null
+      // Se libera antes de devolver el foco: nada dentro de un árbol inerte lo recibe.
+      if (locksBackground && root) root.inert = false
       restoreRef.current?.focus()
     }
   }, [open, panelRef, initialFocus])
