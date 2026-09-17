@@ -2,8 +2,11 @@ import { Link } from "react-router"
 import { buttonClassName } from "./buttonStyles"
 
 export function NotFound({ embedded }: { embedded?: boolean }) {
+  // Fuera del shell esta página es el contenido principal; embebida ya vive dentro
+  // del <main> del Layout, y anidar dos landmarks es peor que no tener ninguno.
+  const Wrapper = embedded ? "div" : "main"
   return (
-    <div
+    <Wrapper
       className={`flex flex-col items-center justify-center gap-3 p-8 text-center ${
         embedded ? "" : "min-h-dvh bg-canvas"
       }`}
@@ -13,6 +16,6 @@ export function NotFound({ embedded }: { embedded?: boolean }) {
       <Link to="/" className={buttonClassName("primary")}>
         Volver al inicio
       </Link>
-    </div>
+    </Wrapper>
   )
 }

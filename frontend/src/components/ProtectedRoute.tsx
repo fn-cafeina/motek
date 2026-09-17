@@ -6,9 +6,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div role="status" className="flex min-h-dvh items-center justify-center bg-canvas text-[13px] text-muted">
+      <main role="status" className="flex min-h-dvh items-center justify-center bg-canvas text-[13px] text-muted">
         Cargando la sesión
-      </div>
+      </main>
     )
   }
 

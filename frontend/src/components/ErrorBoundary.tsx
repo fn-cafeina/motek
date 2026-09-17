@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children
 
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-canvas p-8 text-center">
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-canvas p-8 text-center">
         <p className="text-[15px] font-semibold text-fg">Algo salió mal</p>
         <p className="max-w-md text-[13px] leading-[1.6] text-muted">
           Ocurrió un error inesperado en la aplicación. Recargá para volver a intentarlo; si persiste,
@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <button onClick={() => window.location.reload()} className={buttonClassName("primary")}>
           <RotateCw className="h-4 w-4" aria-hidden /> Recargar
         </button>
-      </div>
+      </main>
     )
   }
 }
