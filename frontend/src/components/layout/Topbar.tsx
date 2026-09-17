@@ -24,7 +24,7 @@ export function Topbar({ title }: { title: string }) {
   }
 
   return (
-    <header className="sticky top-0 z-[var(--z-header)] border-b border-border bg-surface/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+    <header className="sticky top-0 z-[var(--z-header)] border-b border-border bg-surface pt-[env(safe-area-inset-top)]">
       <div className="flex h-[var(--shell-header-h)] items-center justify-between gap-3 px-4 lg:px-6">
         <h1
           id="page-title"
