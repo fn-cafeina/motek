@@ -5,7 +5,7 @@ Sistema para taller mecánico especializado en motocicletas.
 ## Estructura
 
 - `backend/` — API Go + MySQL + JWT (`http://localhost:8080`) — ver [backend/README.md](backend/README.md)
-- `frontend/` — SPA Vite + React + Tailwind (`http://localhost:5173`) — ver [frontend/README.md](frontend/README.md)
+- `app/` — App React Native + Expo + UniWind — ver [app/AGENTS.md](app/AGENTS.md)
 - `docs/` — documentación — ver [docs/README.md](docs/README.md)
 
 ## Documentación
@@ -20,17 +20,16 @@ cp backend/.env.example backend/.env   # completar DB_* y JWT_SECRET
 # CREATE DATABASE motek;
 cd backend && go run ./cmd/motek
 
-# Frontend (otra terminal)
-cp frontend/.env.example frontend/.env  # ajustar VITE_API_URL si hace falta
-cd frontend && npm install && npm run dev
+# App (otra terminal)
+cd app && npm install && npx expo start
 ```
 
 ## Estructura del proyecto
 
 ```
 .
+├── app/        # App React Native (Expo + UniWind)
 ├── backend/   # ver backend/README.md
-├── frontend/  # ver frontend/README.md
 ├── docs/      # ver docs/README.md
 ├── .gitignore # IDE/OS
 └── README.md
