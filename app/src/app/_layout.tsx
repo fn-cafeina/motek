@@ -1,6 +1,8 @@
 import "../global.css";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
+import { Uniwind } from "uniwind";
 import { AuthProvider, useAuth } from "../lib/auth";
 import { Spinner } from "../components/ui/Spinner";
 import { ToastContainer } from "../components/ui/Toast";
@@ -13,6 +15,10 @@ export const unstable_settings = {
 
 function RootLayoutNav() {
   const { loading } = useAuth();
+
+  useEffect(() => {
+    Uniwind.setTheme("system");
+  }, []);
 
   if (loading) {
     return <Spinner text="Cargando..." />;

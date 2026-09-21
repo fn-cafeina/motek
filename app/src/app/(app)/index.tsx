@@ -27,35 +27,35 @@ export default function DashboardScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50 dark:bg-gray-950"
+      className="flex-1 bg-canvas"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { await Promise.all([ordenes.refresh(), facturas.refresh(), alertas.refresh()]); }} />}
     >
       <View className="p-4 gap-4">
-        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">Inicio</Text>
+        <Text className="text-2xl font-bold text-fg">Inicio</Text>
 
         <View className="flex-row flex-wrap gap-3">
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-gray-500 dark:text-gray-400">Órdenes activas</Text>
-            <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{ordenesActivas.length}</Text>
+            <Text className="text-sm text-muted">Órdenes activas</Text>
+            <Text className="text-2xl font-bold text-fg mt-1">{ordenesActivas.length}</Text>
           </Card>
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-gray-500 dark:text-gray-400">Stock bajo</Text>
-            <Text className="text-2xl font-bold text-red-600 mt-1">{alertas.items.length}</Text>
+            <Text className="text-sm text-muted">Stock bajo</Text>
+            <Text className="text-2xl font-bold text-danger mt-1">{alertas.items.length}</Text>
           </Card>
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-gray-500 dark:text-gray-400">Pendiente cobro</Text>
-            <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{formatMoney(totalPendiente)}</Text>
+            <Text className="text-sm text-muted">Pendiente cobro</Text>
+            <Text className="text-2xl font-bold text-fg mt-1">{formatMoney(totalPendiente)}</Text>
           </Card>
         </View>
 
         <Card className="p-4">
-          <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Órdenes recientes</Text>
+          <Text className="text-sm font-semibold text-fg mb-3">Órdenes recientes</Text>
           {ordenesActivas.length === 0 ? (
             <EmptyState icon={ClipboardList} title="Sin órdenes activas" description="No hay órdenes en este momento." />
           ) : (
             ordenesActivas.slice(0, 5).map((o) => (
-              <View key={o.id} className="flex-row items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                <Text className="text-sm text-gray-900 dark:text-gray-100 flex-1" numberOfLines={1}>#{o.id} — {o.descripcion}</Text>
+              <View key={o.id} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
+                <Text className="text-sm text-fg flex-1" numberOfLines={1}>#{o.id} — {o.descripcion}</Text>
                 <EstadoBadge estado={o.estado} />
               </View>
             ))
@@ -64,11 +64,11 @@ export default function DashboardScreen() {
 
         {alertas.items.length > 0 && (
           <Card className="p-4">
-            <Text className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Stock bajo</Text>
+            <Text className="text-sm font-semibold text-fg mb-3">Stock bajo</Text>
             {alertas.items.slice(0, 5).map((a) => (
-              <View key={a.repuesto_id} className="flex-row items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                <Text className="text-sm text-gray-900 dark:text-gray-100 flex-1" numberOfLines={1}>{a.nombre}</Text>
-                <Text className="text-sm text-red-600 font-medium">{a.stock} / {a.stock_minimo}</Text>
+              <View key={a.repuesto_id} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
+                <Text className="text-sm text-fg flex-1" numberOfLines={1}>{a.nombre}</Text>
+                <Text className="text-sm text-danger font-medium">{a.stock} / {a.stock_minimo}</Text>
               </View>
             ))}
           </Card>

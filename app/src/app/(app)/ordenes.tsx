@@ -102,19 +102,19 @@ export default function OrdenesScreen() {
   if (ordenes.loading && ordenes.items.length === 0) return <Spinner text="Cargando órdenes..." />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 bg-canvas">
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">Órdenes</Text>
+          <Text className="text-2xl font-bold text-fg">Órdenes</Text>
           <Button size="sm" onPress={openCreate}>+ Nueva</Button>
         </View>
         <View className="flex-row gap-2">
-          <Pressable onPress={() => setFilter("")} className={`px-3 py-1.5 rounded-full ${!filter ? "bg-blue-100" : "bg-gray-200 dark:bg-gray-800"}`}>
-            <Text className={`text-xs font-medium ${!filter ? "text-blue-700" : "text-gray-600 dark:text-gray-400"}`}>Todas</Text>
+          <Pressable onPress={() => setFilter("")} className={`px-3 py-1.5 rounded-full ${!filter ? "bg-primary-soft" : "bg-raised"}`}>
+            <Text className={`text-xs font-medium ${!filter ? "text-primary" : "text-muted"}`}>Todas</Text>
           </Pressable>
           {ORDEN_ESTADOS.map((e) => (
-            <Pressable key={e} onPress={() => setFilter(e)} className={`px-3 py-1.5 rounded-full ${filter === e ? "bg-blue-100" : "bg-gray-200 dark:bg-gray-800"}`}>
-              <Text className={`text-xs font-medium ${filter === e ? "text-blue-700" : "text-gray-600 dark:text-gray-400"}`}>{ORDEN_ESTADO_LABELS[e]}</Text>
+            <Pressable key={e} onPress={() => setFilter(e)} className={`px-3 py-1.5 rounded-full ${filter === e ? "bg-primary-soft" : "bg-raised"}`}>
+              <Text className={`text-xs font-medium ${filter === e ? "text-primary" : "text-muted"}`}>{ORDEN_ESTADO_LABELS[e]}</Text>
             </Pressable>
           ))}
         </View>
@@ -129,15 +129,15 @@ export default function OrdenesScreen() {
           <Card className="p-4 mb-3">
             <View className="flex-row items-start justify-between mb-2">
               <View className="flex-1 mr-3">
-                <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">#{o.id} — {o.descripcion}</Text>
-                {clienteMap.get(o.cliente_id) && <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">{clienteMap.get(o.cliente_id)!.nombre}</Text>}
+                <Text className="text-base font-semibold text-fg">#{o.id} — {o.descripcion}</Text>
+                {clienteMap.get(o.cliente_id) && <Text className="text-sm text-muted mt-1">{clienteMap.get(o.cliente_id)!.nombre}</Text>}
               </View>
               <EstadoBadge estado={o.estado} />
             </View>
-            <Text className="text-sm text-gray-500 dark:text-gray-400 mb-2">{formatMoney(o.costo_mano_obra ?? 0)}</Text>
+            <Text className="text-sm text-muted mb-2">{formatMoney(o.costo_mano_obra ?? 0)}</Text>
             <View className="flex-row gap-2">
-              <Pressable onPress={() => openEdit(o)} className="p-2"><Pencil size={18} className="text-gray-500" /></Pressable>
-              <Pressable onPress={() => handleDelete(o)} className="p-2"><Trash2 size={18} className="text-red-500" /></Pressable>
+              <Pressable onPress={() => openEdit(o)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
+              <Pressable onPress={() => handleDelete(o)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
             </View>
           </Card>
         )}

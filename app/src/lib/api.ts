@@ -1,23 +1,8 @@
-import { Platform } from "react-native";
+import { storage } from "./storage";
 
 const TOKEN_KEY = "motek_token";
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080";
 const DEFAULT_TIMEOUT_MS = 15000;
-
-const storage = Platform.OS === "web"
-  ? {
-      getItemAsync: async (key: string) => localStorage.getItem(key),
-      setItemAsync: async (key: string, value: string) => localStorage.setItem(key, value),
-      deleteItemAsync: async (key: string) => localStorage.removeItem(key),
-    }
-  : (() => {
-      const SecureStore = require("expo-secure-store");
-      return {
-        getItemAsync: (key: string) => SecureStore.getItemAsync(key),
-        setItemAsync: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-        deleteItemAsync: (key: string) => SecureStore.deleteItemAsync(key),
-      };
-    })();
 
 export class ApiError extends Error {
   status: number;

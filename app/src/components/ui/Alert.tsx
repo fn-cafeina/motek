@@ -9,10 +9,10 @@ interface AlertProps {
 }
 
 const variantConfig: Record<AlertVariant, { bg: string; border: string; text: string; icon: typeof AlertTriangle }> = {
-  danger: { bg: "bg-red-50 dark:bg-red-950", border: "border-red-300 dark:border-red-800", text: "text-red-800 dark:text-red-200", icon: OctagonAlert },
-  warning: { bg: "bg-yellow-50 dark:bg-yellow-950", border: "border-yellow-300 dark:border-yellow-800", text: "text-yellow-800 dark:text-yellow-200", icon: AlertTriangle },
-  info: { bg: "bg-blue-50 dark:bg-blue-950", border: "border-blue-300 dark:border-blue-800", text: "text-blue-800 dark:text-blue-200", icon: Info },
-  success: { bg: "bg-green-50 dark:bg-green-950", border: "border-green-300 dark:border-green-800", text: "text-green-800 dark:text-green-200", icon: CheckCircle2 },
+  danger: { bg: "bg-danger-soft", border: "border-danger", text: "text-danger", icon: OctagonAlert },
+  warning: { bg: "bg-accent-soft", border: "border-accent", text: "text-accent", icon: AlertTriangle },
+  info: { bg: "bg-info-soft", border: "border-info", text: "text-info", icon: Info },
+  success: { bg: "bg-ok-soft", border: "border-ok", text: "text-ok", icon: CheckCircle2 },
 };
 
 export function Alert({ variant = "info", message }: AlertProps) {

@@ -9,27 +9,27 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-gray-100 dark:bg-gray-800",
-  success: "bg-green-100 dark:bg-green-900",
-  warning: "bg-yellow-100 dark:bg-yellow-900",
-  danger: "bg-red-100 dark:bg-red-900",
-  info: "bg-blue-100 dark:bg-blue-900",
+  default: "bg-raised",
+  success: "bg-ok-soft",
+  warning: "bg-accent-soft",
+  danger: "bg-danger-soft",
+  info: "bg-info-soft",
 };
 
 const dotClasses: Record<BadgeVariant, string> = {
-  default: "bg-gray-500",
-  success: "bg-green-500",
-  warning: "bg-yellow-500",
-  danger: "bg-red-500",
-  info: "bg-blue-500",
+  default: "bg-subtle",
+  success: "bg-ok",
+  warning: "bg-accent",
+  danger: "bg-danger",
+  info: "bg-info",
 };
 
 const textClasses: Record<BadgeVariant, string> = {
-  default: "text-gray-700 dark:text-gray-300",
-  success: "text-green-700 dark:text-green-300",
-  warning: "text-yellow-700 dark:text-yellow-300",
-  danger: "text-red-700 dark:text-red-300",
-  info: "text-blue-700 dark:text-blue-300",
+  default: "text-fg",
+  success: "text-ok",
+  warning: "text-accent",
+  danger: "text-danger",
+  info: "text-info",
 };
 
 export function Badge({ label, variant = "default", dot = false }: BadgeProps) {

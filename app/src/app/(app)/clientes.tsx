@@ -68,16 +68,16 @@ export default function ClientesScreen() {
   if (loading && items.length === 0) return <Spinner text="Cargando clientes..." />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 bg-canvas">
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">Clientes</Text>
+          <Text className="text-2xl font-bold text-fg">Clientes</Text>
           <Button size="sm" onPress={openCreate}>+ Nuevo</Button>
         </View>
         <Field label="" placeholder="Buscar clientes..." value={search} onChangeText={setSearch} />
       </View>
 
-      {error && <Text className="text-sm text-red-600 px-4 mb-2">{error}</Text>}
+      {error && <Text className="text-sm text-danger px-4 mb-2">{error}</Text>}
 
       <FlatList
         data={filtered}
@@ -88,13 +88,13 @@ export default function ClientesScreen() {
           <Card className="p-4 mb-3">
             <View className="flex-row items-start justify-between">
               <View className="flex-1 mr-3">
-                <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">{c.nombre}</Text>
-                {c.telefono ? <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">{c.telefono}</Text> : null}
-                {c.email ? <Text className="text-sm text-gray-500 dark:text-gray-400">{c.email}</Text> : null}
+                <Text className="text-base font-semibold text-fg">{c.nombre}</Text>
+                {c.telefono ? <Text className="text-sm text-muted mt-1">{c.telefono}</Text> : null}
+                {c.email ? <Text className="text-sm text-muted">{c.email}</Text> : null}
               </View>
               <View className="flex-row gap-2">
-                <Pressable onPress={() => openEdit(c)} className="p-2"><Pencil size={18} className="text-gray-500" /></Pressable>
-                <Pressable onPress={() => handleDelete(c)} className="p-2"><Trash2 size={18} className="text-red-500" /></Pressable>
+                <Pressable onPress={() => openEdit(c)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
+                <Pressable onPress={() => handleDelete(c)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
               </View>
             </View>
           </Card>

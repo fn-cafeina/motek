@@ -1,19 +1,24 @@
 import { Redirect, Tabs } from "expo-router";
 import { useAuth } from "../../lib/auth";
+import { useCSSVariable } from "uniwind";
 import { LayoutDashboard, Users, ClipboardList, Package, FileText, TriangleAlert } from "lucide-react-native";
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
+  const primary = useCSSVariable("--color-primary") as string;
+  const subtle = useCSSVariable("--color-subtle") as string;
+  const surface = useCSSVariable("--color-surface") as string;
 
   if (!loading && !user) return <Redirect href="/login" />;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#3b82f6",
-        tabBarInactiveTintColor: "#9ca3af",
-        headerStyle: { backgroundColor: "#f9fafb" },
+        tabBarActiveTintColor: primary,
+        tabBarInactiveTintColor: subtle,
+        headerStyle: { backgroundColor: surface },
         headerTitleStyle: { fontWeight: "600" },
+        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen

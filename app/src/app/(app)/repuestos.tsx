@@ -96,19 +96,19 @@ export default function RepuestosScreen() {
   if (loading && items.length === 0) return <Spinner text="Cargando repuestos..." />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 bg-canvas">
       <View className="p-4 pb-2">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">Repuestos</Text>
+          <Text className="text-2xl font-bold text-fg">Repuestos</Text>
           <Button size="sm" onPress={openCreate}>+ Nuevo</Button>
         </View>
         <Field label="" placeholder="Buscar repuestos..." value={search} onChangeText={setSearch} />
-        <Pressable onPress={() => setStockBajo(!stockBajo)} className={`mt-2 self-start px-3 py-1.5 rounded-full ${stockBajo ? "bg-red-100" : "bg-gray-200 dark:bg-gray-800"}`}>
-          <Text className={`text-xs font-medium ${stockBajo ? "text-red-700" : "text-gray-600 dark:text-gray-400"}`}>Stock bajo</Text>
+        <Pressable onPress={() => setStockBajo(!stockBajo)} className={`mt-2 self-start px-3 py-1.5 rounded-full ${stockBajo ? "bg-danger-soft" : "bg-raised"}`}>
+          <Text className={`text-xs font-medium ${stockBajo ? "text-danger" : "text-muted"}`}>Stock bajo</Text>
         </Pressable>
       </View>
 
-      {error && <Text className="text-sm text-red-600 px-4 mb-2">{error}</Text>}
+      {error && <Text className="text-sm text-danger px-4 mb-2">{error}</Text>}
 
       <FlatList
         data={filtered}
@@ -119,16 +119,16 @@ export default function RepuestosScreen() {
           <Card className="p-4 mb-3">
             <View className="flex-row items-start justify-between">
               <View className="flex-1 mr-3">
-                <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">{r.nombre}</Text>
-                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">{r.codigo}</Text>
+                <Text className="text-base font-semibold text-fg">{r.nombre}</Text>
+                <Text className="text-xs text-muted mt-1">{r.codigo}</Text>
                 <View className="flex-row gap-3 mt-2">
-                  <Text className="text-sm text-gray-600 dark:text-gray-400">Venta: {formatMoney(r.precio_venta)}</Text>
-                  <Text className={`text-sm font-medium ${r.stock <= r.stock_minimo ? "text-red-600" : "text-gray-600 dark:text-gray-400"}`}>Stock: {r.stock}</Text>
+                  <Text className="text-sm text-muted">Venta: {formatMoney(r.precio_venta)}</Text>
+                  <Text className={`text-sm font-medium ${r.stock <= r.stock_minimo ? "text-danger" : "text-muted"}`}>Stock: {r.stock}</Text>
                 </View>
               </View>
               <View className="flex-row gap-2">
-                <Pressable onPress={() => openEdit(r)} className="p-2"><Pencil size={18} className="text-gray-500" /></Pressable>
-                <Pressable onPress={() => handleDelete(r)} className="p-2"><Trash2 size={18} className="text-red-500" /></Pressable>
+                <Pressable onPress={() => openEdit(r)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
+                <Pressable onPress={() => handleDelete(r)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
               </View>
             </View>
           </Card>

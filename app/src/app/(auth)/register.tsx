@@ -35,11 +35,11 @@ export default function RegisterScreen() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-canvas">
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-8">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">Crear cuenta</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sistema para taller mecánico</Text>
+          <Text className="text-3xl font-bold text-fg">Crear cuenta</Text>
+          <Text className="text-sm text-muted mt-1">Sistema para taller mecánico</Text>
         </View>
 
         {error ? <Alert variant="danger" message={error} /> : null}
@@ -53,9 +53,9 @@ export default function RegisterScreen() {
         </View>
 
         <View className="flex-row justify-center mt-6">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">¿Ya tenés cuenta? </Text>
+          <Text className="text-sm text-muted">¿Ya tenés cuenta? </Text>
           <Link href="/login" asChild>
-            <Text className="text-sm text-blue-600 font-semibold">Iniciá sesión</Text>
+            <Text className="text-sm text-primary font-semibold">Iniciá sesión</Text>
           </Link>
         </View>
       </View>

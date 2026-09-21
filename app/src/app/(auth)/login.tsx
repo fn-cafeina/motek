@@ -31,11 +31,11 @@ export default function LoginScreen() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-canvas">
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-8">
-          <Text className="text-3xl font-bold text-gray-900 dark:text-gray-100">Motek</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sistema para taller mecánico</Text>
+          <Text className="text-3xl font-bold text-fg">Motek</Text>
+          <Text className="text-sm text-muted mt-1">Sistema para taller mecánico</Text>
         </View>
 
         {error ? <Alert variant="danger" message={error} /> : null}
@@ -49,9 +49,9 @@ export default function LoginScreen() {
         </View>
 
         <View className="flex-row justify-center mt-6">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">¿No tenés cuenta? </Text>
+          <Text className="text-sm text-muted">¿No tenés cuenta? </Text>
           <Link href="/register" asChild>
-            <Text className="text-sm text-blue-600 font-semibold">Registrate</Text>
+            <Text className="text-sm text-primary font-semibold">Registrate</Text>
           </Link>
         </View>
       </View>

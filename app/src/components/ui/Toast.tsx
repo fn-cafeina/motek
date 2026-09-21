@@ -48,18 +48,18 @@ function ToastRow({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => voi
 
   useEffect(() => {
     Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-  }, []);
+  }, [opacity]);
 
   const icons = { success: CheckCircle2, error: OctagonAlert, info: Info };
-  const colors = { success: "bg-green-50 border-green-300", error: "bg-red-50 border-red-300", info: "bg-blue-50 border-blue-300" };
-  const textColors = { success: "text-green-800", error: "text-red-800", info: "text-blue-800" };
+  const colors = { success: "bg-ok-soft border-ok", error: "bg-danger-soft border-danger", info: "bg-info-soft border-info" };
+  const textColors = { success: "text-ok", error: "text-danger", info: "text-info" };
   const Icon = icons[toast.type];
 
   return (
     <Animated.View style={{ opacity }} className={`flex-row items-center gap-3 p-3 rounded-lg border ${colors[toast.type]}`}>
       <Icon size={18} className={textColors[toast.type]} />
       <Text className={`flex-1 text-sm ${textColors[toast.type]}`}>{toast.message}</Text>
-      <X size={16} className="text-gray-400" onPress={onDismiss} />
+      <X size={16} className="text-subtle" onPress={onDismiss} />
     </Animated.View>
   );
 }

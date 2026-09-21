@@ -47,7 +47,7 @@ export function useCollection<T>(
   }, [path, qs, errorMessage]);
 
   useEffect(() => {
-    load();
+    void Promise.resolve().then(load);
   }, [load]);
 
   return { items, loading, error, refresh, load };

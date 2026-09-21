@@ -41,13 +41,13 @@ export default function AlertasScreen() {
   if (loading && items.length === 0) return <Spinner text="Cargando alertas..." />;
 
   return (
-    <View className="flex-1 bg-gray-50 dark:bg-gray-950">
+    <View className="flex-1 bg-canvas">
       <View className="p-4 pb-2">
-        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">Alertas de stock</Text>
+        <Text className="text-2xl font-bold text-fg mb-3">Alertas de stock</Text>
         <Field label="" placeholder="Buscar alertas..." value={search} onChangeText={setSearch} />
       </View>
 
-      {error && <Text className="text-sm text-red-600 px-4 mb-2">{error}</Text>}
+      {error && <Text className="text-sm text-danger px-4 mb-2">{error}</Text>}
 
       <FlatList
         data={filtered}
@@ -58,11 +58,11 @@ export default function AlertasScreen() {
           <Card className="p-4 mb-3">
             <View className="flex-row items-center justify-between">
               <View className="flex-1 mr-3">
-                <Text className="text-base font-semibold text-gray-900 dark:text-gray-100">{a.nombre}</Text>
-                <Text className="text-xs text-gray-500 dark:text-gray-400 mt-1">{a.codigo}</Text>
+                <Text className="text-base font-semibold text-fg">{a.nombre}</Text>
+                <Text className="text-xs text-muted mt-1">{a.codigo}</Text>
                 <View className="flex-row gap-3 mt-2">
-                  <Text className="text-sm text-red-600 font-medium">Stock: {a.stock}</Text>
-                  <Text className="text-sm text-gray-500 dark:text-gray-400">Mínimo: {a.stock_minimo}</Text>
+                  <Text className="text-sm text-danger font-medium">Stock: {a.stock}</Text>
+                  <Text className="text-sm text-muted">Mínimo: {a.stock_minimo}</Text>
                 </View>
               </View>
               <Button size="sm" variant="secondary" onPress={() => { setSurtirItem(a); setCantidad(""); }}>Surtir</Button>
@@ -75,7 +75,7 @@ export default function AlertasScreen() {
       <Dialog visible={!!surtirItem} onClose={() => setSurtirItem(null)} title="Surtir stock">
         <View className="gap-4">
           {surtirItem && (
-            <Text className="text-sm text-gray-600 dark:text-gray-400">{surtirItem.nombre} — Stock actual: {surtirItem.stock}</Text>
+            <Text className="text-sm text-muted">{surtirItem.nombre} — Stock actual: {surtirItem.stock}</Text>
           )}
           <Field label="Cantidad a agregar" value={cantidad} onChangeText={setCantidad} placeholder="0" keyboardType="numeric" />
           <Button onPress={handleSurtir} disabled={saving}>{saving ? "Guardando..." : "Confirmar"}</Button>

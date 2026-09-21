@@ -10,10 +10,10 @@ interface ButtonProps extends PressableProps {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 active:bg-blue-700",
-  secondary: "bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:active:bg-gray-600",
-  ghost: "bg-transparent active:bg-gray-100 dark:active:bg-gray-800",
-  danger: "bg-red-600 active:bg-red-700",
+  primary: "bg-primary active:bg-primary-hover",
+  secondary: "bg-raised active:bg-border",
+  ghost: "bg-transparent active:bg-raised",
+  danger: "bg-danger active:opacity-90",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -22,10 +22,10 @@ const sizeClasses: Record<ButtonSize, string> = {
 };
 
 const textClasses: Record<ButtonVariant, string> = {
-  primary: "text-white font-semibold",
-  secondary: "text-gray-900 dark:text-gray-100 font-semibold",
-  ghost: "text-gray-700 dark:text-gray-300 font-semibold",
-  danger: "text-white font-semibold",
+  primary: "text-primary-fg font-semibold",
+  secondary: "text-fg font-semibold",
+  ghost: "text-fg font-semibold",
+  danger: "text-danger-fg font-semibold",
 };
 
 export function Button({ variant = "primary", size = "md", children, className = "", disabled, ...props }: ButtonProps) {
