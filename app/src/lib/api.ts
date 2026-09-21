@@ -1,8 +1,23 @@
-import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 const TOKEN_KEY = "motek_token";
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080";
 const DEFAULT_TIMEOUT_MS = 15000;
+
+const storage = Platform.OS === "web"
+  ? {
+      getItemAsync: async (key: string) => localStorage.getItem(key),
+      setItemAsync: async (key: string, value: string) => localStorage.setItem(key, value),
+      deleteItemAsync: async (key: string) => localStorage.removeItem(key),
+    }
+  : (() => {
+      const SecureStore = require("expo-secure-store");
+      return {
+        getItemAsync: (key: string) => SecureStore.getItemAsync(key),
+        setItemAsync: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+        deleteItemAsync: (key: string) => SecureStore.deleteItemAsync(key),
+      };
+    })();
 
 export class ApiError extends Error {
   status: number;
@@ -21,7 +36,7 @@ interface ApiOptions extends Omit<RequestInit, "body"> {
 export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
   const { body, timeoutMs, signal: externalSignal, ...rest } = opts;
 
-  const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  const token = await storage.getItemAsync(TOKEN_KEY);
   const headers: Record<string, string> = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -51,7 +66,7 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
   }
 
   if (res.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/register" && path !== "/api/auth/me") {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await storage.deleteItemAsync(TOKEN_KEY);
     throw new ApiError(401, "No autorizado");
   }
 
@@ -78,13 +93,13 @@ export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
 }
 
 export async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(TOKEN_KEY);
+  return storage.getItemAsync(TOKEN_KEY);
 }
 
 export async function setToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  await storage.setItemAsync(TOKEN_KEY, token);
 }
 
 export async function removeToken(): Promise<void> {
-  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await storage.deleteItemAsync(TOKEN_KEY);
 }
