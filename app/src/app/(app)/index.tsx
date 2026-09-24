@@ -26,11 +26,11 @@ function StatCard({ label, value, hint, tone = "neutral", href }: {
 }) {
   const toneClass = tone === "primary" ? "text-primary" : tone === "accent" ? "text-accent" : "text-fg";
   const content = (
-    <>
+    <View className="flex-1 min-w-[150px]">
       <Text className="text-xs font-medium text-muted">{label}</Text>
       <Text className={`text-2xl font-semibold leading-none mt-1 ${toneClass}`}>{value}</Text>
       {hint && <Text className="text-xs leading-5 text-subtle">{hint}</Text>}
-    </>
+    </View>
   );
 
   if (href) {
