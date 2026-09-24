@@ -1,4 +1,4 @@
-import { Link, Redirect, Slot, usePathname, useRouter, type Href } from "expo-router";
+import { Redirect, Slot, usePathname, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react-native";
 import { Pressable, Text, View, useWindowDimensions } from "react-native";
@@ -110,9 +110,9 @@ export default function AppLayout() {
         <View className="h-[52px] flex-row items-center justify-between border-b border-border bg-surface px-4">
           <Text className="text-xl font-semibold tracking-tight text-fg">{title}</Text>
           <View className="flex-row items-center gap-1">
-            <Link href="/alertas" className="relative size-9 items-center justify-center rounded-md active:bg-raised">
+            <Pressable onPress={() => router.push("/alertas")} className="size-9 items-center justify-center rounded-md active:bg-raised">
               <Bell size={20} color={subtle} />
-            </Link>
+            </Pressable>
             {!desktop && (
               <Pressable onPress={logout} className="size-9 items-center justify-center rounded-md active:bg-raised">
                 <LogOut size={18} color={subtle} />
