@@ -16,6 +16,7 @@ export default function AppLayout() {
       screenOptions={{
         tabBarActiveTintColor: primary,
         tabBarInactiveTintColor: subtle,
+        tabBarStyle: { backgroundColor: surface },
         headerStyle: { backgroundColor: surface },
         headerTitleStyle: { fontWeight: "600" },
         headerShadowVisible: false,
