@@ -1,4 +1,4 @@
-import { View, Text, type ViewProps } from "react-native";
+import { View, type ViewProps } from "react-native";
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;

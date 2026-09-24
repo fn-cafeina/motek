@@ -3,7 +3,7 @@ import { FlatList, Text, View, Pressable, RefreshControl } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
 import { getErrorMessage } from "../../lib/errors";
-import { formatMoney, formatFecha } from "../../lib/format";
+import { formatMoney } from "../../lib/format";
 import type { Factura, OrdenTrabajo } from "../../lib/types";
 import { FACTURA_ESTADOS, FACTURA_ESTADO_LABELS } from "../../lib/types";
 import { Card } from "../../components/ui/Card";

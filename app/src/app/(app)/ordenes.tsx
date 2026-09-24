@@ -4,7 +4,7 @@ import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
 import { getErrorMessage } from "../../lib/errors";
 import { formatMoney } from "../../lib/format";
-import type { OrdenTrabajo, Cliente, Moto, OrdenEstado } from "../../lib/types";
+import type { OrdenTrabajo, Cliente, OrdenEstado } from "../../lib/types";
 import { ORDEN_ESTADOS, ORDEN_ESTADO_LABELS } from "../../lib/types";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -19,7 +19,6 @@ import { ClipboardList, Pencil, Trash2 } from "lucide-react-native";
 export default function OrdenesScreen() {
   const ordenes = useCollection<OrdenTrabajo>("/api/ordenes", "Error cargando órdenes");
   const clientes = useCollection<Cliente>("/api/clientes", "Error cargando clientes");
-  const motos = useCollection<Moto>("/api/motos", "Error cargando motos");
 
   const [filter, setFilter] = useState<OrdenEstado | "">("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,7 +27,6 @@ export default function OrdenesScreen() {
   const [saving, setSaving] = useState(false);
 
   const clienteMap = new Map(clientes.items.map((c) => [c.id, c]));
-  const motoMap = new Map(motos.items.map((m) => [m.id, m]));
 
   const filtered = filter ? ordenes.items.filter((o) => o.estado === filter) : ordenes.items;
 
@@ -76,16 +74,6 @@ export default function OrdenesScreen() {
       showToast("error", getErrorMessage(e, "Error guardando orden"));
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleChangeEstado(o: OrdenTrabajo, estado: OrdenEstado) {
-    try {
-      await api(`/api/ordenes/${o.id}/estado`, { method: "PATCH", body: { estado } });
-      showToast("success", "Estado actualizado");
-      await ordenes.refresh();
-    } catch (e) {
-      showToast("error", getErrorMessage(e, "Error actualizando estado"));
     }
   }
 

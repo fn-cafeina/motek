@@ -1,7 +1,6 @@
 import { Text, View, ScrollView, RefreshControl } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
 import type { OrdenTrabajo, Factura, AlertaStock } from "../../lib/types";
-import { ORDEN_ESTADO_LABELS } from "../../lib/types";
 import { formatMoney } from "../../lib/format";
 import { Card } from "../../components/ui/Card";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";

@@ -1,4 +1,4 @@
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
 import type { OrdenEstado, FacturaEstado } from "../../lib/types";
 import { Badge } from "./Badge";
 

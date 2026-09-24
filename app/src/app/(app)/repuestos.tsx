@@ -11,7 +11,6 @@ import { Field } from "../../components/ui/Field";
 import { Dialog } from "../../components/ui/Dialog";
 import { Spinner } from "../../components/ui/Spinner";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { Badge } from "../../components/ui/Badge";
 import { showToast } from "../../components/ui/Toast";
 import { Package, Pencil, Trash2 } from "lucide-react-native";
 
