@@ -65,7 +65,7 @@ export default function DashboardScreen() {
           <Card className="p-4">
             <Text className="text-sm font-semibold text-fg mb-3">Stock bajo</Text>
             {alertas.items.slice(0, 5).map((a) => (
-              <View key={a.repuesto_id} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
+              <View key={`${a.repuesto_id ?? a.id ?? a.codigo}`} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
                 <Text className="text-sm text-fg flex-1" numberOfLines={1}>{a.nombre}</Text>
                 <Text className="text-sm text-danger font-medium">{a.stock} / {a.stock_minimo}</Text>
               </View>

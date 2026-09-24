@@ -24,9 +24,11 @@ export default function AlertasScreen() {
 
   async function handleSurtir() {
     if (!surtirItem || !cantidad) return;
+    const repuestoId = surtirItem.repuesto_id ?? surtirItem.id;
+    if (!repuestoId) return;
     setSaving(true);
     try {
-      await api(`/api/repuestos/${surtirItem.repuesto_id}/stock`, { method: "POST", body: { cantidad: Number(cantidad) } });
+      await api(`/api/repuestos/${repuestoId}/stock`, { method: "POST", body: { cantidad: Number(cantidad) } });
       showToast("success", "Stock actualizado");
       setSurtirItem(null);
       setCantidad("");
@@ -51,7 +53,7 @@ export default function AlertasScreen() {
 
       <FlatList
         data={filtered}
-        keyExtractor={(a) => String(a.repuesto_id)}
+        keyExtractor={(a) => `${a.repuesto_id ?? a.id ?? a.codigo}`}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
         contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
         renderItem={({ item: a }) => (
