@@ -100,7 +100,8 @@ export interface Pago {
 }
 
 export interface AlertaStock {
-  id: number;
+  id?: number;
+  repuesto_id?: number;
   codigo: string;
   nombre: string;
   stock: number;

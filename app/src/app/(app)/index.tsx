@@ -121,7 +121,7 @@ export default function DashboardScreen() {
             {alertas.items.length === 0 ? (
               <Text className="text-center text-muted py-10">Ningún repuesto está en el mínimo.</Text>
             ) : alertas.items.slice(0, 6).map((alerta) => (
-              <View key={alerta.id} className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
+              <View key={alerta.id ?? alerta.repuesto_id ?? alerta.codigo} className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
                 <View className="flex-1 min-w-0">
                   <Text className="font-medium text-fg" numberOfLines={1}>{alerta.nombre}</Text>
                   <Text className="text-xs text-subtle" numberOfLines={1}>{alerta.codigo}</Text>

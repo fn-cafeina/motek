@@ -28,6 +28,11 @@ export default function AlertasScreen() {
 
   async function handleSurtir() {
     if (!target) return;
+    const repuestoId = target.id ?? target.repuesto_id;
+    if (!repuestoId) {
+      showToast("error", "No se pudo identificar el repuesto");
+      return;
+    }
     const cantidad = Number(delta);
     if (!cantidad) {
       showToast("error", "Ingresá una cantidad distinta de cero");
@@ -35,7 +40,7 @@ export default function AlertasScreen() {
     }
     setSaving(true);
     try {
-      await api(`/api/repuestos/${target.id}/stock`, { method: "POST", body: { cantidad } });
+      await api(`/api/repuestos/${repuestoId}/stock`, { method: "POST", body: { cantidad } });
       setTarget(null);
       setDelta("");
       showToast("success", "Stock actualizado");
@@ -53,7 +58,7 @@ export default function AlertasScreen() {
     <View className="flex-1 bg-canvas">
       <FlatList
         data={filtered}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => String(item.id ?? item.repuesto_id ?? item.codigo)}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
