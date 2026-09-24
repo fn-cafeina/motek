@@ -164,8 +164,7 @@ export default function RepuestosScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-between">
-              <View><Text className="text-2xl font-semibold tracking-tight text-fg">Repuestos</Text><Text className="mt-1 text-sm text-muted">Inventario, precios y stock</Text></View>
+            <View className="flex-row items-center justify-end">
               <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>
             </View>
             <Field label="" placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />

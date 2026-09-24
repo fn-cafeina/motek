@@ -198,8 +198,7 @@ export default function OrdenesScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-between">
-              <View><Text className="text-2xl font-semibold tracking-tight text-fg">Órdenes</Text><Text className="mt-1 text-sm text-muted">Seguimiento del trabajo en el taller</Text></View>
+            <View className="flex-row items-center justify-end">
               <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nueva orden</Text></Button>
             </View>
             <ScrollableFilters filter={filter} onChange={updateFilter} />

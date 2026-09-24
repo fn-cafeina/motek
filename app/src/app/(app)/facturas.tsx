@@ -193,8 +193,7 @@ export default function FacturasScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-between">
-              <View><Text className="text-2xl font-semibold tracking-tight text-fg">Facturas</Text><Text className="mt-1 text-sm text-muted">Cobros y pagos del taller</Text></View>
+            <View className="flex-row items-center justify-end">
               <Button size="sm" onPress={openCreate} disabled={ordenesSinFactura.length === 0}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nueva factura</Text></Button>
             </View>
             <View className="flex-row flex-wrap gap-2">

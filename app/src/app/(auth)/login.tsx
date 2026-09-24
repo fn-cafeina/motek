@@ -6,6 +6,7 @@ import { getErrorMessage } from "../../lib/errors";
 import { Button } from "../../components/ui/Button";
 import { Field } from "../../components/ui/Field";
 import { Alert } from "../../components/ui/Alert";
+import { AuthCard } from "../../components/ui/AuthCard";
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -32,29 +33,20 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-canvas">
-      <View className="flex-1 justify-center px-6">
-        <View className="items-center mb-8">
-          <Text className="text-3xl font-bold text-fg">Motek</Text>
-          <Text className="text-sm text-muted mt-1">Sistema para taller mecánico</Text>
-        </View>
-
-        {error ? <Alert variant="danger" message={error} /> : null}
-
-        <View className="gap-4 mt-4">
+      <AuthCard title="Iniciar sesión">
+        <View className="gap-4">
+          {error ? <Alert variant="danger" message={error} /> : null}
           <Field label="Email" value={email} onChangeText={setEmail} placeholder="tu@email.com" autoCapitalize="none" keyboardType="email-address" />
           <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="••••••" secureTextEntry />
-          <Button onPress={handleSubmit} disabled={saving}>
+          <Button onPress={handleSubmit} disabled={saving} className="w-full">
             {saving ? "Ingresando..." : "Iniciar sesión"}
           </Button>
+          <View className="flex-row justify-center pt-1">
+            <Text className="text-sm text-muted">¿No tenés cuenta? </Text>
+            <Link href="/register" asChild><Text className="text-sm text-primary font-semibold">Registrate</Text></Link>
+          </View>
         </View>
-
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-sm text-muted">¿No tenés cuenta? </Text>
-          <Link href="/register" asChild>
-            <Text className="text-sm text-primary font-semibold">Registrate</Text>
-          </Link>
-        </View>
-      </View>
+      </AuthCard>
     </KeyboardAvoidingView>
   );
 }

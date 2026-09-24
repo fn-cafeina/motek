@@ -58,9 +58,8 @@ export default function AlertasScreen() {
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View>
-              <Text className="text-2xl font-semibold tracking-tight text-fg">Alertas de stock</Text>
-              <Text className="mt-1 text-sm text-muted">Repuestos que necesitan reposición</Text>
+            <View className="flex-row items-center justify-end">
+              <Text className="text-sm text-muted">Repuestos que necesitan reposición</Text>
             </View>
             <Field label="" placeholder="Buscar por código o nombre" value={search} onChangeText={setSearch} />
             <View className="flex-row items-center justify-between">
