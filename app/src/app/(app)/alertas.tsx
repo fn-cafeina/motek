@@ -1,38 +1,47 @@
-import { useState } from "react";
-import { FlatList, Text, View, RefreshControl } from "react-native";
+import { useMemo, useState } from "react";
+import { FlatList, RefreshControl, Text, View } from "react-native";
+import { CheckCircle2, PackagePlus, RotateCw, TriangleAlert } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
 import { getErrorMessage } from "../../lib/errors";
 import type { AlertaStock } from "../../lib/types";
-import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import { Field } from "../../components/ui/Field";
+import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
-import { Spinner } from "../../components/ui/Spinner";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { Field } from "../../components/ui/Field";
+import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
-import { TriangleAlert } from "lucide-react-native";
 
 export default function AlertasScreen() {
   const { items, loading, error, refresh } = useCollection<AlertaStock>("/api/alertas/stock", "Error cargando alertas");
   const [search, setSearch] = useState("");
-  const [surtirItem, setSurtirItem] = useState<AlertaStock | null>(null);
-  const [cantidad, setCantidad] = useState("");
+  const [target, setTarget] = useState<AlertaStock | null>(null);
+  const [delta, setDelta] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const filtered = items.filter((a) => a.nombre.toLowerCase().includes(search.toLowerCase()) || a.codigo.toLowerCase().includes(search.toLowerCase()));
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return items;
+    return items.filter((item) => [item.nombre, item.codigo].some((value) => value.toLowerCase().includes(term)));
+  }, [items, search]);
 
   async function handleSurtir() {
-    if (!surtirItem || !cantidad) return;
+    if (!target) return;
+    const cantidad = Number(delta);
+    if (!cantidad) {
+      showToast("error", "Ingresá una cantidad distinta de cero");
+      return;
+    }
     setSaving(true);
     try {
-      await api(`/api/repuestos/${surtirItem.id}/stock`, { method: "POST", body: { cantidad: Number(cantidad) } });
+      await api(`/api/repuestos/${target.id}/stock`, { method: "POST", body: { cantidad } });
+      setTarget(null);
+      setDelta("");
       showToast("success", "Stock actualizado");
-      setSurtirItem(null);
-      setCantidad("");
       await refresh();
-    } catch (e) {
-      showToast("error", getErrorMessage(e, "Error actualizando stock"));
+    } catch (caught) {
+      showToast("error", getErrorMessage(caught, "Error ajustando stock"));
     } finally {
       setSaving(false);
     }
@@ -42,43 +51,54 @@ export default function AlertasScreen() {
 
   return (
     <View className="flex-1 bg-canvas">
-      <View className="p-4 pb-2">
-        <Text className="text-2xl font-bold text-fg mb-3">Alertas de stock</Text>
-        <Field label="" placeholder="Buscar alertas..." value={search} onChangeText={setSearch} />
-      </View>
-
-      {error && <Text className="text-sm text-danger px-4 mb-2">{error}</Text>}
-
       <FlatList
         data={filtered}
-        keyExtractor={(a) => String(a.id)}
+        keyExtractor={(item) => String(item.id)}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
-        renderItem={({ item: a }) => (
-          <Card className="p-4 mb-3">
+        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+        ListHeaderComponent={
+          <View className="gap-4">
+            <View>
+              <Text className="text-2xl font-semibold tracking-tight text-fg">Alertas de stock</Text>
+              <Text className="mt-1 text-sm text-muted">Repuestos que necesitan reposición</Text>
+            </View>
+            <Field label="" placeholder="Buscar por código o nombre" value={search} onChangeText={setSearch} />
             <View className="flex-row items-center justify-between">
-              <View className="flex-1 mr-3">
-                <Text className="text-base font-semibold text-fg">{a.nombre}</Text>
-                <Text className="text-xs text-muted mt-1">{a.codigo}</Text>
-                <View className="flex-row gap-3 mt-2">
-                  <Text className="text-sm text-danger font-medium">Stock: {a.stock}</Text>
-                  <Text className="text-sm text-muted">Mínimo: {a.stock_minimo}</Text>
-                </View>
+              <Text className="text-xs text-muted">{search ? `${filtered.length} de ${items.length} resultados` : `${items.length} en alerta`}</Text>
+              <Button size="sm" variant="secondary" onPress={() => void refresh()}><RotateCw size={14} className="text-fg" /><Text className="text-fg font-semibold">Actualizar</Text></Button>
+            </View>
+            {error && <Text className="text-sm text-danger">{error}</Text>}
+          </View>
+        }
+        ListEmptyComponent={
+          search ? (
+            <EmptyState icon={TriangleAlert} title="Sin resultados" description="Probá con otro código o nombre." action={<Button variant="secondary" onPress={() => setSearch("")}>Limpiar búsqueda</Button>} />
+          ) : (
+            <Card className="p-4"><EmptyState icon={CheckCircle2} title="Todo en stock" description="No hay repuestos por debajo del mínimo." /></Card>
+          )
+        }
+        renderItem={({ item: alerta }) => (
+          <Card className="p-4">
+            <View className="flex-row items-center gap-3">
+              <View className="flex-1 min-w-0">
+                <Text className="font-semibold text-fg" numberOfLines={1}>{alerta.nombre || alerta.codigo}</Text>
+                <Text className="mt-1 text-xs text-muted">{alerta.codigo}</Text>
               </View>
-              <Button size="sm" variant="secondary" onPress={() => { setSurtirItem(a); setCantidad(""); }}>Surtir</Button>
+              <View className="items-end">
+                <Text className="font-semibold text-accent">{alerta.stock}</Text>
+                <Text className="text-xs text-subtle">de {alerta.stock_minimo} mín.</Text>
+              </View>
+              <Button size="sm" variant="secondary" onPress={() => { setTarget(alerta); setDelta(""); }}><PackagePlus size={14} className="text-fg" /><Text className="text-fg font-semibold">Surtir</Text></Button>
             </View>
           </Card>
         )}
-        ListEmptyComponent={<EmptyState icon={TriangleAlert} title="Sin alertas" description="No hay stock bajo en este momento." />}
       />
 
-      <Dialog visible={!!surtirItem} onClose={() => setSurtirItem(null)} title="Surtir stock">
+      <Dialog visible={Boolean(target)} onClose={() => !saving && setTarget(null)} title={target ? `Surtir: ${target.nombre || target.codigo}` : "Surtir stock"}>
         <View className="gap-4">
-          {surtirItem && (
-            <Text className="text-sm text-muted">{surtirItem.nombre} — Stock actual: {surtirItem.stock}</Text>
-          )}
-          <Field label="Cantidad a agregar" value={cantidad} onChangeText={setCantidad} placeholder="0" keyboardType="numeric" />
-          <Button onPress={handleSurtir} disabled={saving}>{saving ? "Guardando..." : "Confirmar"}</Button>
+          <Text className="text-sm text-muted">Stock actual: <Text className="font-semibold text-accent">{target?.stock ?? 0}</Text> · Mínimo: <Text className="font-semibold text-fg">{target?.stock_minimo ?? 0}</Text></Text>
+          <Field label="Cantidad a sumar" hint="Usá un número negativo para descontar stock." value={delta} onChangeText={setDelta} keyboardType="numeric" placeholder="10" />
+          <Button onPress={handleSurtir} disabled={saving}>{saving ? "Actualizando..." : "Aplicar ajuste"}</Button>
         </View>
       </Dialog>
     </View>
