@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, Text, type PressableProps } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -6,7 +7,7 @@ type ButtonSize = "sm" | "md";
 interface ButtonProps extends PressableProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  children: string;
+  children: ReactNode;
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -29,13 +30,17 @@ const textClasses: Record<ButtonVariant, string> = {
 };
 
 export function Button({ variant = "primary", size = "md", children, className = "", disabled, ...props }: ButtonProps) {
+  const content = typeof children === "string" || typeof children === "number"
+    ? <Text className={textClasses[variant]}>{children}</Text>
+    : children;
+
   return (
     <Pressable
-      className={`rounded-lg items-center ${variantClasses[variant]} ${sizeClasses[size]} ${disabled ? "opacity-50" : ""} ${className}`}
+      className={`flex-row rounded-lg items-center justify-center gap-2 ${variantClasses[variant]} ${sizeClasses[size]} ${disabled ? "opacity-50" : ""} ${className}`}
       disabled={disabled}
       {...props}
     >
-      <Text className={textClasses[variant]}>{children}</Text>
+      {content}
     </Pressable>
   );
 }
