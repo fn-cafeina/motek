@@ -119,6 +119,11 @@ func TestAlertasStock(t *testing.T) {
 	if len(response) != 2 {
 		t.Errorf("got %v want 2", len(response))
 	}
+	for _, alerta := range response {
+		if alerta["repuesto_id"] == nil {
+			t.Errorf("alerta sin repuesto_id: %v", alerta)
+		}
+	}
 }
 
 func mustCreateRepuestoLow(t *testing.T, codigo string) store.Repuesto {
