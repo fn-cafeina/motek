@@ -24,20 +24,20 @@ export default function FacturasScreen() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creatingFrom, setCreatingFrom] = useState<OrdenTrabajo | null>(null);
   const [editing, setEditing] = useState<Factura | null>(null);
-  const [form, setForm] = useState({ notas: "", vencimiento: "" });
+  const [form, setForm] = useState({ notas: "", fecha_vencimiento: "" });
   const [saving, setSaving] = useState(false);
 
   const filtered = filter ? facturas.items.filter((f) => f.estado === filter) : facturas.items;
 
   function openCreateFrom(o: OrdenTrabajo) {
     setCreatingFrom(o);
-    setForm({ notas: "", vencimiento: "" });
+    setForm({ notas: "", fecha_vencimiento: "" });
     setDialogOpen(true);
   }
 
   function openEdit(f: Factura) {
     setEditing(f);
-    setForm({ notas: f.notas ?? "", vencimiento: f.vencimiento ?? "" });
+    setForm({ notas: f.notas ?? "", fecha_vencimiento: f.fecha_vencimiento?.slice(0, 10) ?? "" });
     setDialogOpen(true);
   }
 
@@ -45,7 +45,7 @@ export default function FacturasScreen() {
     if (!creatingFrom) return;
     setSaving(true);
     try {
-      await api("/api/facturas", { method: "POST", body: { orden_id: creatingFrom.id, notas: form.notas, vencimiento: form.vencimiento } });
+      await api("/api/facturas", { method: "POST", body: { orden_id: creatingFrom.id, notas: form.notas, fecha_vencimiento: form.fecha_vencimiento || null } });
       showToast("success", "Factura creada");
       setDialogOpen(false);
       await facturas.refresh();
@@ -60,7 +60,7 @@ export default function FacturasScreen() {
     if (!editing) return;
     setSaving(true);
     try {
-      await api(`/api/facturas/${editing.id}`, { method: "PUT", body: { notas: form.notas, vencimiento: form.vencimiento } });
+      await api(`/api/facturas/${editing.id}`, { method: "PUT", body: { notas: form.notas, fecha_vencimiento: form.fecha_vencimiento || null } });
       showToast("success", "Factura actualizada");
       setDialogOpen(false);
       await facturas.refresh();
@@ -83,7 +83,7 @@ export default function FacturasScreen() {
 
   if (facturas.loading && facturas.items.length === 0) return <Spinner text="Cargando facturas..." />;
 
-  const ordenesSinFactura = ordenes.items.filter((o) => o.estado === "finalizada" && !facturas.items.some((f) => f.orden_id === o.id));
+  const ordenesSinFactura = ordenes.items.filter((o) => o.estado === "entregado" && !facturas.items.some((f) => f.orden_id === o.id));
 
   return (
     <View className="flex-1 bg-canvas">
@@ -132,10 +132,10 @@ export default function FacturasScreen() {
               <EstadoBadge estado={f.estado} />
             </View>
             <View className="flex-row justify-between mb-2">
-              <Text className="text-sm text-muted">Total: {formatMoney(f.total)}</Text>
-              <Text className="text-sm text-muted">Pagado: {formatMoney(f.pagado)}</Text>
+              <Text className="text-sm text-muted">Mano de obra: {formatMoney(f.subtotal_mano_obra)}</Text>
+              <Text className="text-sm text-muted">Repuestos: {formatMoney(f.subtotal_repuestos)}</Text>
             </View>
-            <Text className="text-sm font-medium text-fg mb-2">Saldo: {formatMoney(f.saldo)}</Text>
+            <Text className="text-sm font-medium text-fg mb-2">Total: {formatMoney(f.total)}</Text>
             <View className="flex-row gap-2">
               <Pressable onPress={() => openEdit(f)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
               {f.estado !== "cancelada" && f.estado !== "pagada" && (
@@ -153,7 +153,7 @@ export default function FacturasScreen() {
             <Text className="text-sm text-muted">Orden: #{creatingFrom.id} — {creatingFrom.descripcion}</Text>
           )}
           <Field label="Notas" value={form.notas} onChangeText={(v) => setForm({ ...form, notas: v })} placeholder="Notas" multiline numberOfLines={3} />
-          <Field label="Vencimiento" value={form.vencimiento} onChangeText={(v) => setForm({ ...form, vencimiento: v })} placeholder="AAAA-MM-DD" />
+          <Field label="Fecha de vencimiento" value={form.fecha_vencimiento} onChangeText={(v) => setForm({ ...form, fecha_vencimiento: v })} placeholder="AAAA-MM-DD" />
           <Button onPress={editing ? handleUpdate : handleCreate} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
         </View>
       </Dialog>

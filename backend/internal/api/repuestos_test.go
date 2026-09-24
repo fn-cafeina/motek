@@ -120,8 +120,8 @@ func TestAlertasStock(t *testing.T) {
 		t.Errorf("got %v want 2", len(response))
 	}
 	for _, alerta := range response {
-		if alerta["repuesto_id"] == nil {
-			t.Errorf("alerta sin repuesto_id: %v", alerta)
+		if alerta["id"] == nil {
+			t.Errorf("alerta sin id: %v", alerta)
 		}
 	}
 }

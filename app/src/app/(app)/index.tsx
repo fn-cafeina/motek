@@ -1,77 +1,137 @@
-import { Text, View, ScrollView, RefreshControl } from "react-native";
+import { Link } from "expo-router";
+import { ScrollView, Text, View, RefreshControl } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
-import type { OrdenTrabajo, Factura, AlertaStock } from "../../lib/types";
-import { formatMoney } from "../../lib/format";
+import type { AlertaStock, Cliente, Factura, OrdenTrabajo } from "../../lib/types";
+import { buildMap, formatFecha, formatMoney } from "../../lib/format";
+import {
+  contarPorEstado,
+  facturadoDelMes,
+  facturasSinCobrar,
+  ordenesActivas,
+  ordenesRecientes,
+  totalSinCobrar,
+} from "../../lib/resumen";
 import { Card } from "../../components/ui/Card";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";
 import { Spinner } from "../../components/ui/Spinner";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ClipboardList } from "lucide-react-native";
 
+function StatCard({ label, value, hint, tone = "neutral", href }: {
+  label: string;
+  value: string | number;
+  hint?: string;
+  tone?: "neutral" | "primary" | "accent";
+  href?: string;
+}) {
+  const toneClass = tone === "primary" ? "text-primary" : tone === "accent" ? "text-accent" : "text-fg";
+  const content = (
+    <>
+      <Text className="text-xs font-medium text-muted">{label}</Text>
+      <Text className={`text-2xl font-semibold leading-none mt-1 ${toneClass}`}>{value}</Text>
+      {hint && <Text className="text-xs leading-5 text-subtle">{hint}</Text>}
+    </>
+  );
+
+  if (href) {
+    return <Link href={href as never} className="flex-1 min-w-[150px]">{content}</Link>;
+  }
+
+  return <View className="flex-1 min-w-[150px]">{content}</View>;
+}
+
 export default function DashboardScreen() {
   const ordenes = useCollection<OrdenTrabajo>("/api/ordenes", "Error cargando órdenes");
   const facturas = useCollection<Factura>("/api/facturas", "Error cargando facturas");
   const alertas = useCollection<AlertaStock>("/api/alertas/stock", "Error cargando alertas");
+  const clientes = useCollection<Cliente>("/api/clientes", "Error cargando clientes");
 
-  const loading = ordenes.loading || facturas.loading || alertas.loading;
-  const refreshing = loading;
+  const loading = ordenes.loading || facturas.loading || alertas.loading || clientes.loading;
+  const estados = contarPorEstado(ordenes.items);
+  const activas = ordenesActivas(ordenes.items).length;
+  const sinCobrar = facturasSinCobrar(facturas.items);
+  const recientes = ordenesRecientes(ordenes.items, 8);
+  const clienteMap = buildMap(clientes.items);
+  const sinMovimiento = ordenes.items.length === 0 && facturas.items.length === 0;
 
-  const ordenesActivas = ordenes.items.filter((o) => o.estado === "recibida" || o.estado === "en_progreso");
-  const facturasPendientes = facturas.items.filter((f) => f.estado !== "pagada" && f.estado !== "cancelada");
-  const totalPendiente = facturasPendientes.reduce((acc, f) => acc + (f.total - f.pagado), 0);
+  if (loading && ordenes.items.length === 0) return <Spinner text="Cargando dashboard..." />;
 
-  if (loading && ordenes.items.length === 0) {
-    return <Spinner text="Cargando dashboard..." />;
+  if (sinMovimiento) {
+    return (
+      <ScrollView className="flex-1 bg-canvas" contentContainerStyle={{ padding: 16 }}>
+        <Card className="p-4">
+          <EmptyState
+            icon={ClipboardList}
+            title="Todavía no hay movimiento"
+            description="Cargá un cliente y abrí la primera orden de trabajo: acá vas a ver el estado del taller, el stock crítico y lo facturado."
+            action={<Link href="/clientes" asChild><Text className="text-primary font-semibold">Ir a clientes</Text></Link>}
+          />
+        </Card>
+      </ScrollView>
+    );
   }
 
   return (
     <ScrollView
       className="flex-1 bg-canvas"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { await Promise.all([ordenes.refresh(), facturas.refresh(), alertas.refresh()]); }} />}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={async () => { await Promise.all([ordenes.refresh(), facturas.refresh(), alertas.refresh(), clientes.refresh()]); }} />}
+      contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
     >
-      <View className="p-4 gap-4">
-        <Text className="text-2xl font-bold text-fg">Inicio</Text>
-
+      <View className="gap-4">
         <View className="flex-row flex-wrap gap-3">
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-muted">Órdenes activas</Text>
-            <Text className="text-2xl font-bold text-fg mt-1">{ordenesActivas.length}</Text>
+            <StatCard label="Órdenes activas" value={activas} tone="primary" hint={activas === 0 ? "No queda nada pendiente en el taller" : `${estados.en_progreso ?? 0} en progreso`} />
           </Card>
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-muted">Stock bajo</Text>
-            <Text className="text-2xl font-bold text-danger mt-1">{alertas.items.length}</Text>
+            <StatCard label="Stock crítico" value={alertas.items.length} tone={alertas.items.length > 0 ? "accent" : "neutral"} href="/alertas" hint={alertas.items.length > 0 ? "Repuestos en el mínimo o por debajo" : "Todo el stock está sobre el mínimo"} />
           </Card>
           <Card className="flex-1 min-w-[150px] p-4">
-            <Text className="text-sm text-muted">Pendiente cobro</Text>
-            <Text className="text-2xl font-bold text-fg mt-1">{formatMoney(totalPendiente)}</Text>
+            <StatCard label="Facturado este mes" value={formatMoney(facturadoDelMes(facturas.items))} href="/facturas" hint="Sin contar las facturas canceladas" />
+          </Card>
+          <Card className="flex-1 min-w-[150px] p-4">
+            <StatCard label="Facturado sin cobrar" value={formatMoney(totalSinCobrar(facturas.items))} tone={sinCobrar.length > 0 ? "accent" : "neutral"} href="/facturas" hint={`${sinCobrar.length} factura${sinCobrar.length === 1 ? "" : "s"} pendiente${sinCobrar.length === 1 ? "" : "s"}`} />
           </Card>
         </View>
 
-        <Card className="p-4">
-          <Text className="text-sm font-semibold text-fg mb-3">Órdenes recientes</Text>
-          {ordenesActivas.length === 0 ? (
-            <EmptyState icon={ClipboardList} title="Sin órdenes activas" description="No hay órdenes en este momento." />
-          ) : (
-            ordenesActivas.slice(0, 5).map((o) => (
-              <View key={o.id} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
-                <Text className="text-sm text-fg flex-1" numberOfLines={1}>#{o.id} — {o.descripcion}</Text>
-                <EstadoBadge estado={o.estado} />
-              </View>
-            ))
-          )}
-        </Card>
-
-        {alertas.items.length > 0 && (
-          <Card className="p-4">
-            <Text className="text-sm font-semibold text-fg mb-3">Stock bajo</Text>
-            {alertas.items.slice(0, 5).map((a) => (
-              <View key={`${a.repuesto_id ?? a.id ?? a.codigo}`} className="flex-row items-center justify-between py-2 border-b border-border last:border-b-0">
-                <Text className="text-sm text-fg flex-1" numberOfLines={1}>{a.nombre}</Text>
-                <Text className="text-sm text-danger font-medium">{a.stock} / {a.stock_minimo}</Text>
+        <View className="flex-row flex-wrap gap-4">
+          <Card className="flex-1 min-w-[320px] overflow-hidden">
+            <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
+              <Text className="text-base font-semibold text-fg">Últimas órdenes</Text>
+              <Link href="/ordenes" asChild><Text className="text-sm font-medium text-primary">Ver todas</Text></Link>
+            </View>
+            {recientes.length === 0 ? (
+              <Text className="text-center text-muted py-10">No hay órdenes cargadas.</Text>
+            ) : recientes.map((orden) => (
+              <View key={orden.id} className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
+                <View className="flex-1 min-w-0">
+                  <Text className="font-medium text-fg" numberOfLines={1}>{orden.descripcion}</Text>
+                  <Text className="text-xs text-muted" numberOfLines={1}>{clienteMap.get(orden.cliente_id)?.nombre ?? "Sin cliente"} · {formatFecha(orden.fecha_recibido)}</Text>
+                </View>
+                <EstadoBadge estado={orden.estado} />
+                <Text className="w-24 text-right text-sm text-muted">{formatMoney(orden.total_mano_obra)}</Text>
               </View>
             ))}
           </Card>
-        )}
+
+          <Card className="flex-1 min-w-[280px] overflow-hidden">
+            <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
+              <Text className="text-base font-semibold text-fg">Repuestos bajo mínimo</Text>
+              <Link href="/alertas" asChild><Text className="text-sm font-medium text-primary">Ver todo</Text></Link>
+            </View>
+            {alertas.items.length === 0 ? (
+              <Text className="text-center text-muted py-10">Ningún repuesto está en el mínimo.</Text>
+            ) : alertas.items.slice(0, 6).map((alerta) => (
+              <View key={alerta.id} className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
+                <View className="flex-1 min-w-0">
+                  <Text className="font-medium text-fg" numberOfLines={1}>{alerta.nombre}</Text>
+                  <Text className="text-xs text-subtle" numberOfLines={1}>{alerta.codigo}</Text>
+                </View>
+                <Text className="font-semibold text-accent">{alerta.stock}</Text>
+                <Text className="text-xs text-subtle">de {alerta.stock_minimo} mín.</Text>
+              </View>
+            ))}
+          </Card>
+        </View>
       </View>
     </ScrollView>
   );

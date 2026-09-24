@@ -96,7 +96,7 @@ type Pago struct {
 }
 
 type AlertaStock struct {
-	ID          int64  `json:"repuesto_id"`
+	ID          int64  `json:"id"`
 	Codigo      string `json:"codigo"`
 	Nombre      string `json:"nombre"`
 	Stock       int    `json:"stock"`

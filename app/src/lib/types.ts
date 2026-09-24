@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   email: string;
+  creado_en: string;
 }
 
 export interface Cliente {
@@ -10,8 +11,7 @@ export interface Cliente {
   email: string;
   direccion: string;
   notas: string;
-  created_at: string;
-  updated_at: string;
+  creado_en: string;
 }
 
 export interface Moto {
@@ -20,14 +20,19 @@ export interface Moto {
   marca: string;
   modelo: string;
   anio: number;
-  patente: string;
+  placa: string;
   color: string;
-  notas: string;
-  created_at: string;
-  updated_at: string;
+  vin: string;
+  kilometraje: number;
+  creado_en: string;
 }
 
-export type OrdenEstado = "recibida" | "en_progreso" | "finalizada" | "cancelada";
+export type OrdenEstado =
+  | "recibido"
+  | "en_progreso"
+  | "esperando_repuestos"
+  | "terminado"
+  | "entregado";
 
 export interface OrdenTrabajo {
   id: number;
@@ -35,14 +40,17 @@ export interface OrdenTrabajo {
   moto_id: number;
   descripcion: string;
   diagnostico: string;
-  costo_mano_obra: number;
   estado: OrdenEstado;
+  fecha_recibido: string;
+  fecha_entrega: string | null;
+  total_mano_obra: number;
   notas: string;
-  created_at: string;
-  updated_at: string;
+  creado_en: string;
+  actualizado_en: string;
 }
 
 export interface OrdenRepuesto {
+  id: number;
   orden_id: number;
   repuesto_id: number;
   cantidad: number;
@@ -54,15 +62,15 @@ export interface Repuesto {
   id: number;
   codigo: string;
   nombre: string;
+  descripcion: string;
   categoria: string;
   ubicacion: string;
   precio_compra: number;
   precio_venta: number;
   stock: number;
   stock_minimo: number;
-  descripcion: string;
-  created_at: string;
-  updated_at: string;
+  creado_en: string;
+  actualizado_en: string;
 }
 
 export type FacturaEstado = "pendiente" | "parcial" | "pagada" | "cancelada";
@@ -70,14 +78,15 @@ export type FacturaEstado = "pendiente" | "parcial" | "pagada" | "cancelada";
 export interface Factura {
   id: number;
   orden_id: number;
+  subtotal_mano_obra: number;
+  subtotal_repuestos: number;
   total: number;
-  pagado: number;
-  saldo: number;
   estado: FacturaEstado;
-  vencimiento: string;
+  fecha_emision: string;
+  fecha_vencimiento: string | null;
   notas: string;
-  created_at: string;
-  updated_at: string;
+  creado_en: string;
+  actualizado_en: string;
 }
 
 export interface Pago {
@@ -85,13 +94,13 @@ export interface Pago {
   factura_id: number;
   monto: number;
   metodo: string;
+  fecha: string;
   notas: string;
-  created_at: string;
+  creado_en: string;
 }
 
 export interface AlertaStock {
-  repuesto_id?: number;
-  id?: number;
+  id: number;
   codigo: string;
   nombre: string;
   stock: number;
@@ -99,10 +108,11 @@ export interface AlertaStock {
 }
 
 export const ORDEN_ESTADOS: OrdenEstado[] = [
-  "recibida",
+  "recibido",
   "en_progreso",
-  "finalizada",
-  "cancelada",
+  "esperando_repuestos",
+  "terminado",
+  "entregado",
 ];
 
 export const FACTURA_ESTADOS: FacturaEstado[] = [
@@ -113,10 +123,11 @@ export const FACTURA_ESTADOS: FacturaEstado[] = [
 ];
 
 export const ORDEN_ESTADO_LABELS: Record<OrdenEstado, string> = {
-  recibida: "Recibida",
+  recibido: "Recibido",
   en_progreso: "En progreso",
-  finalizada: "Finalizada",
-  cancelada: "Cancelada",
+  esperando_repuestos: "Esperando repuestos",
+  terminado: "Terminado",
+  entregado: "Entregado",
 };
 
 export const FACTURA_ESTADO_LABELS: Record<FacturaEstado, string> = {

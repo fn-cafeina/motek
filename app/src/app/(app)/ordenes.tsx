@@ -23,7 +23,7 @@ export default function OrdenesScreen() {
   const [filter, setFilter] = useState<OrdenEstado | "">("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OrdenTrabajo | null>(null);
-  const [form, setForm] = useState({ cliente_id: "", moto_id: "", descripcion: "", diagnostico: "", costo_mano_obra: "", notas: "" });
+  const [form, setForm] = useState({ cliente_id: "", moto_id: "", descripcion: "", diagnostico: "", total_mano_obra: "", notas: "" });
   const [saving, setSaving] = useState(false);
 
   const clienteMap = new Map(clientes.items.map((c) => [c.id, c]));
@@ -32,7 +32,7 @@ export default function OrdenesScreen() {
 
   function openCreate() {
     setEditing(null);
-    setForm({ cliente_id: "", moto_id: "", descripcion: "", diagnostico: "", costo_mano_obra: "", notas: "" });
+    setForm({ cliente_id: "", moto_id: "", descripcion: "", diagnostico: "", total_mano_obra: "", notas: "" });
     setDialogOpen(true);
   }
 
@@ -43,7 +43,7 @@ export default function OrdenesScreen() {
       moto_id: String(o.moto_id),
       descripcion: o.descripcion,
       diagnostico: o.diagnostico ?? "",
-      costo_mano_obra: String(o.costo_mano_obra ?? ""),
+      total_mano_obra: String(o.total_mano_obra ?? ""),
       notas: o.notas ?? "",
     });
     setDialogOpen(true);
@@ -58,7 +58,7 @@ export default function OrdenesScreen() {
         moto_id: Number(form.moto_id),
         descripcion: form.descripcion,
         diagnostico: form.diagnostico,
-        costo_mano_obra: Number(form.costo_mano_obra) || 0,
+        total_mano_obra: Number(form.total_mano_obra) || 0,
         notas: form.notas,
       };
       if (editing) {
@@ -122,7 +122,7 @@ export default function OrdenesScreen() {
               </View>
               <EstadoBadge estado={o.estado} />
             </View>
-            <Text className="text-sm text-muted mb-2">{formatMoney(o.costo_mano_obra ?? 0)}</Text>
+            <Text className="text-sm text-muted mb-2">{formatMoney(o.total_mano_obra ?? 0)}</Text>
             <View className="flex-row gap-2">
               <Pressable onPress={() => openEdit(o)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
               <Pressable onPress={() => handleDelete(o)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
@@ -138,7 +138,7 @@ export default function OrdenesScreen() {
           <Field label="Moto ID" value={form.moto_id} onChangeText={(v) => setForm({ ...form, moto_id: v })} placeholder="ID de la moto" keyboardType="numeric" />
           <Field label="Descripción *" value={form.descripcion} onChangeText={(v) => setForm({ ...form, descripcion: v })} placeholder="Descripción del trabajo" multiline numberOfLines={3} />
           <Field label="Diagnóstico" value={form.diagnostico} onChangeText={(v) => setForm({ ...form, diagnostico: v })} placeholder="Diagnóstico" multiline numberOfLines={3} />
-          <Field label="Costo mano de obra" value={form.costo_mano_obra} onChangeText={(v) => setForm({ ...form, costo_mano_obra: v })} placeholder="0" keyboardType="numeric" />
+          <Field label="Costo mano de obra" value={form.total_mano_obra} onChangeText={(v) => setForm({ ...form, total_mano_obra: v })} placeholder="0" keyboardType="numeric" />
           <Field label="Notas" value={form.notas} onChangeText={(v) => setForm({ ...form, notas: v })} placeholder="Notas" multiline numberOfLines={3} />
           <Button onPress={handleSave} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
         </View>
