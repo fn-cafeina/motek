@@ -1,21 +1,25 @@
 # Tablero (Inicio)
 
-La primera pantalla al entrar. Resume el estado del taller en cuatro tarjetas y dos listas. Todo lo que aparece acá es un acceso directo: tocando una tarjeta o un enlace vas a la pantalla correspondiente.
+La pantalla inicial carga órdenes, facturas, alertas de stock y clientes para resumir el estado del taller.
 
 ## Las cuatro tarjetas
 
-| Tarjeta | Qué muestra |
-|---|---|
-| **Órdenes activas** | Cuántas órdenes están sin entregar, con el desglose por estado. Cada estado es un filtro: al tocarlo vas a Órdenes ya filtrado. |
-| **Stock crítico** | Cuántos repuestos están en el mínimo o por debajo. Lleva a Alertas. |
-| **Facturado este mes** | Lo facturado en el mes actual, sin contar las facturas canceladas. Lleva a Facturas. |
-| **Facturado sin cobrar** | La suma de las facturas pendientes y parciales: la plata que todavía tiene que entrar. |
+| Tarjeta | Qué muestra | ¿Abre otra pantalla? |
+|---|---|---|
+| **Órdenes activas** | Cuántas órdenes tienen estado distinto de `entregado` y cuántas están en progreso. | No; muestra un resumen, no un desglose filtrable. |
+| **Stock crítico** | Cuántos repuestos están en el mínimo o por debajo. | Sí, abre **Alertas**. |
+| **Facturado este mes** | Suma de facturas no canceladas emitidas en el mes actual. | Sí, abre **Facturas**. |
+| **Facturado sin cobrar** | Suma de los totales completos de facturas `pendiente` o `parcial`. | Sí, abre **Facturas**. |
 
-## Las dos listas
+**Importante:** la tarjeta “Facturado sin cobrar” no descuenta los pagos ya registrados. Para conocer el saldo real de una factura, abrí su detalle y restá los pagos.
 
-- **Últimas órdenes** — las 8 más recientes, con cliente, fecha, estado y mano de obra. **Ver todas** lleva a Órdenes.
-- **Repuestos bajo mínimo** — los 6 más urgentes, con el stock actual y el mínimo. **Ver todo** lleva a Alertas.
+## Listas
 
-## Taller nuevo
+- **Últimas órdenes** muestra hasta las 8 órdenes más recientes, con descripción, cliente, fecha, estado y mano de obra. **Ver todas** abre **Órdenes**.
+- **Repuestos bajo mínimo** muestra hasta las 6 alertas más urgentes, con stock actual y mínimo. **Ver todo** abre **Alertas**.
 
-Si todavía no cargaste nada, en lugar del tablero vas a ver un mensaje de bienvenida con un botón para ir a Clientes y empezar: el primer paso siempre es registrar un cliente con su moto.
+## Actualizar y estado inicial
+
+Deslizá hacia abajo para actualizar las cuatro colecciones. Si todavía no hay órdenes ni facturas, aparece el mensaje **Todavía no hay movimiento** con un acceso a **Clientes**, aunque ya existan clientes o repuestos cargados.
+
+Si hay facturas u órdenes pero falta alguna otra colección, la pantalla puede mostrar datos parciales junto con un aviso de error o carga.

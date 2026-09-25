@@ -1,46 +1,71 @@
 # Frontend
 
-SPA Vite + React 19 + TypeScript + Tailwind v4 + React Router 8. Todo en español.
+La aplicación es Expo SDK 57 con React Native 0.86, Expo Router, Metro, Tailwind CSS 4 y UniWind. Está escrita en TypeScript estricto y no es una SPA de Vite.
 
 ## Rutas
 
-| Ruta | Página | Qué hay |
+Las rutas viven en `app/src/app/`. Cada archivo dentro de `app/src/app/` es una pantalla o layout de Expo Router.
+
+| Ruta | Pantalla | Contenido |
 |---|---|---|
-| `/` | Inicio | Tablero: 4 tarjetas + últimas órdenes + bajo mínimo. |
-| `/ordenes` | Órdenes | Filtro por estado en la URL (`?estado=`), tabla, ficha lateral con repuestos. |
-| `/clientes` | Clientes | Buscador local, diálogo de motos por cliente. |
-| `/repuestos` | Repuestos | Buscador + filtro de stock bajo, ajuste de stock. |
-| `/facturas` | Facturas | Filtro por estado en la URL, ficha con pagos. |
-| `/alertas` | Alertas | Stock crítico, diálogo de surtido. |
-| `/login`, `/register` | Cuentas | Fuera del shell, tarjeta centrada. |
+| `/login` | Iniciar sesión | Formulario de acceso y enlace a registro. |
+| `/register` | Crear cuenta | Formulario de email y contraseña. |
+| `/` | Inicio | Tablero con tarjetas, últimas órdenes y alertas. |
+| `/ordenes` | Órdenes | Filtro por estado, tarjetas y modal de detalle. |
+| `/clientes` | Clientes | Directorio, buscador y motos expandibles. |
+| `/repuestos` | Repuestos | Inventario, búsqueda, filtro de stock y ajustes. |
+| `/facturas` | Facturas | Filtro por estado, creación, edición y pagos. |
+| `/alertas` | Alertas | Repuestos en stock mínimo o por debajo. |
 
-Las páginas de app cuelgan de `ProtectedRoute → Layout`; si no hay sesión, van a `/login`.
+El layout de `(app)` no usa `ProtectedRoute`: `AuthProvider` vive en el layout raíz y `(app)/_layout.tsx` hace `Redirect` a `/login` cuando no hay usuario.
 
-## El shell
+## Shell responsive
 
-`Layout` monta el `ResumenProvider` y compone `Sidebar` (desktop, colapsable con persistencia) + `Topbar` (título de la sección + campana + menú de cuenta con tema y salida) + `BottomNav` (móvil, las 6 secciones) + `<main>` con el contenido. El título de cada sección sale de `layout/nav.ts`, que también define grupos, iconos y qué contador lleva cada item.
+El shell se define directamente en `app/src/app/(app)/_layout.tsx`.
 
-## Capa de datos
+- Desde 900 px de ancho muestra un sidebar con grupos **Taller** y **Administración**.
+- En escritorio muestra el email y la inicial del usuario en el pie, el cierre de sesión y un botón para contraer el menú.
+- En pantallas angostas muestra un encabezado con el título, un enlace de campana a `/alertas`, un icono de cierre de sesión y una barra inferior con las seis secciones.
+- El colapso del sidebar es estado local de la sesión de la pantalla; no se persiste.
 
-- **`api/client.ts`** — `api<T>(path, opts)`: pone el token solo, aborta a los 15s, traduce fallos a `ApiError(status, message)`, convierte `204`/vacío en `null` y `null` en `[]`. Ante un 401 fuera de login/register/me: borra el token y emite `motek:unauthorized`, que desloguea.
-- **`hooks/useCollection.ts`** — `useCollection(path, mensaje, params)`: `load()` con spinner para la primera carga, `refresh()` silencioso para reintentos y revalidaciones. Los params se serializan a query omitiendo vacíos.
-- **Resumen** (`contexts/ResumenContext` + `lib/resumen.ts`) — carga en paralelo órdenes, facturas, alertas y clientes; se refresca al navegar y 250ms después de cada escritura (el cliente emite `motek:mutated` tras cada POST/PUT/PATCH/DELETE). De acá salen los badges, la campana, los KPIs del tablero, los totales sin filtrar y los conteos que usan los diálogos de borrado.
-- **`lib/`** — `validate` (email, requerido, numérico), `format` (pesos `es-AR` sin decimales, fechas `dd/mm/aaaa` con cuidado de no correr el día por UTC-3), `errors` (`getErrorMessage`), `contador` (la frase única de los contadores: `"14 órdenes"` sin filtro, `"3 de 14"` con filtro).
+## Datos y sesión
 
-## Primitivas (`components/`)
+- `lib/api.ts` — `api<T>(path, opts)`: agrega el token, codifica cuerpos JSON, usa una URL absoluta y aplica timeout de 15 segundos. Los `204` y cuerpos vacíos se convierten en `null`. Un `401` fuera de login, registro y `/me` borra el token.
+- `lib/storage.ts` — guarda `motek_token` en `SecureStore` en iOS/Android y en `localStorage` en web.
+- `lib/auth.tsx` — `AuthProvider` restaura la sesión con `GET /api/auth/me`, registra, inicia sesión y cierra sesión borrando el token.
+- `hooks/useCollection.ts` — carga listas, normaliza `null` a `[]` y ofrece `load` y `refresh`.
+- `lib/resumen.ts` — funciones puras para contar órdenes, calcular facturado del mes y agrupar facturas pendientes o parciales.
 
-- **Overlays**: `Dialog` (formularios, foco al primer campo), `Drawer` (fichas de lectura, foco al panel), `ConfirmDialog` (destructivas; con `blocked` explica por qué no se puede y no ofrece confirmar), `Menu` (desplegables no modales con flechas). Comportamiento compartido en `overlay/useOverlayBehavior` (pila, trampa de tab, Escape, scroll-lock, devolución de foco).
-- **Listas**: `Table` (desktop) + `MobileList` (móvil) —toda tabla tiene su versión apilada—; `FilterBar`, `SearchInput`, `FilterSelect`; `RowActions` (editar/borrar + acciones puntuales, siempre visibles por táctil).
-- **Formularios**: `Form` (+ `FormGrid`, `FormActions` con pie fijo en móvil), `Field` (label + error/hint + slot derecho para el ojo de la contraseña).
-- **Estados**: `Alert` (errores y avisos), `EmptyState` (vacíos con acción), `Skeleton`/`TableSkeleton`/`StatSkeleton` (cargas), `Badge`/`EstadoBadge` (etiquetas con punto, nunca solo color), `DataCard` (el contenedor de lista que orquesta toolbar → skeleton → error con reintento → vacío → contenido), `Toast` (éxito/error/info, 3s o 5s).
-- **Estilos base**: `buttonClassName` (6 variantes, 40px táctil en móvil / 36px en desktop), `inputClassName` (16px en móvil para que iOS no haga zoom, 13px en desktop).
+No existe `ResumenProvider`, `api/client.ts`, `ProtectedRoute`, `Table`, `MobileList`, `Drawer`, `ConfirmDialog`, `Menu` ni eventos globales `motek:*` en esta versión. Las pantallas son las que orquestan sus propias colecciones y refrescos.
 
-El sistema visual —tokens, escalas, temas— tiene su propia guía: [Diseño](diseno.md).
+## Primitivas visuales
 
-## Comandos
+Las componentes compartidas están en `components/ui/`:
+
+- `AuthCard`, `Card`, `Button`, `Field` y `SelectField` para formularios y superficies.
+- `Dialog` para formularios y acciones; las fichas de orden y factura usan además un `Modal` deslizante.
+- `Alert`, `Toast`, `EmptyState`, `Spinner` y `EstadoBadge` para estados y mensajes.
+- `EstadoBadge` representa los estados de órdenes y facturas con etiqueta y punto, no solo con color.
+
+Los botones tienen variantes `primary`, `secondary`, `ghost` y `danger`, con tamaños `sm` y `md`. Las listas usan `FlatList` y las acciones se acompañan de `lucide-react-native`.
+
+## Estilos
+
+`src/global.css` importa Tailwind y UniWind y define los tokens en `light` y `dark`. `metro.config.js` registra ese archivo como `cssEntryFile`. Las pantallas usan clases de utility y componentes React Native; no existen `index.css`, `buttonStyles.ts` ni `inputStyles.ts` de una versión web anterior.
+
+## Configuración y comandos
 
 ```bash
-npm run dev      # http://localhost:5173 (proxy /api → :8080)
-npm run build    # tsc -b && vite build → dist/
-npm run lint     # oxlint
+cp .env.example .env
+npm install
+npm start
+npm run ios
+npm run android
+npm run web
+npm run lint
+npx tsc --noEmit
 ```
+
+`EXPO_PUBLIC_API_URL` apunta a la API y, si no está definido, se usa `http://localhost:8080`. En un dispositivo físico o emulador Android, `localhost` no apunta al equipo servidor: usá la IP LAN.
+
+No hay script `dev`, `build` ni `oxlint`; Expo usa `expo start` y `expo lint`.

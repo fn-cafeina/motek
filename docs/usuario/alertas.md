@@ -1,13 +1,20 @@
 # Alertas de stock
 
-Avisa qué repuestos están llegando a su mínimo antes de que falten en medio de un trabajo.
+La pantalla muestra los repuestos que necesitan reposición. Un repuesto aparece cuando `stock` es menor o igual que `stock_minimo`; el backend los ordena de menor a mayor stock.
 
-## Cómo funciona
+## Buscar y actualizar
 
-Un repuesto aparece acá cuando su stock está **en el mínimo o por debajo** (el mínimo se define por repuesto, en [Repuestos](repuestos.md)). La lista está ordenada del más urgente al menos urgente, y la campana de arriba a la derecha muestra siempre cuántos hay.
+El buscador filtra por código o nombre. La pantalla muestra la cantidad de resultados o de alertas y tiene **Actualizar**. También podés deslizar hacia abajo para recargar.
 
-## Surtir
+La campana del encabezado es un acceso directo a esta pantalla, pero no muestra un contador de alertas.
 
-Cada fila tiene un botón para **surtir**: ingresás cuántas unidades entraron y el stock suma. Si con eso supera el mínimo, el repuesto sale de la lista automáticamente. El botón **Actualizar** recarga la lista por si otro usuario movió stock mientras tanto.
+## Ajustar desde una alerta
 
-Cuando no hay nada crítico, la pantalla lo dice con un "Todo en stock" en lugar de una tabla vacía.
+En cada tarjeta, tocá **Surtir** para abrir el ajuste. Ingresá una cantidad distinta de cero:
+
+- Positiva: agrega unidades al stock.
+- Negativa: descuenta unidades.
+
+Después de aplicar el cambio, la lista se actualiza y el repuesto sale de las alertas si supera su mínimo. Si el ajuste intenta dejar el stock negativo, el servidor rechaza la operación.
+
+Cuando no hay repuestos en alerta, la pantalla muestra **Todo en stock**. Si la búsqueda no encuentra coincidencias, ofrece limpiar la búsqueda.

@@ -1,36 +1,65 @@
 # Configuración
 
-## Backend (`backend/.env`)
+## Backend: `backend/.env`
+
+`cmd/motek/main.go` carga el archivo `.env` desde el directorio de trabajo. Después lee las variables con `config.FromEnv()` y exige `JWT_SECRET`.
 
 ```bash
-cp backend/.env.example backend/.env   # y completar
+cp backend/.env.example backend/.env
 ```
 
-| Variable | Default | Qué es |
+| Variable | Default en código | Qué representa |
 |---|---|---|
 | `DB_HOST` | `127.0.0.1` | Host de MySQL. |
 | `DB_PORT` | `3306` | Puerto de MySQL. |
-| `DB_USER` / `DB_PASSWORD` | — | Credenciales. Sin default: hay que ponerlas. |
-| `DB_NAME` | `motek` | Base de uso. Hay que crearla: `CREATE DATABASE motek;`. |
-| `JWT_SECRET` | — | **Requerido.** Firma los tokens. Sin esto el backend no arranca. En producción, largo y aleatorio. |
-| `SERVER_PORT` | `8080` | Puerto de la API. |
+| `DB_USER` | — | Usuario de MySQL; hay que configurarlo. |
+| `DB_PASSWORD` | — | Contraseña de MySQL; hay que configurarla. |
+| `DB_NAME` | — | Base que debe existir. `motek` es solo el valor del ejemplo. |
+| `JWT_SECRET` | — | Secreto para firmar JWT; obligatorio para el proceso normal. |
+| `SERVER_PORT` | `8080` | Puerto del servidor HTTP. |
 
-Al arrancar: conecta, hace `Ping`, corre las migraciones (`CREATE TABLE IF NOT EXISTS` ×8) y sirve con timeouts de lectura 10s / escritura 15s / idle 60s. Se apaga graceful con SIGINT/SIGTERM (10s de gracia). Salud: `GET /health` → `200 {"status":"ok"}` (pública, sin token).
+El store hace `Ping` a la base configurada y luego ejecuta las ocho migraciones `CREATE TABLE IF NOT EXISTS`. El servidor usa timeouts de lectura de 10 s, escritura de 15 s e idle de 60 s, y se apaga con `SIGINT` o `SIGTERM` esperando hasta 10 s.
 
-## Frontend (`frontend/.env`)
+### CORS y salud
+
+El backend devuelve `Access-Control-Allow-Origin: *` y permite `GET, POST, PUT, PATCH, DELETE, OPTIONS` con headers `Content-Type` y `Authorization`. Los preflight responden `204`. `GET /health` es público y devuelve `200 {"status":"ok"}`.
+
+## Aplicación: `app/.env`
 
 ```bash
-# VITE_API_URL=http://localhost:8080
+cp app/.env.example app/.env
 ```
 
-Por defecto no hace falta: en desarrollo el dev server hace proxy de `/api` al backend en `localhost:8080`, mismo origen, sin CORS. Solo si el backend está en otro host se descomenta y se apunta. Solo las `VITE_*` llegan al navegador.
+| Variable | Default | Qué representa |
+|---|---|---|
+| `EXPO_PUBLIC_API_URL` | `http://localhost:8080` | URL absoluta de la API. |
 
-## Puertos (desarrollo)
+Para iOS Simulator, web y un backend local, `localhost` puede servir. En un teléfono físico o emulador Android, usá la IP LAN del equipo que corre la API. No hay proxy Vite ni una variable `VITE_API_URL`; la app llama directamente a la URL configurada.
 
-| Servicio | URL |
+## Scripts de la aplicación
+
+```bash
+cd app
+npm install
+npm start
+npm run ios
+npm run android
+npm run web
+npm run lint
+npx tsc --noEmit
+```
+
+`app.json` habilita objetivos iOS, Android y web, con Metro como bundler web y rutas tipadas de Expo. El servidor de desarrollo de Expo elige su puerto; no se debe asumir `5173`.
+
+## Puertos y servicios
+
+| Servicio | URL o puerto |
 |---|---|
-| Frontend | `http://localhost:5173` |
-| Backend | `http://localhost:8080` |
-| MySQL | `127.0.0.1:3306` |
+| API Motek | `http://localhost:8080` por defecto, o `SERVER_PORT`. |
+| Expo Metro | Puerto que elige Expo; suele ser el 8081 en desarrollo. |
+| MySQL | `127.0.0.1:3306` por defecto. |
+| Servidor web de Expo | Puerto habilitado por Expo/Metro. |
 
-Si dos instancias del backend corren a la vez (pasó durante el desarrollo con `SERVER_PORT=8099`), los 409 de borrado pueden venir de la instancia vieja: verificar cuál responde antes de sospechar del código.
+## Variables de tests
+
+`TEST_DB_NAME` solo se usa en la suite backend. Si no está definida, la suite usa `motek_test`. No la apuntes a una base de producción: ver la advertencia de [Tests](tests.md).

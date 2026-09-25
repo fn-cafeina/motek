@@ -1,40 +1,49 @@
 # Sistema visual
 
-Vive en `frontend/src/index.css` (tokens y escalas), `buttonStyles.ts` e `inputStyles.ts`. La regla madre: **los tokens se declaran por rol, no por color** (`surface`, `primary`, `accent`), y el tema oscuro los reescribe. Los componentes nunca hardcodean un hexadecimal.
+Los estilos viven en `app/src/global.css`, que importa Tailwind CSS y UniWind. `app/metro.config.js` conecta ese archivo con Metro.
 
-## Significado de los colores
+## Tokens
 
-Azul = "esto se toca", naranja = "esto requiere que mires", gris = "esto ya está". El naranja nunca supera ~10% de la superficie; si todo es urgente, nada es urgente.
+`global.css` define variantes `light` y `dark` para los roles principales:
 
-| Rol | Claro | Oscuro | Uso |
+| Rol | Claro | Oscuro | Uso típico |
 |---|---|---|---|
-| `primary` | `#1e4e8c` | `#5695e0` | Acciones, links, seleccionado. |
-| `accent` | `#b23c0b` | `#fb923c` | Stock bajo, alertas, "esperando repuestos". Reservado a lo que exige atención. |
-| `ok` | `#0f6b32` | `#3fb950` | Pagada, terminado, éxito. |
-| `danger` | `#b91c1c` | `#f85149` | Borrar, errores. |
-| `info` | `#0b6ba8` | `#4aa8d8` | Recibido, parcial, avisos neutros. |
-| `canvas/surface/raised` | `#f6f7f9/#fff/#f1f3f7` | `#0e1116/#161b22/#1c222b` | Fondo, tarjetas, hundidos. |
+| `canvas` | `#f6f7f9` | `#0e1116` | Fondo de la pantalla. |
+| `surface` | `#ffffff` | `#161b22` | Tarjetas, diálogos y superficies. |
+| `raised` | `#f1f3f7` | `#1c222b` | Estados presionados y superficies secundarias. |
+| `primary` | `#1e4e8c` | `#5695e0` | Acciones y navegación activa. |
+| `accent` | `#b23c0b` | `#fb923c` | Stock bajo y situaciones que requieren atención. |
+| `ok` | `#0f6b32` | `#3fb950` | Éxito y estados terminales positivos. |
+| `danger` | `#b91c1c` | `#f85149` | Errores y acciones destructivas. |
+| `info` | `#0b6ba8` | `#4aa8d8` | Estados informativos. |
+| `fg` / `muted` / `subtle` | `#12161c` / `#4d5563` / `#656d7a` | `#e6eaf0` / `#a5b0bf` / `#808b9a` | Jerarquía de texto. |
 
-Cada tono tiene su variante `soft` (fondo de chip) y los textos son `fg/muted/subtle` (principal, secundario, terciario). Las etiquetas de estado llevan punto además de color: nunca solo color.
+Los roles tienen variantes `soft` para fondos, además de `border` y `border-strong`. Las pantallas suelen usar clases como `bg-canvas`, `bg-surface`, `text-fg`, `text-muted` y `text-accent` en lugar de elegir colores directamente.
 
-## Escalas
+## Tema
 
-Escritas como norma en `index.css`. Lo que no está en la lista es un error, no una decisión: si hace falta un valor nuevo, se agrega primero acá.
+La aplicación fuerza el tema del sistema:
 
-- **Espaciado**: 2 (gaps densos) · 6 (chips, botones de fila) · 8 (controles) · 12 (filas, toolbars) · 16 (padding de superficie, ritmo entre bloques) · 24 (secciones).
-- **Radios**: 6px controles (`rounded-md`) · 10px superficies (`rounded-lg`) · `full` solo puntos e indicadores.
-- **Iconos**: 14px acciones en filas · 16px botones, avisos y vacíos · 20px navegación y topbar.
-- **Tipografía**: 12 · 13 · 15 · 20 · 26. La micro (10–11px) solo donde no hay espacio (etiqueta de grupo del sidebar, barra móvil).
+- `app/src/app/_layout.tsx` llama `Uniwind.setTheme("system")`.
+- `app.json` declara `userInterfaceStyle: "automatic"`.
+- No hay selector claro/oscuro, clave `motek_theme` ni script de prepintado web.
 
-Shell: header 52px, sidebar 14rem (4rem colapsado), barra móvil 64px, contenido máximo 1360px. Capas: header 10, diálogos 50, toasts 100. Foco global único (`:focus-visible` con outline de 2px); los componentes no dibujan anillo propio.
+Cuando agregues un color, definí el comportamiento de los dos temas y usá el rol semántico correspondiente. Evitá depender de una captura de pantalla de una sola variante.
 
-## Temas
+## Responsive y capas
 
-Claro/Oscuro/Según el sistema, con persistencia en `localStorage` (`motek_theme`) y un script pre-pintado en `index.html` que evita el destello. Se cambia desde el menú de cuenta del topbar.
+- El shell cambia a sidebar a partir de 900 px de ancho.
+- El encabezado del shell mide 52 px; el sidebar expandido usa `w-56` y el colapsado `w-16`.
+- Las pantallas usan `FlatList`, `ScrollView`, `Dialog` y modales; el contenido de las fichas se limita con `max-h-[92%]` o `max-h-[85vh]`.
+- No hay una tabla web global ni una regla de ancho máximo de 1360 px en el shell.
+- La barra inferior móvil usa `flex-row`, iconos de 19 px y etiquetas de 10 px; no es una altura fija global.
 
-## Agregar un componente
+## Convenciones para componentes
 
-1. Usá tokens (`bg-surface`, `text-muted`, `border-border`), nunca valores literales.
-2. Respetá las escalas: si el padding que querés no está en la lista, probablemente el diseño está mal, no la lista.
-3. Toda tabla necesita su `MobileList`; todo color de estado necesita su punto o icono; todo icono necesita su `aria-label` o `aria-hidden`.
-4. Revisá en oscuro antes de darlo por hecho: si agregaste un tono nuevo, agregalo en los dos temas.
+1. Usá tokens semánticos y respetá el contraste entre `fg`, `muted` y `subtle`.
+2. Revisá la variante clara y la oscura cuando agregues un color o una separación.
+3. Conservá etiquetas visibles para acciones de ícono; los estados no deben depender exclusivamente del color.
+4. Usá `Button` para acciones principales y `Dialog`/`Modal` para formularios y fichas.
+5. Mantené el diseño mobile-first: probá el ancho pequeño, el área segura y el desplazamiento de listas largas.
+
+La primitiva `Field` contiene actualmente un color literal para el placeholder (`#9ca3af`), por lo que la regla de “solo tokens” es una convención para los nuevos estilos y no una garantía automática de todos los componentes.

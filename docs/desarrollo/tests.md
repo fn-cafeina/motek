@@ -2,7 +2,7 @@
 
 ## Backend
 
-~55 tests a nivel de ruta (`internal/api/*_test.go`): levantan el router real con token y pegan contra MySQL de verdad. Cubren auth, CRUD por dominio, estados inválidos, duplicados (409), stock insuficiente, totales de factura y el ciclo de pagos.
+La suite es de nivel de ruta y usa el router real contra MySQL. Hay 59 funciones `Test*` en `internal/api`, además de `TestMain`.
 
 ```bash
 cd backend
@@ -10,17 +10,35 @@ go test ./...
 go vet ./...
 ```
 
-Necesitan MySQL corriendo y la base de tests: `motek_test` (o `TEST_DB_NAME`), con las credenciales del `backend/.env`. El `TestMain` migra y limpia las 8 tablas entre tests. Sin base, no corren: no hay mocks ni sqlite.
+### Requisitos y advertencia
 
-## Frontend
+- MySQL debe estar corriendo.
+- `TEST_DB_NAME` debe apuntar a una base de pruebas; si no existe, se usa `motek_test`.
+- Las credenciales vienen de `backend/.env` mediante `godotenv`.
+- `TestMain` abre la base y ejecuta las migraciones.
+- Los helpers de limpieza ejecutan `DELETE` sobre las ocho tablas de la base de pruebas.
 
-Sin tests automatizados. La verificación es triple y manual:
+**Nunca ejecutes la suite contra una base de producción o una base compartida con datos que quieras conservar.** No hay mocks ni SQLite: los tests necesitan el comportamiento real de MySQL.
+
+La cobertura existente incluye autenticación, CRUD de clientes y motos, órdenes y estados, repuestos y stock, facturas, pagos, duplicados, errores de validación y respuestas del router. Revisá `backend/internal/api/*_test.go` para el detalle.
+
+## Aplicación
+
+No hay tests automatizados ni script de test en `package.json`. Las verificaciones disponibles son:
 
 ```bash
-cd frontend
-npx tsc -b     # tipos (también corre en npm run build)
-npx oxlint     # lint (0 warnings es la norma)
-npm run build  # build de producción a dist/
+cd app
+npm run lint
+npx tsc --noEmit
 ```
 
-Más recorrido en navegador en claro y oscuro (las seis pantallas, panel de orden, diálogo de motos, login y móvil 390px). Si algún día hay tests, los primeros que pagan son: el cálculo de totales de factura del lado del resumen, `textoContador` y la máquina de estados de pago.
+Para una comprobación manual, cubrí:
+
+- Login, registro, restauración de sesión y cierre de sesión.
+- Navegación en escritorio y móvil, incluyendo el breakpoint de 900 px.
+- Alta y edición de clientes, motos, órdenes, repuestos, facturas y pagos.
+- Pull-to-refresh, filtros, diálogos, modales y estados vacíos.
+- Consumo y devolución de stock al agregar o quitar repuestos.
+- Facturación de órdenes entregadas y el comportamiento de facturas canceladas.
+
+Para validar dependencias y configuración de Expo, se puede ejecutar `npx expo-doctor` en un entorno de desarrollo. No hay un build de producción Vite: el bundler de la app es Expo/Metro.

@@ -1,53 +1,64 @@
 # Clientes y motos
 
+Todas las rutas de este capítulo requieren un token Bearer, salvo que se indique lo contrario.
+
 ## Clientes
 
-| Método | Ruta | Notas |
+| Método | Ruta | Comportamiento |
 |---|---|---|
-| GET | `/api/clientes` | Lista todo, del más nuevo al más viejo. |
-| POST | `/api/clientes` | `nombre` obligatorio → `400 "nombre es requerido"`. |
-| GET | `/api/clientes/{id}` | `404 "cliente no encontrado"`. |
-| PUT | `/api/clientes/{id}` | Reemplaza todos los campos; `nombre` obligatorio. |
-| DELETE | `/api/clientes/{id}` | `204`. Si tiene facturas emitidas → `409`. |
+| `GET` | `/api/clientes` | Lista clientes de más nuevo a más viejo. |
+| `POST` | `/api/clientes` | Crea un cliente; `nombre` es obligatorio. Responde `201`. |
+| `GET` | `/api/clientes/{id}` | Obtiene un cliente. Responde `404 "cliente no encontrado"` si no existe. |
+| `PUT` | `/api/clientes/{id}` | Reemplaza los datos editables; `nombre` sigue siendo obligatorio. |
+| `DELETE` | `/api/clientes/{id}` | Responde `204`; una factura en la cadena puede producir `409`. |
+
+Ejemplo:
 
 ```bash
 curl -X POST http://localhost:8080/api/clientes \
-  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
-  -d '{"nombre":"Marcos Herrera","telefono":"11 4523-8890","email":"marcos.herrera@gmail.com"}'
-# → 201 {"id":1,"nombre":"Marcos Herrera",...}
+  -H "Authorization: Bearer <token>" \
+  -H 'Content-Type: application/json' \
+  -d '{"nombre":"Marcos Herrera","telefono":"11 4523-8890","email":"marcos.herrera@example.com"}'
 ```
 
-Un cliente:
+Objeto de ejemplo:
 
 ```json
-{"id":1,"nombre":"Marcos Herrera","telefono":"11 4523-8890","email":"marcos.herrera@gmail.com","direccion":"","notas":"","creado_en":"2026-09-15T10:00:00Z"}
+{"id":1,"nombre":"Marcos Herrera","telefono":"11 4523-8890","email":"marcos.herrera@example.com","direccion":"","notas":"","creado_en":"2026-09-15T10:00:00Z"}
 ```
 
-### Por qué a veces no se puede borrar
+La respuesta de creación incluye el recurso, pero puede no incluir el `creado_en` generado por la base. Hacé un GET si necesitás leerlo.
 
-Borrar un cliente borra en cascada sus motos y sus órdenes. Pero si alguna de esas órdenes tiene factura emitida, la base lo frena y la API devuelve `409 "no se puede eliminar: el cliente tiene facturas emitidas"`. Es intencional: una factura es un documento y no puede quedar colgando de nada. El [modelo de datos](../desarrollo/base-de-datos.md) explica las cascadas exactas.
+### Borrado y facturas
+
+Borrar un cliente intenta eliminar en cascada sus motos y órdenes. Si alguna orden tiene una factura asociada, la base bloquea la operación y la API responde `409` con un mensaje como `no se puede eliminar: el cliente tiene facturas emitidas`. La factura puede estar cancelada: el esquema no la excluye de la restricción.
 
 ## Motos
 
-Las motos siempre pertenecen a un cliente: el `cliente_id` sale de la ruta, no del cuerpo.
+Las motos pertenecen al cliente indicado en la ruta; el `cliente_id` no se acepta como campo libre.
 
-| Método | Ruta | Notas |
+| Método | Ruta | Comportamiento |
 |---|---|---|
-| GET | `/api/motos` | Todas las motos. |
-| GET | `/api/clientes/{id}/motos` | Las de un cliente. |
-| POST | `/api/clientes/{id}/motos` | `marca` obligatoria → `400 "marca es requerida"`. Cliente inexistente → `404`. |
-| GET | `/api/motos/{id}` | `404 "moto no encontrada"`. |
-| PUT | `/api/motos/{id}` | `marca` obligatoria. |
-| DELETE | `/api/motos/{id}` | `204`. Si tiene facturas emitidas → `409 "no se puede eliminar: la moto tiene facturas emitidas"`. |
+| `GET` | `/api/motos` | Lista todas las motos. |
+| `GET` | `/api/clientes/{id}/motos` | Lista las motos de un cliente. |
+| `POST` | `/api/clientes/{id}/motos` | Crea una moto; `marca` es obligatoria. Cliente inexistente → `404`. |
+| `GET` | `/api/motos/{id}` | Obtiene una moto. |
+| `PUT` | `/api/motos/{id}` | Actualiza la moto; `marca` es obligatoria. |
+| `DELETE` | `/api/motos/{id}` | Responde `204`; una factura asociada puede producir `409`. |
+
+Ejemplo:
 
 ```bash
 curl -X POST http://localhost:8080/api/clientes/1/motos \
-  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer <token>" \
+  -H 'Content-Type: application/json' \
   -d '{"marca":"Honda","modelo":"Wave 110","anio":2021,"placa":"AB 123 CD"}'
 ```
 
-Una moto:
+Objeto de ejemplo:
 
 ```json
 {"id":1,"cliente_id":1,"marca":"Honda","modelo":"Wave 110","anio":2021,"placa":"AB 123 CD","color":"","vin":"","kilometraje":0,"creado_en":"2026-09-15T10:00:00Z"}
 ```
+
+La API no exige que la moto tenga una sola orden: puede asociarse a varias. Al crear o editar una orden, el backend valida las claves foráneas.

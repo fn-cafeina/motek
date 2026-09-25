@@ -2,24 +2,20 @@
 
 ## Crear una cuenta
 
-La primera vez, en la pantalla de inicio de sesión tocá **Registrate**. Solo pide email y contraseña (mínimo 6 caracteres). Al registrarte entrás directamente.
+En la pantalla de acceso, elegí **Registrate**. El formulario pide email y contraseña; la contraseña debe tener al menos 6 caracteres. Después de crear la cuenta, la aplicación inicia sesión automáticamente y entra al tablero.
 
 ## Iniciar sesión
 
-Ingresá tu email y contraseña y tocá **Entrar**. La sesión queda guardada en este navegador: si cerrás la pestaña y volvés, seguís adentro.
+Ingresá tu email y contraseña y tocá **Iniciar sesión**. Si faltan datos, la pantalla muestra un aviso. Si las credenciales no coinciden, aparece un error en el formulario.
 
-Si los datos no coinciden, vas a ver un aviso en rojo arriba del formulario. Revisá el email y probá de nuevo.
+La sesión queda guardada para que no tengas que ingresar en cada visita. En iOS y Android el token se guarda en el almacenamiento seguro de la aplicación; en web se guarda en el almacenamiento local del navegador.
 
 ## Tema claro y oscuro
 
-Arriba a la derecha hay un avatar con la inicial de tu email. Al tocarlo se abre el menú de cuenta, con tres opciones de tema:
-
-- **Claro** — fondo blanco, para trabajar de día.
-- **Oscuro** — fondo negro, para trabajar de noche o en lugares con poca luz.
-- **Según el sistema** — sigue lo que tenga configurado tu computadora o teléfono, y cambia solo.
-
-La elección queda guardada en este navegador.
+La aplicación sigue automáticamente el tema configurado en el sistema. No hay un selector manual de tema ni una preferencia independiente dentro de Motek.
 
 ## Cerrar sesión
 
-En el mismo menú, **Cerrar sesión**. Te va a pedir confirmación antes de salir. En una computadora compartida, cerrá siempre la sesión al terminar.
+En computadora de escritorio, el pie del sidebar muestra el email, la inicial y **Cerrar sesión**. En móvil, usá el icono de salida del encabezado. El cierre borra el token de la sesión actual y no requiere una confirmación adicional.
+
+En una computadora compartida, cerrá la sesión al terminar.

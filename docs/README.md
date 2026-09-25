@@ -1,15 +1,17 @@
 # Documentación de Motek
 
-Guías para usar el sistema, consumir la API y trabajar en el código.
+Documentación para usar el sistema, consumir la API y trabajar en el código.
 
 ## Índice
 
-- [Manual de usuario](usuario/README.md) — cómo se usa cada pantalla: tablero, órdenes, clientes, repuestos, facturas y alertas.
-- [Referencia de la API](api/README.md) — endpoints, autenticación, errores y ejemplos.
-- [Guía de desarrollo](desarrollo/README.md) — arquitectura, base de datos, decisiones de diseño y cómo extender el sistema.
+- [Manual de usuario](usuario/README.md) — cuentas, navegación y operación diaria del taller.
+- [Referencia de la API](api/README.md) — endpoints, autenticación, contratos, errores y CORS.
+- [Guía de desarrollo](desarrollo/README.md) — arquitectura, configuración, base de datos, reglas, frontend, diseño y pruebas.
 
-## El sistema en una frase
+## Qué resuelve el sistema
 
-Motek gestiona el taller de punta a punta: el cliente trae la moto, se abre una orden de trabajo, se cargan los repuestos que consume (el stock baja solo), se emite la factura con los totales ya calculados y se registran los pagos hasta saldarla.
+Motek acompaña una orden desde que entra la moto hasta que se factura y se cobra. El cliente, la moto, los repuestos consumidos y los pagos quedan relacionados; el stock se descuenta al agregar repuestos a una orden y los totales de la factura los calcula el servidor.
 
-Cada parte vive en su propia guía: si algo no está explicado acá, está explicado allá.
+## Antes de empezar
+
+Seguí el [inicio rápido del README principal](../README.md) para levantar MySQL, la API y la aplicación Expo. La configuración de red y las variables de entorno están en [Configuración](desarrollo/configuracion.md).

@@ -1,18 +1,43 @@
 # Motek — Backend
 
-API para taller mecánico (Go `net/http` + MySQL + JWT).
+API HTTP en Go `net/http` para Motek. Usa MySQL, JWT HS256 y bcrypt.
 
-Documentación: [guía de desarrollo](../docs/desarrollo/README.md) ([arquitectura](../docs/desarrollo/arquitectura.md), [base de datos](../docs/desarrollo/base-de-datos.md), [reglas](../docs/desarrollo/reglas.md), [configuración](../docs/desarrollo/configuracion.md), [tests](../docs/desarrollo/tests.md)) y [referencia de la API](../docs/api/README.md).
+Documentación relacionada: [guía de desarrollo](../docs/desarrollo/README.md) y [referencia de la API](../docs/api/README.md).
+
+## Requisitos
+
+- Go `1.26.5`.
+- MySQL con una base creada previamente.
+- Un `JWT_SECRET` para el proceso normal.
 
 ## Inicio rápido
 
 ```bash
-cp .env.example .env   # completar DB_* y JWT_SECRET
-# CREATE DATABASE motek;  # debe coincidir con DB_NAME
-go run ./cmd/motek     # http://localhost:8080
+mysql -u root -p -e "CREATE DATABASE motek;"
+cp .env.example .env
 ```
 
-Migraciones (`CREATE TABLE IF NOT EXISTS` ×8) se ejecutan al arrancar. `JWT_SECRET` es requerido. Salud pública: `GET /health` → `200 {"status":"ok"}`.
+Editá `.env` con las credenciales de MySQL y un secreto JWT. Después:
+
+```bash
+go run ./cmd/motek
+```
+
+El servidor escucha en `SERVER_PORT`, que por defecto es `8080`. `GET /health` es público y responde `200 {"status":"ok"}`.
+
+El proceso carga `.env` con `godotenv`, abre la base configurada, ejecuta las ocho migraciones `CREATE TABLE IF NOT EXISTS`, configura timeouts HTTP y se apaga de forma controlada ante `SIGINT` o `SIGTERM`.
+
+## Variables de entorno
+
+`DB_HOST` y `DB_PORT` tienen defaults `127.0.0.1` y `3306`; `DB_USER`, `DB_PASSWORD` y `DB_NAME` no tienen defaults en el código. `JWT_SECRET` es obligatorio. `SERVER_PORT` tiene default `8080`.
+
+## API
+
+JWT se genera con HS256 y dura 24 horas. Todas las rutas bajo `/api/*` requieren `Authorization: Bearer <token>`, excepto `POST /api/auth/register` y `POST /api/auth/login`. `GET /api/auth/me` sí requiere token. CORS permite cualquier origen y los métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS`; los preflight responden `204`.
+
+No existe logout en el servidor: el cliente borra el token. Las listas vacías se serializan como `[]` y los handlers usan errores JSON `{"error":"mensaje"}`; las respuestas 404, 405 o redirects del `ServeMux` pueden tener otro formato.
+
+Consultá [Referencia de la API](../docs/api/README.md) para las rutas, cuerpos, validaciones y errores.
 
 ## Tests
 
@@ -21,24 +46,21 @@ go test ./...
 go vet ./...
 ```
 
-Requieren MySQL + base de tests `motek_test` (o `TEST_DB_NAME`) con las credenciales de `.env`. Son route-level (`internal/api`) contra el router real con token.
+La suite usa el router real y MySQL, no mocks ni SQLite. `TestMain` lee `backend/.env`, usa `TEST_DB_NAME` o `motek_test`, abre esa base y ejecuta migraciones. Los helpers ejecutan `DELETE` sobre las ocho tablas.
 
-## API
-
-JWT HS256 24h (`Authorization: Bearer <token>`). Todo `/api/*` requiere token, salvo `POST /api/auth/register` y `POST /api/auth/login`. Logout es client-side (borrar token).
-
-Endpoints, errores y ejemplos en la [referencia de la API](../docs/api/README.md). Convenciones: JSON, listas vacías → `[]`, crear → `201`, borrar → `204` sin body, errores → `{"error":"mensaje"}` en español.
+**No apuntes `TEST_DB_NAME` a una base de producción ni a datos que quieras conservar.** Los tests pueden modificar y limpiar el contenido de la base configurada.
 
 ## Estructura
 
-```
+```text
 backend/
-├── cmd/motek/main.go          # wiring + graceful shutdown
+├── cmd/motek/main.go       # carga de configuración, wiring y servidor
 ├── internal/
-│   ├── config/                # Config desde env
-│   ├── store/                 # SQL por dominio + migrate + modelos
-│   ├── auth/                  # JWT + bcrypt
-│   └── api/                   # Server, rutas, middleware, handlers
+│   ├── config/             # lectura del entorno y DSN
+│   ├── auth/               # JWT y bcrypt
+│   ├── api/                # router, middleware y handlers
+│   └── store/              # modelos, SQL, errores y migraciones
 ├── .env.example
-└── .gitignore
+├── go.mod
+└── go.sum
 ```

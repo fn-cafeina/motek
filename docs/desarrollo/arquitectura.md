@@ -1,51 +1,79 @@
 # Arquitectura
 
+Motek tiene una aplicación cliente y una API que nunca comparte acceso directo a MySQL con ella.
+
 ## Las piezas
 
-```
-┌─────────────┐   HTTP/JSON    ┌──────────────┐   SQL    ┌─────────┐
-│  Frontend   │ ◄────────────► │   Backend    │ ◄──────► │  MySQL  │
-│ Vite + React│  :5173 → :8080 │ Go net/http  │          │  motek  │
-│ (SPA)       │   JWT Bearer   │ + JWT HS256  │          │         │
-└─────────────┘                └──────────────┘          └─────────┘
+```text
+┌──────────────────────────────┐       HTTP/JSON       ┌────────────────────────┐
+│ app/                         │  ◄─────────────────► │ backend/               │
+│ Expo + React Native          │   Authorization JWT  │ Go net/http            │
+│ Expo Router + Metro + UniWind│                       │ store + auth + API     │
+└──────────────────────────────┘                       └───────────┬────────────┘
+                                                                       │ SQL
+                                                                       ▼
+                                                               ┌──────────────┐
+                                                               │ MySQL        │
+                                                               │ base motek   │
+                                                               └──────────────┘
 ```
 
-- **Frontend** (`frontend/`) — SPA React. No habla con MySQL nunca: todo pasa por la API. En desarrollo, Vite hace proxy de `/api` al backend, así el navegador ve un solo origen y no hay CORS.
-- **Backend** (`backend/`) — API `net/http` estándar, sin framework. Capas: `api/` (HTTP: rutas, handlers, middleware) → `auth/` (JWT + bcrypt) → `store/` (SQL por dominio) → MySQL. Las dependencias se arman en `cmd/motek/main.go` y entran por constructor (`Server{Store, Auth}`).
-- **MySQL** — ocho tablas, creadas por el propio backend al arrancar. Ver [Base de datos](base-de-datos.md).
+## Backend
 
-## Backend por dentro
-
-```
+```text
 backend/
-├── cmd/motek/main.go    # arma config → store → auth → server; HTTP con timeouts; apagado graceful
+├── cmd/motek/main.go       # carga .env, wiring, servidor y apagado
 ├── internal/
-│   ├── config/          # lee el .env a un struct tipado
-│   ├── api/             # Server, Routes(), handlers por dominio, middleware auth/CORS, JSON helpers
-│   ├── auth/            # generar/validar JWT, hashear/verificar passwords
-│   └── store/           # un archivo por dominio + models.go + migrate.go + errors.go
+│   ├── config/             # configuración leída del entorno
+│   ├── auth/               # JWT HS256 y bcrypt
+│   ├── api/                # router, middleware CORS/auth y handlers
+│   └── store/              # modelos, migraciones y SQL por dominio
+└── .env.example
 ```
 
-El flujo de un request: `Routes()` → `cors()` → `auth()` (salvo las 3 rutas públicas) → handler → `store` → MySQL. Los errores de dominio (`NotFoundError`, `ConflictError`) se traducen a status en un solo lugar (`writeStoreError`).
+`main.go` carga el `.env` con `godotenv`, valida `JWT_SECRET`, abre el store, crea `auth.Auth` y el `api.Server`, y configura timeouts HTTP y apagado ante `SIGINT`/`SIGTERM`.
 
-## Frontend por dentro
+El flujo de una solicitud es:
 
+1. `Server.Routes()` construye el `http.ServeMux` y lo envuelve con CORS.
+2. Las rutas públicas son `GET /health`, `POST /api/auth/register` y `POST /api/auth/login`.
+3. El middleware `auth` valida `Authorization: Bearer <token>` y coloca `user_id` en el contexto de las rutas protegidas.
+4. El handler valida el pedido, llama al `Store` y escribe JSON o un error.
+
+CORS es fijo en esta versión: acepta cualquier origen y declara `GET, POST, PUT, PATCH, DELETE, OPTIONS`; un `OPTIONS` general responde `204` antes de la autenticación. El puerto sale de `SERVER_PORT`.
+
+## Aplicación
+
+```text
+app/
+├── app.json                # configuración Expo y targets iOS/Android/web
+├── metro.config.js         # Metro integrado con UniWind
+├── package.json
+└── src/
+    ├── app/                # rutas Expo Router
+    │   ├── (auth)/         # login y registro
+    │   └── (app)/          # shell y pantallas protegidas
+    ├── components/ui/      # primitivas visuales
+    ├── hooks/              # useCollection
+    ├── lib/                # API, sesión, tipos, formato y cálculos
+    └── global.css          # tokens y estilos globales
 ```
-frontend/src/
-├── api/          # cliente fetch + tipos espejo del backend
-├── contexts/     # Auth, Theme, Resumen (datos del shell)
-├── hooks/        # useCollection (listas)
-├── lib/          # validate, format, errors, contador, resumen
-├── components/   # primitivas + layout/ + ui/ + overlay/
-└── pages/        # una por ruta
-```
 
-El flujo de una pantalla: la página pide con `api()` o `useCollection()`, el token viaja solo en el header, y el `ResumenProvider` del shell mantiene los contadores (badges, campana, tablero) actualizados ante cada escritura. Detalles en [Frontend](frontend.md).
+`app/src/app/_layout.tsx` crea `AuthProvider` y el `Stack`. El layout de `(app)` redirige a `/login` si no hay usuario y define la navegación responsive: sidebar desde 900 px y barra inferior en pantallas más angostas.
 
-## Decisiones que conviene no revertir sin pensarlo
+Cada pantalla carga sus colecciones con `useCollection` y usa `api<T>()` para lecturas puntuales y escrituras. `api.ts` agrega el token, serializa JSON, aplica un timeout de 15 segundos y convierte errores en `ApiError`. La aplicación no usa `ResumenProvider` ni eventos globales de mutación.
 
-1. **Los totales los calcula el servidor.** La factura suma mano de obra + líneas del lado del backend; el cliente nunca manda importes. Si el frontend calculara, dos clientes podrían facturar distinto la misma orden.
-2. **Sin ORM.** El SQL está a la vista en `store/`, una función por operación. Más verboso, pero cada query es auditable y las transacciones son explícitas.
-3. **Las facturas no se borran.** Solo se cancelan. Un documento fiscal no puede desaparecer: por eso los borrados en cascada se frenan ante una factura (ver [Reglas](reglas.md)).
-4. **El token vive en `localStorage`.** Simple y suficiente para un taller; el logout es borrarlo. Si algún día hay XSS, esto es lo primero a revisar.
-5. **Listas vacías son `[]`.** El backend nunca devuelve `null` en una lista y el frontend lo asume. No romper este contrato.
+## Sesión y configuración
+
+El token se guarda con la clave `motek_token`: en `SecureStore` en iOS/Android y en `localStorage` en web. `EXPO_PUBLIC_API_URL` define una URL absoluta; el valor por defecto es `http://localhost:8080`.
+
+El tema sigue el del sistema mediante `Uniwind.setTheme("system")` y `userInterfaceStyle: "automatic"`; no hay selector ni persistencia de tema.
+
+## Decisiones y límites actuales
+
+- **Totales en el servidor:** la factura suma mano de obra y líneas de repuestos; el cliente no envía importes calculados.
+- **SQL explícito:** no hay ORM; las consultas y transacciones están en `internal/store`.
+- **Migraciones simples:** se ejecutan `CREATE TABLE IF NOT EXISTS` al abrir el store; no hay historial versionado.
+- **Almacenamiento por plataforma:** SecureStore es la opción nativa; web usa `localStorage`.
+- **CORS abierto:** es útil para desarrollo, pero no es una política de producción endurecida.
+- **Filtrado local en la interfaz:** varias listas se filtran en memoria; el backend solo expone filtros en algunos endpoints.
