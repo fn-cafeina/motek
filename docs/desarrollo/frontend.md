@@ -25,10 +25,12 @@ El layout de `(app)` no usa `ProtectedRoute`: `AuthProvider` vive en el layout r
 
 El shell se define directamente en `app/src/app/(app)/_layout.tsx`.
 
-- Desde 900 px de ancho muestra un sidebar con grupos **Taller**, **Administración** y **Sistema** (Historial y Usuarios son solo para admin).
+- Desde 1024 px (`lg`) muestra un sidebar con grupos **Taller**, **Administración** y **Sistema** (Historial y Usuarios son solo para admin).
 - En escritorio muestra el email y la inicial del usuario en el pie, el cierre de sesión y un botón para contraer el menú.
+- El contenido se centra en un contenedor de `max-w-[1360px]` con padding `px-4 md:px-6 xl:px-8`; el encabezado de 52 px comparte ese contenedor y la barra inferior queda a todo lo ancho.
 - En pantallas angostas muestra un encabezado con el título, un enlace de campana a `/alertas`, un icono de cierre de sesión y una barra inferior con hasta cinco secciones y un botón **Más** para las restantes.
 - El colapso del sidebar es estado local de la sesión de la pantalla; no se persiste.
+- Los umbrales de breakpoint viven en `app/src/lib/breakpoints.ts` (`BP` y `useBreakpoint()`); el resto del estilo responsivo se escribe con clases `md:`/`lg:`/`xl:`.
 
 ## Datos y sesión
 

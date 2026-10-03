@@ -32,11 +32,17 @@ Cuando agregues un color, definí el comportamiento de los dos temas y usá el r
 
 ## Responsive y capas
 
-- El shell cambia a sidebar a partir de 900 px de ancho.
-- El encabezado del shell mide 52 px; el sidebar expandido usa `w-56` y el colapsado `w-16`.
-- Las pantallas usan `FlatList`, `ScrollView`, `Dialog` y modales; el contenido de las fichas se limita con `max-h-[92%]` o `max-h-[85vh]`.
-- No hay una tabla web global ni una regla de ancho máximo de 1360 px en el shell.
-- La barra inferior móvil usa `flex-row`, iconos de 19 px y etiquetas de 10 px; no es una altura fija global.
+Los breakpoints son los por defecto de Tailwind: `sm` 640, `md` 768, `lg` 1024 y `xl` 1280 px. El estilo responsivo se escribe con clases de UniWind (`md:px-6`, `lg:justify-center`), que en nativo se resuelven contra el ancho de pantalla. Lo que no se puede resolver con clases —montar sidebar o barra inferior, `numColumns`, `animationType`— sale de `app/src/lib/breakpoints.ts`, que exporta `BP` y `useBreakpoint()` con esos mismos umbrales.
+
+- El shell cambia a sidebar a partir de 1024 px (`lg`).
+- El contenido del shell vive en un contenedor de `max-w-[1360px]` centrado, con padding horizontal de 16 px que sube a 24 px (`md:px-6`) y 32 px (`xl:px-8`). El padding horizontal se administra en el shell; las pantallas solo manejan el vertical.
+- El encabezado del shell mide 52 px y usa el mismo contenedor centrado; el sidebar expandido usa `w-56` y el colapsado `w-16`.
+- Clientes, Repuestos, Facturas y Alertas pasan a 2 columnas (`numColumns`) a partir de `md`; Órdenes, Usuarios e Historial quedan en una sola.
+- Las fichas de orden y factura y el selector de `SelectField` son bottom sheets en móvil y diálogos centrados (`lg:justify-center`, `max-w-2xl`) en escritorio. `Dialog` se centra en todos los tamaños y se ensancha con `lg:max-w-lg`.
+- Las pantallas usan `FlatList`, `ScrollView`, `Dialog` y modales; el contenido de las fichas se limita con `max-h-[92%]` (`lg:max-h-[85%]` en escritorio) o `max-h-[85vh]`.
+- `BarChart` mide su contenedor con `onLayout` y dibuja en píxeles reales para que el texto no se escale; `DonutChart` recibe `size` según el breakpoint.
+- No hay una tabla web global.
+- La barra inferior móvil usa `flex-row`, iconos de 19 px y etiquetas de 10 px con `numberOfLines={1}`; no es una altura fija global.
 
 ## Convenciones para componentes
 

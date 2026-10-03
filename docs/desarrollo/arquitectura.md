@@ -62,7 +62,7 @@ app/
     └── global.css          # tokens y estilos globales
 ```
 
-`app/src/app/_layout.tsx` crea `AuthProvider` y el `Stack`. El layout de `(app)` redirige a `/login` si no hay usuario y define la navegación responsive: sidebar desde 900 px y barra inferior en pantallas más angostas. La navegación se filtra por rol y una ruta fuera del alcance redirige a Inicio.
+`app/src/app/_layout.tsx` crea `AuthProvider` y el `Stack`. El layout de `(app)` redirige a `/login` si no hay usuario y define la navegación responsive: sidebar desde 1024 px (`lg`) y barra inferior en pantallas más angostas. La navegación se filtra por rol y una ruta fuera del alcance redirige a Inicio.
 
 Cada pantalla carga sus colecciones con `useCollection` y usa `api<T>()` para lecturas puntuales y escrituras. `api.ts` agrega el token, serializa JSON, aplica un timeout de 15 segundos y convierte errores en `ApiError`. La aplicación no usa `ResumenProvider` ni eventos globales de mutación.
 
