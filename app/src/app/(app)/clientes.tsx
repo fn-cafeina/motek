@@ -173,10 +173,7 @@ export default function ClientesScreen() {
   const header = (
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="text-2xl font-semibold tracking-tight text-fg">Clientes</Text>
-          <Text className="mt-1 text-sm text-muted">Directorio y motos del taller</Text>
-        </View>
+        <Text className="text-sm text-muted">Directorio y motos del taller</Text>
         {puedeEscribir && <Button size="sm" onPress={openCreateCliente}>+ Nuevo</Button>}
       </View>
       <Field label="" placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
