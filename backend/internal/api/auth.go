@@ -24,6 +24,10 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusUnauthorized, "credenciales invalidas")
 		return
 	}
+	if !user.Activo {
+		writeError(w, http.StatusForbidden, "usuario desactivado")
+		return
+	}
 
 	token, err := s.Auth.Generate(user.ID)
 	if err != nil {
@@ -46,6 +50,7 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email    string `json:"email"`
+		Nombre   string `json:"nombre"`
 		Password string `json:"password"`
 	}
 	if !decodeJSON(w, r, &req) {
@@ -66,10 +71,22 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "error hasheando password")
 		return
 	}
-	id, err := s.Store.CreateUser(r.Context(), req.Email, hash)
+
+	rol := "recepcionista"
+	total, err := s.Store.CountUsuarios(r.Context())
+	if err != nil {
+		s.Log.Error("count usuarios", "err", err)
+		writeError(w, http.StatusInternalServerError, "error creando usuario")
+		return
+	}
+	if total == 0 {
+		rol = "admin"
+	}
+
+	id, err := s.Store.CreateUser(r.Context(), req.Email, req.Nombre, hash, rol)
 	if err != nil {
 		writeStoreError(w, s.Log, err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{"id": id, "email": req.Email})
+	writeJSON(w, http.StatusCreated, map[string]any{"id": id, "email": req.Email, "rol": rol})
 }

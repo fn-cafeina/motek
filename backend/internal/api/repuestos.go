@@ -115,6 +115,9 @@ func (s *Server) handleAddOrdenRepuesto(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusBadRequest, "repuesto_id y cantidad son requeridos")
 		return
 	}
+	if !s.puedeOperarOrden(w, r, ordenID) {
+		return
+	}
 	or, err := s.Store.AddOrdenRepuesto(r.Context(), ordenID, body.RepuestoID, body.Cantidad)
 	if err != nil {
 		writeStoreError(w, s.Log, err)
@@ -130,6 +133,9 @@ func (s *Server) handleRemoveOrdenRepuesto(w http.ResponseWriter, r *http.Reques
 	}
 	repuestoID, ok := pathID(w, r, "rid")
 	if !ok {
+		return
+	}
+	if !s.puedeOperarOrden(w, r, ordenID) {
 		return
 	}
 	if err := s.Store.RemoveOrdenRepuesto(r.Context(), ordenID, repuestoID); err != nil {

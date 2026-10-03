@@ -41,39 +41,43 @@ func (s *Store) ListFacturas(ctx context.Context, estado string) ([]Factura, err
 }
 
 func (s *Store) CreateFactura(ctx context.Context, ordenID int64) (Factura, error) {
-	var totalManoObra int64
-	err := s.DB.QueryRowContext(ctx, "SELECT total_mano_obra FROM ordenes_trabajo WHERE id = ?", ordenID).Scan(&totalManoObra)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return Factura{}, NotFound("orden no encontrada")
+	var id int64
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		var totalManoObra int64
+		err := tx.QueryRowContext(ctx, "SELECT total_mano_obra FROM ordenes_trabajo WHERE id = ? FOR UPDATE", ordenID).Scan(&totalManoObra)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return NotFound("orden no encontrada")
+			}
+			return err
 		}
-		return Factura{}, err
-	}
 
-	var existingID int64
-	err = s.DB.QueryRowContext(ctx, "SELECT id FROM facturas WHERE orden_id = ?", ordenID).Scan(&existingID)
-	if err == nil {
-		return Factura{}, Conflict("ya existe una factura para esta orden")
-	} else if err != sql.ErrNoRows {
-		return Factura{}, err
-	}
-
-	var totalRepuestos int64
-	if err := s.DB.QueryRowContext(ctx, "SELECT COALESCE(SUM(subtotal), 0) FROM orden_repuestos WHERE orden_id = ?", ordenID).Scan(&totalRepuestos); err != nil {
-		return Factura{}, err
-	}
-
-	total := totalManoObra + totalRepuestos
-	res, err := s.DB.ExecContext(ctx,
-		"INSERT INTO facturas (orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado) VALUES (?, ?, ?, ?, 'pendiente')",
-		ordenID, totalManoObra, totalRepuestos, total)
-	if err != nil {
-		if isDuplicate(err) {
-			return Factura{}, Conflict("ya existe una factura para esta orden")
+		var existingID int64
+		err = tx.QueryRowContext(ctx, "SELECT id FROM facturas WHERE orden_id = ?", ordenID).Scan(&existingID)
+		if err == nil {
+			return Conflict("ya existe una factura para esta orden")
+		} else if err != sql.ErrNoRows {
+			return err
 		}
-		return Factura{}, err
-	}
-	id, err := res.LastInsertId()
+
+		var totalRepuestos int64
+		if err := tx.QueryRowContext(ctx, "SELECT COALESCE(SUM(subtotal), 0) FROM orden_repuestos WHERE orden_id = ?", ordenID).Scan(&totalRepuestos); err != nil {
+			return err
+		}
+
+		total := totalManoObra + totalRepuestos
+		res, err := tx.ExecContext(ctx,
+			"INSERT INTO facturas (orden_id, subtotal_mano_obra, subtotal_repuestos, total, estado) VALUES (?, ?, ?, ?, 'pendiente')",
+			ordenID, totalManoObra, totalRepuestos, total)
+		if err != nil {
+			if isDuplicate(err) {
+				return Conflict("ya existe una factura para esta orden")
+			}
+			return err
+		}
+		id, err = res.LastInsertId()
+		return err
+	})
 	if err != nil {
 		return Factura{}, err
 	}
@@ -93,26 +97,34 @@ func (s *Store) UpdateFactura(ctx context.Context, id int64, notas string, venci
 	if _, err := s.GetFactura(ctx, id); err != nil {
 		return Factura{}, err
 	}
-	if _, err := s.DB.ExecContext(ctx, "UPDATE facturas SET notas = ?, fecha_vencimiento = ? WHERE id = ?",
-		notas, vencimiento, id); err != nil {
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE facturas SET notas = ?, fecha_vencimiento = ? WHERE id = ?",
+			notas, vencimiento, id)
+		return err
+	})
+	if err != nil {
 		return Factura{}, err
 	}
 	return s.GetFactura(ctx, id)
 }
 
 func (s *Store) CancelFactura(ctx context.Context, id int64) (Factura, error) {
-	var estado string
-	err := s.DB.QueryRowContext(ctx, "SELECT estado FROM facturas WHERE id = ?", id).Scan(&estado)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return Factura{}, NotFound("factura no encontrada")
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		var estado string
+		err := tx.QueryRowContext(ctx, "SELECT estado FROM facturas WHERE id = ? FOR UPDATE", id).Scan(&estado)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return NotFound("factura no encontrada")
+			}
+			return err
 		}
-		return Factura{}, err
-	}
-	if estado == "cancelada" {
-		return Factura{}, Conflict("la factura ya esta cancelada")
-	}
-	if _, err := s.DB.ExecContext(ctx, "UPDATE facturas SET estado = 'cancelada' WHERE id = ?", id); err != nil {
+		if estado == "cancelada" {
+			return Conflict("la factura ya esta cancelada")
+		}
+		_, err = tx.ExecContext(ctx, "UPDATE facturas SET estado = 'cancelada' WHERE id = ?", id)
+		return err
+	})
+	if err != nil {
 		return Factura{}, err
 	}
 	return s.GetFactura(ctx, id)
@@ -153,10 +165,10 @@ func (s *Store) CreatePago(ctx context.Context, facturaID, monto int64, metodo, 
 		metodo = "efectivo"
 	}
 	var p Pago
-	err := s.withTx(func(tx *sql.Tx) error {
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
 		var total int64
 		var estado string
-		err := tx.QueryRow("SELECT total, estado FROM facturas WHERE id = ? FOR UPDATE", facturaID).Scan(&total, &estado)
+		err := tx.QueryRowContext(ctx, "SELECT total, estado FROM facturas WHERE id = ? FOR UPDATE", facturaID).Scan(&total, &estado)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return NotFound("factura no encontrada")
@@ -167,13 +179,13 @@ func (s *Store) CreatePago(ctx context.Context, facturaID, monto int64, metodo, 
 			return Conflict("no se puede pagar una factura cancelada")
 		}
 		var paid int64
-		if err := tx.QueryRow("SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE factura_id = ?", facturaID).Scan(&paid); err != nil {
+		if err := tx.QueryRowContext(ctx, "SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE factura_id = ?", facturaID).Scan(&paid); err != nil {
 			return err
 		}
 		if paid+monto > total {
 			return Conflict("el pago excede el total de la factura")
 		}
-		res, err := tx.Exec("INSERT INTO pagos (factura_id, monto, metodo, notas) VALUES (?, ?, ?, ?)",
+		res, err := tx.ExecContext(ctx, "INSERT INTO pagos (factura_id, monto, metodo, notas) VALUES (?, ?, ?, ?)",
 			facturaID, monto, metodo, notas)
 		if err != nil {
 			return err
@@ -182,10 +194,10 @@ func (s *Store) CreatePago(ctx context.Context, facturaID, monto int64, metodo, 
 		if err != nil {
 			return err
 		}
-		if _, err := tx.Exec("UPDATE facturas SET estado = ? WHERE id = ?", facturaEstado(total, paid+monto), facturaID); err != nil {
+		if _, err := tx.ExecContext(ctx, "UPDATE facturas SET estado = ? WHERE id = ?", facturaEstado(total, paid+monto), facturaID); err != nil {
 			return err
 		}
-		err = tx.QueryRow("SELECT id, factura_id, monto, metodo, fecha, COALESCE(notas, ''), creado_en FROM pagos WHERE id = ?", id).
+		err = tx.QueryRowContext(ctx, "SELECT id, factura_id, monto, metodo, fecha, COALESCE(notas, ''), creado_en FROM pagos WHERE id = ?", id).
 			Scan(&p.ID, &p.FacturaID, &p.Monto, &p.Metodo, &p.Fecha, &p.Notas, &p.CreadoEn)
 		return err
 	})
@@ -196,26 +208,103 @@ func (s *Store) CreatePago(ctx context.Context, facturaID, monto int64, metodo, 
 }
 
 func (s *Store) DeletePago(ctx context.Context, facturaID, pagoID int64) error {
-	return s.withTx(func(tx *sql.Tx) error {
+	return s.withTx(ctx, func(tx *sql.Tx) error {
 		var exists int64
-		err := tx.QueryRow("SELECT id FROM pagos WHERE id = ? AND factura_id = ?", pagoID, facturaID).Scan(&exists)
+		err := tx.QueryRowContext(ctx, "SELECT id FROM pagos WHERE id = ? AND factura_id = ?", pagoID, facturaID).Scan(&exists)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return NotFound("pago no encontrado")
 			}
 			return err
 		}
-		if _, err := tx.Exec("DELETE FROM pagos WHERE id = ?", pagoID); err != nil {
+		if _, err := tx.ExecContext(ctx, "DELETE FROM pagos WHERE id = ?", pagoID); err != nil {
 			return err
 		}
 		var paid, total int64
-		if err := tx.QueryRow("SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE factura_id = ?", facturaID).Scan(&paid); err != nil {
+		if err := tx.QueryRowContext(ctx, "SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE factura_id = ?", facturaID).Scan(&paid); err != nil {
 			return err
 		}
-		if err := tx.QueryRow("SELECT total FROM facturas WHERE id = ? FOR UPDATE", facturaID).Scan(&total); err != nil {
+		if err := tx.QueryRowContext(ctx, "SELECT total FROM facturas WHERE id = ? FOR UPDATE", facturaID).Scan(&total); err != nil {
 			return err
 		}
-		_, err = tx.Exec("UPDATE facturas SET estado = ? WHERE id = ?", facturaEstado(total, paid), facturaID)
+		_, err = tx.ExecContext(ctx, "UPDATE facturas SET estado = ? WHERE id = ?", facturaEstado(total, paid), facturaID)
 		return err
 	})
+}
+
+type LineaDetalle struct {
+	Descripcion    string `json:"descripcion"`
+	Cantidad       int    `json:"cantidad"`
+	PrecioUnitario int64  `json:"precio_unitario"`
+	Subtotal       int64  `json:"subtotal"`
+}
+
+type FacturaDetalle struct {
+	Factura Factura        `json:"factura"`
+	Orden   OrdenTrabajo   `json:"orden"`
+	Cliente Cliente        `json:"cliente"`
+	Moto    Moto           `json:"moto"`
+	Lineas  []LineaDetalle `json:"lineas"`
+	Pagos   []Pago         `json:"pagos"`
+	Pagado  int64          `json:"pagado"`
+}
+
+func (s *Store) GetFacturaDetalle(ctx context.Context, id int64) (FacturaDetalle, error) {
+	factura, err := s.GetFactura(ctx, id)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+	orden, err := s.GetOrden(ctx, factura.OrdenID)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+	cliente, err := s.GetCliente(ctx, orden.ClienteID)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+	moto, err := s.GetMoto(ctx, orden.MotoID)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+
+	rows, err := s.DB.QueryContext(ctx, `SELECT CONCAT(r.codigo, ' - ', r.nombre), l.cantidad, l.precio_unitario, l.subtotal
+		FROM orden_repuestos l
+		JOIN repuestos r ON r.id = l.repuesto_id
+		WHERE l.orden_id = ?
+		ORDER BY l.id`, orden.ID)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+	defer rows.Close()
+
+	lineas := make([]LineaDetalle, 0)
+	for rows.Next() {
+		var l LineaDetalle
+		if err := rows.Scan(&l.Descripcion, &l.Cantidad, &l.PrecioUnitario, &l.Subtotal); err != nil {
+			return FacturaDetalle{}, err
+		}
+		lineas = append(lineas, l)
+	}
+	if err := rows.Err(); err != nil {
+		return FacturaDetalle{}, err
+	}
+
+	pagos, err := s.ListPagos(ctx, id)
+	if err != nil {
+		return FacturaDetalle{}, err
+	}
+	var pagado int64
+	for _, p := range pagos {
+		pagado += p.Monto
+	}
+
+	return FacturaDetalle{
+		Factura: factura,
+		Orden:   orden,
+		Cliente: cliente,
+		Moto:    moto,
+		Lineas:  lineas,
+		Pagos:   pagos,
+		Pagado:  pagado,
+	}, nil
 }

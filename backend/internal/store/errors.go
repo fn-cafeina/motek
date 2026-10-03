@@ -21,6 +21,15 @@ func isFKViolation(err error) bool {
 	return false
 }
 
+// mapTriggerError convierte un SIGNAL de un trigger (por ejemplo el estado
+// entregado terminal) en un conflicto de negocio con su mensaje original.
+func mapTriggerError(err error) error {
+	if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1644 {
+		return Conflict(mysqlErr.Message)
+	}
+	return err
+}
+
 type NotFoundError struct {
 	Message string
 }

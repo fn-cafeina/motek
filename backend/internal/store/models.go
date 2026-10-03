@@ -5,6 +5,9 @@ import "time"
 type User struct {
 	ID       int64     `json:"id"`
 	Email    string    `json:"email"`
+	Nombre   string    `json:"nombre"`
+	Rol      string    `json:"rol"`
+	Activo   bool      `json:"activo"`
 	Password string    `json:"-"`
 	CreadoEn time.Time `json:"creado_en"`
 }
@@ -36,6 +39,7 @@ type OrdenTrabajo struct {
 	ID            int64      `json:"id"`
 	ClienteID     int64      `json:"cliente_id"`
 	MotoID        int64      `json:"moto_id"`
+	TecnicoID     *int64     `json:"tecnico_id"`
 	Descripcion   string     `json:"descripcion"`
 	Diagnostico   string     `json:"diagnostico"`
 	Estado        string     `json:"estado"`

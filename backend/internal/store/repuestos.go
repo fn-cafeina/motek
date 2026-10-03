@@ -9,7 +9,7 @@ import (
 const repuestoColumns = "id, codigo, nombre, COALESCE(descripcion, ''), categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion, creado_en, actualizado_en"
 
 type RepuestoFilter struct {
-	Q        string
+	Q         string
 	Categoria string
 	BajoStock bool
 }
@@ -50,20 +50,22 @@ func (s *Store) ListRepuestos(ctx context.Context, f RepuestoFilter) ([]Repuesto
 }
 
 func (s *Store) CreateRepuesto(ctx context.Context, rp Repuesto) (Repuesto, error) {
-	res, err := s.DB.ExecContext(ctx,
-		"INSERT INTO repuestos (codigo, nombre, descripcion, categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		rp.Codigo, rp.Nombre, rp.Descripcion, rp.Categoria, rp.PrecioCompra, rp.PrecioVenta, rp.Stock, rp.StockMinimo, rp.Ubicacion)
-	if err != nil {
-		if isDuplicate(err) {
-			return Repuesto{}, Conflict("codigo ya existe")
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx,
+			"INSERT INTO repuestos (codigo, nombre, descripcion, categoria, precio_compra, precio_venta, stock, stock_minimo, ubicacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			rp.Codigo, rp.Nombre, rp.Descripcion, rp.Categoria, rp.PrecioCompra, rp.PrecioVenta, rp.Stock, rp.StockMinimo, rp.Ubicacion)
+		if err != nil {
+			if isDuplicate(err) {
+				return Conflict("codigo ya existe")
+			}
+			return err
 		}
-		return Repuesto{}, err
-	}
-	id, err := res.LastInsertId()
+		rp.ID, err = res.LastInsertId()
+		return err
+	})
 	if err != nil {
 		return Repuesto{}, err
 	}
-	rp.ID = id
 	return rp, nil
 }
 
@@ -81,13 +83,19 @@ func (s *Store) UpdateRepuesto(ctx context.Context, id int64, rp Repuesto) (Repu
 	if _, err := s.GetRepuesto(ctx, id); err != nil {
 		return Repuesto{}, err
 	}
-	_, err := s.DB.ExecContext(ctx,
-		"UPDATE repuestos SET codigo = ?, nombre = ?, descripcion = ?, categoria = ?, precio_compra = ?, precio_venta = ?, stock = ?, stock_minimo = ?, ubicacion = ? WHERE id = ?",
-		rp.Codigo, rp.Nombre, rp.Descripcion, rp.Categoria, rp.PrecioCompra, rp.PrecioVenta, rp.Stock, rp.StockMinimo, rp.Ubicacion, id)
-	if err != nil {
-		if isDuplicate(err) {
-			return Repuesto{}, Conflict("codigo ya existe")
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx,
+			"UPDATE repuestos SET codigo = ?, nombre = ?, descripcion = ?, categoria = ?, precio_compra = ?, precio_venta = ?, stock = ?, stock_minimo = ?, ubicacion = ? WHERE id = ?",
+			rp.Codigo, rp.Nombre, rp.Descripcion, rp.Categoria, rp.PrecioCompra, rp.PrecioVenta, rp.Stock, rp.StockMinimo, rp.Ubicacion, id)
+		if err != nil {
+			if isDuplicate(err) {
+				return Conflict("codigo ya existe")
+			}
+			return err
 		}
+		return nil
+	})
+	if err != nil {
 		return Repuesto{}, err
 	}
 	rp.ID = id
@@ -95,21 +103,23 @@ func (s *Store) UpdateRepuesto(ctx context.Context, id int64, rp Repuesto) (Repu
 }
 
 func (s *Store) DeleteRepuesto(ctx context.Context, id int64) error {
-	res, err := s.DB.ExecContext(ctx, "DELETE FROM repuestos WHERE id = ?", id)
-	if err != nil {
-		if isFKViolation(err) {
-			return Conflict("no se puede eliminar: repuesto en uso")
+	return s.withTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx, "DELETE FROM repuestos WHERE id = ?", id)
+		if err != nil {
+			if isFKViolation(err) {
+				return Conflict("no se puede eliminar: repuesto en uso")
+			}
+			return err
 		}
-		return err
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return NotFound("repuesto no encontrado")
-	}
-	return nil
+		n, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			return NotFound("repuesto no encontrado")
+		}
+		return nil
+	})
 }
 
 func (s *Store) ListOrdenRepuestos(ctx context.Context, ordenID int64) ([]OrdenRepuesto, error) {
@@ -133,9 +143,9 @@ func (s *Store) ListOrdenRepuestos(ctx context.Context, ordenID int64) ([]OrdenR
 
 func (s *Store) AddOrdenRepuesto(ctx context.Context, ordenID, repuestoID int64, cantidad int) (OrdenRepuesto, error) {
 	var or OrdenRepuesto
-	err := s.withTx(func(tx *sql.Tx) error {
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
 		var precioVenta, stock int
-		err := tx.QueryRow("SELECT precio_venta, stock FROM repuestos WHERE id = ? FOR UPDATE", repuestoID).Scan(&precioVenta, &stock)
+		err := tx.QueryRowContext(ctx, "SELECT precio_venta, stock FROM repuestos WHERE id = ? FOR UPDATE", repuestoID).Scan(&precioVenta, &stock)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return NotFound("repuesto no encontrado")
@@ -152,7 +162,7 @@ func (s *Store) AddOrdenRepuesto(ctx context.Context, ordenID, repuestoID int64,
 			PrecioUnitario: int64(precioVenta),
 			Subtotal:       int64(precioVenta) * int64(cantidad),
 		}
-		res, err := tx.Exec("INSERT INTO orden_repuestos (orden_id, repuesto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)",
+		res, err := tx.ExecContext(ctx, "INSERT INTO orden_repuestos (orden_id, repuesto_id, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)",
 			or.OrdenID, or.RepuestoID, or.Cantidad, or.PrecioUnitario, or.Subtotal)
 		if err != nil {
 			if isFKViolation(err) {
@@ -160,12 +170,11 @@ func (s *Store) AddOrdenRepuesto(ctx context.Context, ordenID, repuestoID int64,
 			}
 			return err
 		}
-		id, err := res.LastInsertId()
+		or.ID, err = res.LastInsertId()
 		if err != nil {
 			return err
 		}
-		or.ID = id
-		_, err = tx.Exec("UPDATE repuestos SET stock = stock - ? WHERE id = ?", cantidad, repuestoID)
+		_, err = tx.ExecContext(ctx, "UPDATE repuestos SET stock = stock - ? WHERE id = ?", cantidad, repuestoID)
 		return err
 	})
 	if err != nil {
@@ -175,9 +184,9 @@ func (s *Store) AddOrdenRepuesto(ctx context.Context, ordenID, repuestoID int64,
 }
 
 func (s *Store) RemoveOrdenRepuesto(ctx context.Context, ordenID, repuestoID int64) error {
-	return s.withTx(func(tx *sql.Tx) error {
+	return s.withTx(ctx, func(tx *sql.Tx) error {
 		var or OrdenRepuesto
-		err := tx.QueryRow("SELECT id, orden_id, repuesto_id, cantidad, precio_unitario, subtotal FROM orden_repuestos WHERE orden_id = ? AND repuesto_id = ?", ordenID, repuestoID).
+		err := tx.QueryRowContext(ctx, "SELECT id, orden_id, repuesto_id, cantidad, precio_unitario, subtotal FROM orden_repuestos WHERE orden_id = ? AND repuesto_id = ?", ordenID, repuestoID).
 			Scan(&or.ID, &or.OrdenID, &or.RepuestoID, &or.Cantidad, &or.PrecioUnitario, &or.Subtotal)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -185,28 +194,33 @@ func (s *Store) RemoveOrdenRepuesto(ctx context.Context, ordenID, repuestoID int
 			}
 			return err
 		}
-		if _, err := tx.Exec("DELETE FROM orden_repuestos WHERE id = ?", or.ID); err != nil {
+		if _, err := tx.ExecContext(ctx, "DELETE FROM orden_repuestos WHERE id = ?", or.ID); err != nil {
 			return err
 		}
-		_, err = tx.Exec("UPDATE repuestos SET stock = stock + ? WHERE id = ?", or.Cantidad, or.RepuestoID)
+		_, err = tx.ExecContext(ctx, "UPDATE repuestos SET stock = stock + ? WHERE id = ?", or.Cantidad, or.RepuestoID)
 		return err
 	})
 }
 
 func (s *Store) AdjustStock(ctx context.Context, id int64, delta int) (int, error) {
-	var stock int
-	err := s.DB.QueryRowContext(ctx, "SELECT stock FROM repuestos WHERE id = ?", id).Scan(&stock)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, NotFound("repuesto no encontrado")
+	var newStock int
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		var stock int
+		err := tx.QueryRowContext(ctx, "SELECT stock FROM repuestos WHERE id = ? FOR UPDATE", id).Scan(&stock)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return NotFound("repuesto no encontrado")
+			}
+			return err
 		}
-		return 0, err
-	}
-	newStock := stock + delta
-	if newStock < 0 {
-		return 0, Conflict("stock no puede ser negativo")
-	}
-	if _, err := s.DB.ExecContext(ctx, "UPDATE repuestos SET stock = ? WHERE id = ?", newStock, id); err != nil {
+		newStock = stock + delta
+		if newStock < 0 {
+			return Conflict("stock no puede ser negativo")
+		}
+		_, err = tx.ExecContext(ctx, "UPDATE repuestos SET stock = ? WHERE id = ?", newStock, id)
+		return err
+	})
+	if err != nil {
 		return 0, err
 	}
 	return newStock, nil

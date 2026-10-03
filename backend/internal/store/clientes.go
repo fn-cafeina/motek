@@ -32,17 +32,19 @@ func (s *Store) ListClientes(ctx context.Context) ([]Cliente, error) {
 }
 
 func (s *Store) CreateCliente(ctx context.Context, c Cliente) (Cliente, error) {
-	res, err := s.DB.ExecContext(ctx,
-		"INSERT INTO clientes (nombre, telefono, email, direccion, notas) VALUES (?, ?, ?, ?, ?)",
-		c.Nombre, c.Telefono, c.Email, c.Direccion, c.Notas)
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx,
+			"INSERT INTO clientes (nombre, telefono, email, direccion, notas) VALUES (?, ?, ?, ?, ?)",
+			c.Nombre, c.Telefono, c.Email, c.Direccion, c.Notas)
+		if err != nil {
+			return err
+		}
+		c.ID, err = res.LastInsertId()
+		return err
+	})
 	if err != nil {
 		return Cliente{}, err
 	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return Cliente{}, err
-	}
-	c.ID = id
 	return c, nil
 }
 
@@ -56,9 +58,12 @@ func (s *Store) GetCliente(ctx context.Context, id int64) (Cliente, error) {
 }
 
 func (s *Store) UpdateCliente(ctx context.Context, id int64, c Cliente) (Cliente, error) {
-	_, err := s.DB.ExecContext(ctx,
-		"UPDATE clientes SET nombre = ?, telefono = ?, email = ?, direccion = ?, notas = ? WHERE id = ?",
-		c.Nombre, c.Telefono, c.Email, c.Direccion, c.Notas, id)
+	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx,
+			"UPDATE clientes SET nombre = ?, telefono = ?, email = ?, direccion = ?, notas = ? WHERE id = ?",
+			c.Nombre, c.Telefono, c.Email, c.Direccion, c.Notas, id)
+		return err
+	})
 	if err != nil {
 		return Cliente{}, err
 	}
@@ -67,21 +72,23 @@ func (s *Store) UpdateCliente(ctx context.Context, id int64, c Cliente) (Cliente
 }
 
 func (s *Store) DeleteCliente(ctx context.Context, id int64) error {
-	res, err := s.DB.ExecContext(ctx, "DELETE FROM clientes WHERE id = ?", id)
-	if err != nil {
-		// La cascada llega hasta ordenes_trabajo; si alguna tiene factura, facturas.orden_id
-		// la frena. Sin esto el handler devolvía un 500 "error interno".
-		if isFKViolation(err) {
-			return Conflict("no se puede eliminar: el cliente tiene facturas emitidas")
+	return s.withTx(ctx, func(tx *sql.Tx) error {
+		res, err := tx.ExecContext(ctx, "DELETE FROM clientes WHERE id = ?", id)
+		if err != nil {
+			// La cascada llega hasta ordenes_trabajo; si alguna tiene factura, facturas.orden_id
+			// la frena. Sin esto el handler devolvía un 500 "error interno".
+			if isFKViolation(err) {
+				return Conflict("no se puede eliminar: el cliente tiene facturas emitidas")
+			}
+			return err
 		}
-		return err
-	}
-	n, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if n == 0 {
-		return NotFound("cliente no encontrado")
-	}
-	return nil
+		n, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			return NotFound("cliente no encontrado")
+		}
+		return nil
+	})
 }

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 
 	"motek/internal/config"
@@ -35,14 +36,34 @@ func (s *Store) Close() error {
 	return s.DB.Close()
 }
 
-func (s *Store) withTx(fn func(*sql.Tx) error) error {
-	tx, err := s.DB.Begin()
+type usuarioKey struct{}
+
+// WithUsuario adjunta el usuario que ejecuta la operacion para que los
+// triggers de auditoria lo registren a traves de @motek_usuario_id.
+func WithUsuario(ctx context.Context, id int64) context.Context {
+	return context.WithValue(ctx, usuarioKey{}, id)
+}
+
+func usuarioID(ctx context.Context) *int64 {
+	if id, ok := ctx.Value(usuarioKey{}).(int64); ok {
+		return &id
+	}
+	return nil
+}
+
+// withTx ejecuta fn dentro de una transaccion y publica el usuario actual en
+// la variable de sesion @motek_usuario_id. Todas las escrituras pasan por aca.
+func (s *Store) withTx(ctx context.Context, fn func(*sql.Tx) error) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
-	if err := fn(tx); err != nil {
+	if _, err := tx.ExecContext(ctx, "SET @motek_usuario_id = ?", usuarioID(ctx)); err != nil {
 		return err
+	}
+	if err := fn(tx); err != nil {
+		return mapTriggerError(err)
 	}
 	return tx.Commit()
 }

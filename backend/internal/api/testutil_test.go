@@ -29,7 +29,8 @@ func openTestDB(cfg config.Config, dbName string) (*sql.DB, error) {
 
 func cleanupTestDB(t *testing.T) {
 	t.Helper()
-	tables := []string{"pagos", "facturas", "orden_repuestos", "repuestos", "ordenes_trabajo", "motos", "clientes", "users"}
+	// auditoria va al final: los DELETE de las otras tablas disparan sus triggers.
+	tables := []string{"pagos", "facturas", "orden_repuestos", "repuestos", "ordenes_trabajo", "motos", "clientes", "users", "auditoria"}
 	for _, table := range tables {
 		if _, err := testServer.Store.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)); err != nil {
 			t.Fatalf("could not clean table %s: %v", table, err)
@@ -94,22 +95,16 @@ var testUserToken string
 
 func testToken(t *testing.T) string {
 	t.Helper()
-	if testUserToken != "" {
-		return testUserToken
-	}
 	email := "test-admin@example.com"
-	hash, err := hashForTest("password123")
-	if err != nil {
-		t.Fatal(err)
-	}
-	id, err := testServer.Store.CreateUser(t.Context(), email, hash)
-	if err != nil {
-		if _, _, gerr := testServer.Store.GetUserByEmail(t.Context(), email); gerr == nil {
-			return issueTokenForTest(t, email)
+	if _, _, err := testServer.Store.GetUserByEmail(t.Context(), email); err != nil {
+		hash, err := hashForTest("password123")
+		if err != nil {
+			t.Fatal(err)
 		}
-		t.Fatal(err)
+		if _, err := testServer.Store.CreateUser(t.Context(), email, "Admin Test", hash, "admin"); err != nil {
+			t.Fatal(err)
+		}
 	}
-	_ = id
 	return issueTokenForTest(t, email)
 }
 
