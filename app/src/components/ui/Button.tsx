@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, Text, type PressableProps } from "react-native";
+import { ActivityIndicator, Pressable, Text, type PressableProps } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md";
@@ -7,6 +7,7 @@ type ButtonSize = "sm" | "md";
 interface ButtonProps extends PressableProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  loading?: boolean;
   children: ReactNode;
 }
 
@@ -29,17 +30,25 @@ const textClasses: Record<ButtonVariant, string> = {
   danger: "text-danger-fg font-semibold",
 };
 
-export function Button({ variant = "primary", size = "md", children, className = "", disabled, ...props }: ButtonProps) {
+const spinnerClasses: Record<ButtonVariant, string> = {
+  primary: "text-primary-fg",
+  secondary: "text-fg",
+  ghost: "text-fg",
+  danger: "text-danger-fg",
+};
+
+export function Button({ variant = "primary", size = "md", loading = false, children, className = "", disabled, ...props }: ButtonProps) {
   const content = typeof children === "string" || typeof children === "number"
     ? <Text className={textClasses[variant]}>{children}</Text>
     : children;
 
   return (
     <Pressable
-      className={`flex-row rounded-lg items-center justify-center gap-2 ${variantClasses[variant]} ${sizeClasses[size]} ${disabled ? "opacity-50" : ""} ${className}`}
-      disabled={disabled}
+      className={`flex-row rounded-lg items-center justify-center gap-2 ${variantClasses[variant]} ${sizeClasses[size]} ${disabled || loading ? "opacity-50" : ""} ${className}`}
+      disabled={disabled || loading}
       {...props}
     >
+      {loading && <ActivityIndicator size="small" className={spinnerClasses[variant]} />}
       {content}
     </Pressable>
   );
