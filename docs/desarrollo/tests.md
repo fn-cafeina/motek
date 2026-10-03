@@ -35,7 +35,7 @@ npx tsc --noEmit
 Para una comprobación manual, cubrí:
 
 - Login, registro, restauración de sesión y cierre de sesión.
-- Ingreso con las tres cuentas demo y navegación por rol: taller no ve Facturas, Usuarios ni Historial; recepción no ve Usuarios ni Historial.
+- Ingreso con las tres cuentas de rol y navegación según permisos: taller no ve Facturas, Usuarios ni Historial; recepción no ve Usuarios ni Historial.
 - Navegación en escritorio y móvil, incluyendo el breakpoint de 900 px y el botón **Más** de la barra inferior.
 - Alta y edición de clientes, motos, órdenes, repuestos, facturas y pagos.
 - Pull-to-refresh, filtros, diálogos, modales y estados vacíos.

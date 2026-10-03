@@ -23,7 +23,6 @@ Motek tiene una aplicación cliente y una API que nunca comparte acceso directo 
 ```text
 backend/
 ├── cmd/motek/main.go       # carga .env, wiring, servidor y apagado
-├── cmd/seed/main.go        # usuarios demo y datos de ejemplo
 ├── internal/
 │   ├── config/             # configuración leída del entorno
 │   ├── auth/               # JWT HS256 y bcrypt

@@ -32,7 +32,7 @@ Respuesta `200`:
   "id":128,
   "usuario_id":3,
   "usuario_nombre":"Sofia Ramirez",
-  "usuario_email":"recepcion@motek.local",
+  "usuario_email":"recepcion@example.com",
   "tabla":"ordenes_trabajo",
   "registro_id":16,
   "accion":"editar",
@@ -47,7 +47,7 @@ Respuesta `200`:
 ## Notas
 
 - Las cascadas de claves foráneas de MySQL no disparan triggers: borrar un cliente en cascada deja el evento del cliente, no uno por cada moto u orden eliminada.
-- Los borrados de la suite de tests y de los seeds quedan registrados con `usuario_id` `NULL`.
+- Los borrados de la suite de tests y de las tareas de mantenimiento quedan registrados con `usuario_id` `NULL`.
 - La pantalla **Historial** de la aplicación usa este endpoint; ver [Historial](../usuario/historial.md).
 - El detalle del esquema y los triggers está en [Base de datos](../desarrollo/base-de-datos.md).
 

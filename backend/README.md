@@ -27,19 +27,11 @@ El servidor escucha en `SERVER_PORT`, que por defecto es `8080`. `GET /health` e
 
 El proceso carga `.env` con `godotenv`, abre la base configurada, aplica las migraciones versionadas, configura timeouts HTTP y se apaga de forma controlada ante `SIGINT` o `SIGTERM`.
 
-## Migraciones y seed
+## Migraciones
 
 `Store.Migrate()` aplica en orden los archivos SQL embebidos en `internal/store/migrations/` y registra cada versión en la tabla `schema_migrations`; re-arrancar no re-aplica nada. El detalle de versiones está en [Base de datos](../docs/desarrollo/base-de-datos.md).
 
-Para datos de demo:
-
-```bash
-go run ./cmd/seed                # crea los usuarios demo si faltan
-go run ./cmd/seed -datos         # además genera datos de ejemplo
-go run ./cmd/seed -reset -datos  # borra los datos de negocio y los regenera
-```
-
-Usuarios demo: `admin@motek.local` / `admin123`, `recepcion@motek.local` / `recepcion123`, `tecnico@motek.local` / `tecnico123`.
+La primera cuenta que se registra en una base vacía queda como `admin`; las siguientes se crean como `recepcionista`.
 
 ## Variables de entorno
 

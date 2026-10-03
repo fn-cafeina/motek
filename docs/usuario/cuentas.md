@@ -8,8 +8,6 @@ En la pantalla de acceso, elegí **Registrate**. El formulario pide email, contr
 
 Ingresá tu email y contraseña y tocá **Iniciar sesión**. Si faltan datos, la pantalla muestra un aviso. Si las credenciales no coinciden, aparece un error en el formulario. Un usuario desactivado tampoco puede entrar.
 
-Para probar la aplicación sin crear cuentas, usá los botones de **Acceso rápido de demo** (Admin, Recepción y Taller); ver [Roles y permisos](roles.md).
-
 La sesión queda guardada para que no tengas que ingresar en cada visita. En iOS y Android el token se guarda en el almacenamiento seguro de la aplicación; en web se guarda en el almacenamiento local del navegador.
 
 ## Tema claro y oscuro

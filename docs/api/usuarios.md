@@ -30,7 +30,7 @@ curl 'http://localhost:8080/api/usuarios?rol=tecnico' \
 Respuesta `200`:
 
 ```json
-[{"id":4,"email":"tecnico@motek.local","nombre":"Lucas Fernandez","rol":"tecnico","activo":true,"creado_en":"2026-09-20T10:00:00Z"}]
+[{"id":4,"email":"tecnico@example.com","nombre":"Lucas Fernandez","rol":"tecnico","activo":true,"creado_en":"2026-09-20T10:00:00Z"}]
 ```
 
 ## Crear una cuenta
@@ -40,7 +40,7 @@ POST /api/usuarios
 Authorization: Bearer <token>
 Content-Type: application/json
 
-{"email":"nuevo@motek.local","nombre":"Persona Nueva","password":"secreto123","rol":"recepcionista"}
+{"email":"nuevo@example.com","nombre":"Persona Nueva","password":"secreto123","rol":"recepcionista"}
 ```
 
 Reglas:
@@ -52,7 +52,7 @@ Reglas:
 Responde `201`:
 
 ```json
-{"id":6,"email":"nuevo@motek.local","rol":"recepcionista"}
+{"id":6,"email":"nuevo@example.com","rol":"recepcionista"}
 ```
 
 ## Editar una cuenta

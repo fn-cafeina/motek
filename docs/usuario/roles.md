@@ -12,17 +12,7 @@ Cada cuenta del taller tiene un rol. La aplicación muestra u oculta secciones y
 
 Los permisos se aplican de punta a punta: si una acción no corresponde al rol, la aplicación no la muestra y el servidor la rechaza con `403` aunque se llame directamente a la API.
 
-## Acceso rápido de demo
-
-La pantalla de acceso tiene tres botones de **Acceso rápido de demo**:
-
-| Botón | Email | Contraseña |
-|---|---|---|
-| Admin | `admin@motek.local` | `admin123` |
-| Recepción | `recepcion@motek.local` | `recepcion123` |
-| Taller | `tecnico@motek.local` | `tecnico123` |
-
-Esas cuentas las crea el comando `go run ./cmd/seed` del backend. El detalle está en el [README](../../README.md).
+La primera cuenta que se registra en una base vacía queda como **Admin**; el registro público crea cuentas de **Recepción**. Los roles se gestionan después desde **Usuarios**.
 
 ## Gestionar usuarios (admin)
 

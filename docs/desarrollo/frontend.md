@@ -41,7 +41,6 @@ El shell se define directamente en `app/src/app/(app)/_layout.tsx`.
 - `lib/pdf.ts` — abre la factura en PDF: en web descarga el blob autenticado y lo abre en una pestaña; en nativo lo descarga con `expo-file-system` y lo comparte con `expo-sharing`.
 - `components/charts/` — `BarChart`, `DonutChart` y `HBars`, en SVG puro sobre `react-native-svg`, con los colores de los tokens pasados por props.
 - `components/kanban/` — tablero con drag & drop por pulsación larga (`react-native-gesture-handler` + `react-native-reanimated`); el movimiento se confirma con `PATCH /estado` y el selector de estado del detalle queda como alternativa. `app/src/app/_layout.tsx` envuelve todo con `GestureHandlerRootView`.
-- `login.tsx` — además del formulario, ofrece botones de **Acceso rápido de demo** con las cuentas sembradas por `cmd/seed`.
 
 No existe `ResumenProvider`, `api/client.ts`, `ProtectedRoute`, `Table`, `MobileList`, `Drawer`, `ConfirmDialog`, `Menu` ni eventos globales `motek:*` en esta versión. Las pantallas son las que orquestan sus propias colecciones y refrescos.
 

@@ -50,7 +50,7 @@ Para agregar una migración nueva, creá `0006_nombre.sql`. Las sentencias del a
 
 ## Auditoría
 
-Los triggers de `0003_auditoria` insertan una fila por cada alta, cambio o baja de `clientes`, `motos`, `ordenes_trabajo`, `orden_repuestos`, `repuestos`, `facturas` y `pagos`. El usuario sale de `@motek_usuario_id`, que `Store.withTx` publica al inicio de cada transacción; si la escritura no tiene usuario (seeds, tests, mantenimiento) queda `NULL`. `datos_antes` y `datos_despues` guardan las columnas en JSON.
+Los triggers de `0003_auditoria` insertan una fila por cada alta, cambio o baja de `clientes`, `motos`, `ordenes_trabajo`, `orden_repuestos`, `repuestos`, `facturas` y `pagos`. El usuario sale de `@motek_usuario_id`, que `Store.withTx` publica al inicio de cada transacción; si la escritura no tiene usuario (tests, mantenimiento) queda `NULL`. `datos_antes` y `datos_despues` guardan las columnas en JSON.
 
 Las cascadas de claves foráneas de InnoDB no disparan triggers: el borrado en cascada de una moto u orden no genera filas de auditoría propias. Los deletes de la suite de tests dejan filas con `usuario_id` `NULL` antes de limpiar la tabla.
 

@@ -36,17 +36,6 @@ cp app/.env.example app/.env
 
 Para iOS Simulator, web y un backend local, `localhost` puede servir. En un teléfono físico o emulador Android, usá la IP LAN del equipo que corre la API. No hay proxy Vite ni una variable `VITE_API_URL`; la app llama directamente a la URL configurada.
 
-## Seed de desarrollo
-
-```bash
-cd backend
-go run ./cmd/seed                 # crea los usuarios demo si faltan
-go run ./cmd/seed -datos          # además genera datos de ejemplo
-go run ./cmd/seed -reset -datos   # borra los datos de negocio y los regenera
-```
-
-Usuarios demo: `admin@motek.local` / `admin123`, `recepcion@motek.local` / `recepcion123`, `tecnico@motek.local` / `tecnico123` y `tecnico2@motek.local` / `tecnico123`. `-reset` borra pagos, facturas, líneas, repuestos, órdenes, motos y clientes; no toca los usuarios. `-datos` solo inserta si la tabla de clientes está vacía.
-
 ## Scripts de la aplicación
 
 ```bash

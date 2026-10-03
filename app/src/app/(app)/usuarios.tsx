@@ -131,7 +131,7 @@ export default function UsuariosScreen() {
 
       <Dialog visible={dialogOpen} onClose={() => setDialogOpen(false)} title="Nuevo usuario">
         <View className="gap-4">
-          <Field label="Email *" value={form.email} onChangeText={(value) => setForm({ ...form, email: value })} placeholder="persona@motek.local" autoCapitalize="none" keyboardType="email-address" />
+          <Field label="Email *" value={form.email} onChangeText={(value) => setForm({ ...form, email: value })} placeholder="persona@taller.com" autoCapitalize="none" keyboardType="email-address" />
           <Field label="Nombre" value={form.nombre} onChangeText={(value) => setForm({ ...form, nombre: value })} placeholder="Nombre y apellido" />
           <Field label="Contraseña *" value={form.password} onChangeText={(value) => setForm({ ...form, password: value })} placeholder="Mínimo 6 caracteres" secureTextEntry />
           <SelectField label="Rol" value={form.rol} options={ROL_OPTIONS} onChange={(value) => setForm({ ...form, rol: value as Rol })} />

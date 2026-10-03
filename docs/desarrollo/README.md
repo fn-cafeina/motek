@@ -27,8 +27,6 @@ cd backend
 go run ./cmd/motek
 ```
 
-Para cargar usuarios demo y datos de ejemplo: `go run ./cmd/seed -datos` (ver [Configuración](configuracion.md)).
-
 En otra terminal:
 
 ```bash
