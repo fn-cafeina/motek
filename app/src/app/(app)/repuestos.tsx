@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert as NativeAlert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { Package, PackagePlus, Pencil, Plus, RotateCw, Trash2 } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
@@ -13,6 +13,7 @@ import type { Repuesto } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Field } from "../../components/ui/Field";
@@ -59,6 +60,7 @@ export default function RepuestosScreen() {
   const [stockTarget, setStockTarget] = useState<Repuesto | null>(null);
   const [stockDelta, setStockDelta] = useState("");
   const [stockSaving, setStockSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Repuesto | null>(null);
 
   const filtered = useMemo(
     () => items.filter((repuesto) => matchesSearch(search, [repuesto.nombre, repuesto.codigo, repuesto.categoria]) && (!soloBajo || repuesto.stock <= repuesto.stock_minimo)),
@@ -123,10 +125,7 @@ export default function RepuestosScreen() {
   }
 
   function confirmDelete(repuesto: Repuesto) {
-    NativeAlert.alert("Eliminar repuesto", `Se eliminará “${repuesto.nombre}” del inventario.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Eliminar", style: "destructive", onPress: () => void handleDelete(repuesto) },
-    ]);
+    setDeleteTarget(repuesto);
   }
 
   async function handleDelete(repuesto: Repuesto) {
@@ -238,6 +237,18 @@ export default function RepuestosScreen() {
           <Button onPress={handleStockChange} disabled={stockSaving}>{stockSaving ? "Actualizando..." : "Aplicar ajuste"}</Button>
         </View>
       </Dialog>
+
+      <ConfirmDialog
+        visible={Boolean(deleteTarget)}
+        title="Eliminar repuesto"
+        message={deleteTarget ? `Se eliminará “${deleteTarget.nombre}” del inventario.` : ""}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const target = deleteTarget;
+          setDeleteTarget(null);
+          if (target) void handleDelete(target);
+        }}
+      />
     </View>
   );
 }

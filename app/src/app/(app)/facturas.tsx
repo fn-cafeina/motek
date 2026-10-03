@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert as NativeAlert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
 import { Banknote, Ban, FileDown, FileText, Pencil, Plus, Trash2, X } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
@@ -14,6 +14,7 @@ import { FACTURA_ESTADOS, FACTURA_ESTADO_LABELS } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";
@@ -53,6 +54,7 @@ export default function FacturasScreen() {
   const [pagoMonto, setPagoMonto] = useState("");
   const [pagoMetodo, setPagoMetodo] = useState<(typeof paymentMethods)[number]>("efectivo");
   const [pagoSaving, setPagoSaving] = useState(false);
+  const [deletePago, setDeletePago] = useState<Pago | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Factura | null>(null);
   const [cancelSaving, setCancelSaving] = useState(false);
   const [pdfSaving, setPdfSaving] = useState(false);
@@ -188,10 +190,7 @@ export default function FacturasScreen() {
 
   function confirmDeletePayment(pago: Pago) {
     if (!detail) return;
-    NativeAlert.alert("Eliminar pago", `Se eliminará el pago de ${formatMoney(pago.monto)}.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Eliminar", style: "destructive", onPress: () => void deletePayment(pago) },
-    ]);
+    setDeletePago(pago);
   }
 
   async function deletePayment(pago: Pago) {
@@ -275,6 +274,18 @@ export default function FacturasScreen() {
       <Dialog visible={Boolean(cancelTarget)} onClose={() => !cancelSaving && setCancelTarget(null)} title="Cancelar factura">
         <View className="gap-4"><Text className="text-sm text-muted">La factura #{cancelTarget?.id} quedará cancelada de forma irreversible.</Text><Button variant="danger" onPress={handleCancel} disabled={cancelSaving}>{cancelSaving ? "Cancelando..." : "Cancelar factura"}</Button></View>
       </Dialog>
+
+      <ConfirmDialog
+        visible={Boolean(deletePago)}
+        title="Eliminar pago"
+        message={deletePago ? `Se eliminará el pago de ${formatMoney(deletePago.monto)}.` : ""}
+        onCancel={() => setDeletePago(null)}
+        onConfirm={() => {
+          const target = deletePago;
+          setDeletePago(null);
+          if (target) void deletePayment(target);
+        }}
+      />
 
       <Modal visible={Boolean(detail)} transparent animationType={lg ? "fade" : "slide"} onRequestClose={() => setDetail(null)}>
         {detail && <View className="flex-1 justify-end bg-black/50 lg:justify-center lg:p-4"><View className="w-full max-w-2xl self-center max-h-[92%] lg:max-h-[85%] rounded-t-2xl bg-surface lg:rounded-2xl"><View className="flex-row items-center justify-between border-b border-border px-4 py-3"><View><Text className="text-lg font-semibold text-fg">Factura #{detail.id}</Text><Text className="text-xs text-muted">Emitida el {formatFecha(detail.fecha_emision)}</Text></View><View className="flex-row items-center gap-1"><Pressable onPress={() => void handlePdf(detail)} disabled={pdfSaving} className="flex-row items-center gap-1 rounded-md px-2 py-2 active:bg-raised"><FileDown size={19} className="text-primary" /><Text className="text-xs font-semibold text-primary">{pdfSaving ? "..." : "PDF"}</Text></Pressable><Pressable onPress={() => setDetail(null)} className="p-2"><X size={20} className="text-muted" /></Pressable></View></View><FlatList data={pagos} keyExtractor={(pago) => String(pago.id)} renderItem={({ item: pago }) => <View className="flex-row items-center justify-between border-b border-border px-4 py-3"><View><Text className="font-semibold text-ok">{formatMoney(pago.monto)}</Text><Text className="text-xs text-muted">{pago.metodo} · {formatFecha(pago.fecha)}</Text></View>{puedeEliminarPagos && <Pressable onPress={() => confirmDeletePayment(pago)} className="p-2"><Trash2 size={16} className="text-danger" /></Pressable>}</View>} contentContainerStyle={{ paddingBottom: 24 }} ListHeaderComponent={<View className="gap-4 p-4"><View className="flex-row items-center gap-2"><EstadoBadge estado={detail.estado} /><Text className="text-sm text-muted">Orden #{detail.orden_id}</Text></View><View className="gap-2 rounded-lg border border-border bg-raised p-3"><AmountRow label="Mano de obra" value={formatMoney(detail.subtotal_mano_obra)} /><AmountRow label="Repuestos" value={formatMoney(detail.subtotal_repuestos)} /><AmountRow label="Total" value={formatMoney(detail.total)} strong /><AmountRow label="Pagado" value={formatMoney(totalPagado)} /><AmountRow label="Saldo" value={formatMoney(saldo)} /></View>{detail.notas && <View><Text className="text-xs font-medium text-muted">Notas</Text><Text className="mt-1 text-sm text-fg">{detail.notas}</Text></View>}<View className="flex-row items-center justify-between"><Text className="text-base font-semibold text-fg">Pagos</Text><Banknote size={19} className="text-muted" /></View>{pagosLoading ? <Text className="text-sm text-muted">Cargando pagos...</Text> : pagos.length === 0 ? <Text className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted">Sin pagos registrados.</Text> : null}{puedeEscribir && detail.estado !== "cancelada" && detail.estado !== "pagada" && <View className="gap-3 border-t border-border pt-4"><Field label="Monto" value={pagoMonto} onChangeText={setPagoMonto} keyboardType="numeric" placeholder={`Hasta ${formatMoney(saldo)}`} /><SelectField label="Método" value={pagoMetodo} options={paymentMethods.map((method) => ({ value: method, label: method[0].toUpperCase() + method.slice(1) }))} onChange={(value) => setPagoMetodo(value as (typeof paymentMethods)[number])} /><Button onPress={addPayment} disabled={pagoSaving}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Registrar pago</Text></Button></View>}</View>} /></View></View>}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert as NativeAlert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
@@ -11,6 +11,7 @@ import type { Cliente, Moto } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Field } from "../../components/ui/Field";
@@ -43,6 +44,8 @@ export default function ClientesScreen() {
   const [editingMoto, setEditingMoto] = useState<Moto | null>(null);
   const [motoForm, setMotoForm] = useState<MotoForm>(emptyMoto);
   const [savingMoto, setSavingMoto] = useState(false);
+  const [deleteCliente, setDeleteCliente] = useState<Cliente | null>(null);
+  const [deleteMoto, setDeleteMoto] = useState<Moto | null>(null);
 
   const motosPorCliente = useMemo(() => {
     const grouped = new Map<number, Moto[]>();
@@ -95,12 +98,13 @@ export default function ClientesScreen() {
     }
   }
 
-  function confirmDeleteCliente(cliente: Cliente) {
+  function deleteClienteMessage(cliente: Cliente) {
     const motoCount = motosPorCliente.get(cliente.id)?.length ?? 0;
-    NativeAlert.alert("Eliminar cliente", `Se eliminarán también sus datos y ${motoCount === 1 ? "su moto" : `sus ${motoCount} motos`}.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Eliminar", style: "destructive", onPress: () => void handleDeleteCliente(cliente) },
-    ]);
+    return `Se eliminarán también sus datos y ${motoCount === 1 ? "su moto" : `sus ${motoCount} motos`}.`;
+  }
+
+  function confirmDeleteCliente(cliente: Cliente) {
+    setDeleteCliente(cliente);
   }
 
   async function handleDeleteCliente(cliente: Cliente) {
@@ -154,10 +158,7 @@ export default function ClientesScreen() {
   }
 
   function confirmDeleteMoto(moto: Moto) {
-    NativeAlert.alert("Eliminar moto", "Se eliminará esta moto del cliente.", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Eliminar", style: "destructive", onPress: () => void handleDeleteMoto(moto) },
-    ]);
+    setDeleteMoto(moto);
   }
 
   async function handleDeleteMoto(moto: Moto) {
@@ -281,6 +282,29 @@ export default function ClientesScreen() {
           <Button onPress={handleSaveMoto} disabled={savingMoto}>{savingMoto ? "Guardando..." : "Guardar moto"}</Button>
         </View>
       </Dialog>
+
+      <ConfirmDialog
+        visible={Boolean(deleteCliente)}
+        title="Eliminar cliente"
+        message={deleteCliente ? deleteClienteMessage(deleteCliente) : ""}
+        onCancel={() => setDeleteCliente(null)}
+        onConfirm={() => {
+          const target = deleteCliente;
+          setDeleteCliente(null);
+          if (target) void handleDeleteCliente(target);
+        }}
+      />
+      <ConfirmDialog
+        visible={Boolean(deleteMoto)}
+        title="Eliminar moto"
+        message="Se eliminará esta moto del cliente."
+        onCancel={() => setDeleteMoto(null)}
+        onConfirm={() => {
+          const target = deleteMoto;
+          setDeleteMoto(null);
+          if (target) void handleDeleteMoto(target);
+        }}
+      />
     </View>
   );
 }

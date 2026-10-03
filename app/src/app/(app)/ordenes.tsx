@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert as NativeAlert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
+import { FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ClipboardList, PackagePlus, Pencil, Plus, Trash2, X } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
@@ -15,6 +15,7 @@ import { ORDEN_ESTADOS, ORDEN_ESTADO_LABELS } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";
@@ -59,6 +60,7 @@ export default function OrdenesScreen() {
   const [editing, setEditing] = useState<OrdenTrabajo | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<OrdenTrabajo | null>(null);
   const [detail, setDetail] = useState<OrdenTrabajo | null>(null);
   const [detailRepuestos, setDetailRepuestos] = useState<OrdenRepuesto[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -215,13 +217,10 @@ export default function OrdenesScreen() {
 
   function confirmDelete(orden: OrdenTrabajo) {
     if (facturadasIds.has(orden.id)) {
-      NativeAlert.alert("No se puede eliminar", "La orden tiene una factura emitida. Cancelá la factura primero si necesitás quitarla.");
+      showToast("error", "La orden tiene una factura emitida. Cancelá la factura primero si necesitás quitarla.");
       return;
     }
-    NativeAlert.alert("Eliminar orden", `Se eliminará “${orden.descripcion}”.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Eliminar", style: "destructive", onPress: () => void handleDelete(orden) },
-    ]);
+    setDeleteTarget(orden);
   }
 
   async function openDetail(orden: OrdenTrabajo) {
@@ -367,6 +366,18 @@ export default function OrdenesScreen() {
           <Button onPress={handleSave} disabled={saving}>{saving ? "Guardando..." : editing ? "Guardar cambios" : "Crear orden"}</Button>
         </View>
       </Dialog>
+
+      <ConfirmDialog
+        visible={Boolean(deleteTarget)}
+        title="Eliminar orden"
+        message={deleteTarget ? `Se eliminará “${deleteTarget.descripcion}”.` : ""}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const target = deleteTarget;
+          setDeleteTarget(null);
+          if (target) void handleDelete(target);
+        }}
+      />
 
       <Modal visible={Boolean(detail)} transparent animationType={lg ? "fade" : "slide"} onRequestClose={() => setDetail(null)}>
         {detail && <View className="flex-1 justify-end bg-black/50 lg:justify-center lg:p-4"><View className="w-full max-w-2xl self-center max-h-[92%] lg:max-h-[85%] rounded-t-2xl bg-surface lg:rounded-2xl"><View className="flex-row items-center justify-between border-b border-border px-4 py-3"><View><Text className="text-lg font-semibold text-fg">Orden #{detail.id}</Text><Text className="text-xs text-muted">{formatFecha(detail.fecha_recibido)}</Text></View><Pressable onPress={() => setDetail(null)} className="p-2"><X size={20} className="text-muted" /></Pressable></View><FlatList data={detailRepuestos} keyExtractor={(linea) => String(linea.id)} renderItem={() => null} contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 28 }} ListHeaderComponent={<View className="gap-4 pb-2"><View className="flex-row items-center gap-2"><EstadoBadge estado={detail.estado} /><Text className="text-sm text-muted">{clienteMap.get(detail.cliente_id)?.nombre ?? `#${detail.cliente_id}`}</Text></View><Text className="text-lg font-semibold text-fg">{detail.descripcion}</Text><View className="gap-2 rounded-lg bg-raised p-3"><Text className="text-sm text-muted">Moto: <Text className="text-fg">{motoMap.get(detail.moto_id)?.marca} {motoMap.get(detail.moto_id)?.modelo}</Text></Text><Text className="text-sm text-muted">Mano de obra: <Text className="text-fg">{formatMoney(detail.total_mano_obra)}</Text></Text></View>{puedeOperarDetail ? <View className="gap-3"><Field label="Diagnóstico" value={diagnosticoEdit} onChangeText={setDiagnosticoEdit} placeholder="Diagnóstico" multiline numberOfLines={3} />{diagnosticoEdit !== (detail.diagnostico ?? "") && <Button size="sm" variant="secondary" onPress={() => void handleSaveDiagnostico(detail)} disabled={savingDiagnostico}>{savingDiagnostico ? "Guardando..." : "Guardar diagnóstico"}</Button>}</View> : detail.diagnostico ? <View><Text className="text-xs font-medium text-muted">Diagnóstico</Text><Text className="mt-1 text-sm text-fg">{detail.diagnostico}</Text></View> : null}{detail.notas && <View><Text className="text-xs font-medium text-muted">Notas</Text><Text className="mt-1 text-sm text-fg">{detail.notas}</Text></View>}<View className="flex-row items-center justify-between"><Text className="text-sm font-semibold text-fg">Repuestos</Text><PackagePlus size={18} className="text-muted" /></View>{detailLoading ? <Text className="text-sm text-muted">Cargando repuestos...</Text> : detailRepuestos.length === 0 ? <Text className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted">Sin repuestos en esta orden.</Text> : detailRepuestos.map((linea) => <View key={linea.id} className="flex-row items-center justify-between border-b border-border py-2"><View className="flex-1"><Text className="font-medium text-fg">{repuestoMap.get(linea.repuesto_id)?.nombre ?? `Repuesto #${linea.repuesto_id}`}</Text><Text className="text-xs text-muted">{linea.cantidad} × {formatMoney(linea.precio_unitario)}</Text></View><Text className="font-semibold text-fg">{formatMoney(linea.subtotal)}</Text>{puedeOperarDetail && <Pressable onPress={() => void removeRepuesto(linea)} className="ml-2 p-2"><Trash2 size={16} className="text-danger" /></Pressable>}</View>)}<View className="flex-row items-center justify-between border-t border-border pt-3"><Text className="text-sm text-muted">Total repuestos</Text><Text className="font-semibold text-fg">{formatMoney(totalRepuestos)}</Text></View>{puedeOperarDetail && <View className="gap-3 border-t border-border pt-4"><SelectField label="Agregar repuesto" value={addRepuestoId} options={repuestosCatalogo.items.map((repuesto) => ({ value: String(repuesto.id), label: repuesto.nombre || repuesto.codigo, description: `Stock: ${repuesto.stock}` }))} placeholder="Elegí un repuesto" onChange={setAddRepuestoId} /><Field label="Cantidad" value={addCantidad} onChangeText={setAddCantidad} keyboardType="numeric" placeholder="1" /><Button onPress={() => void addRepuesto()} disabled={savingRepuesto || !addRepuestoId}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Agregar repuesto</Text></Button></View>}</View>} ListFooterComponent={<View className="gap-3 pt-4">{puedeOperarDetail && (detail.estado === "entregado" ? <Text className="rounded-lg bg-raised p-3 text-sm text-muted">La orden está entregada y no puede cambiar de estado.</Text> : <><Text className="text-sm font-semibold text-fg">Cambiar estado</Text><FilterChips options={ORDEN_ESTADO_OPTIONS} value={detail.estado} onChange={(value) => value && void handleChangeEstado(detail, value)} /></>)}{puedeAsignar && <SelectField label="Técnico asignado" value={detail.tecnico_id ? String(detail.tecnico_id) : ""} disabled={asignando} options={[{ value: "", label: "Sin asignar" }, ...tecnicos.items.map((tecnico) => ({ value: String(tecnico.id), label: tecnico.nombre || tecnico.email }))]} onChange={(value) => void handleAsignarTecnico(detail, value)} />}{(puedeEscribir || puedeEliminar) && <View className="flex-row gap-3">{puedeEscribir && <Button variant="secondary" onPress={() => { setDetail(null); openEdit(detail); }}>Editar</Button>}{puedeEliminar && <Button variant="danger" onPress={() => { setDetail(null); confirmDelete(detail); }}>Eliminar</Button>}</View>}{puede(user?.rol, "auditoria.ver") && <Pressable onPress={() => { setDetail(null); router.push({ pathname: "/auditoria", params: { tabla: "ordenes_trabajo", registro_id: String(detail.id) } }); }} className="self-start rounded-md px-2 py-1"><Text className="text-sm font-medium text-primary">Ver historial de la orden</Text></Pressable>}</View>} /></View></View>}
