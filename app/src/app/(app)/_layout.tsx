@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 import { useAuth } from "../../lib/auth";
 import { BP } from "../../lib/breakpoints";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import type { Rol } from "../../lib/types";
 import { Bell, ClipboardList, FileText, History, LayoutDashboard, LogOut, Menu, Package, PanelLeftClose, PanelLeftOpen, TriangleAlert, UserCog, Users } from "lucide-react-native";
 
@@ -67,6 +68,7 @@ export default function AppLayout() {
   const desktop = width >= BP.lg;
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
   const collapsedDesktop = desktop && collapsed;
   const title = titles[pathname] ?? "Motek";
   const email = user?.email ?? "";
@@ -129,7 +131,7 @@ export default function AppLayout() {
           </ScrollView>
           <View className={`border-t border-border ${collapsedDesktop ? "items-center p-2" : "p-3"}`}>
             {!collapsedDesktop && <View className="mb-2 flex-row items-center gap-2 px-2"><View className="size-7 items-center justify-center rounded-md bg-primary-soft"><Text className="text-xs font-semibold text-primary">{initial}</Text></View><Text className="flex-1 text-xs text-muted" numberOfLines={1}>{user?.nombre || email}</Text></View>}
-            <Pressable onPress={logout} className={`rounded-md active:bg-danger-soft ${collapsedDesktop ? "h-10 items-center justify-center" : "flex-row items-center gap-2 px-2 py-2"}`}>
+            <Pressable onPress={() => setLogoutConfirm(true)} className={`rounded-md active:bg-danger-soft ${collapsedDesktop ? "h-10 items-center justify-center" : "flex-row items-center gap-2 px-2 py-2"}`}>
               <LogOut size={17} className="text-danger" />
               {!collapsedDesktop && <Text className="text-sm font-medium text-danger">Cerrar sesión</Text>}
             </Pressable>
@@ -149,7 +151,7 @@ export default function AppLayout() {
                 <Bell size={20} color={subtle} />
               </Pressable>
               {!desktop && (
-                <Pressable onPress={logout} className="size-9 items-center justify-center rounded-md active:bg-raised">
+                <Pressable onPress={() => setLogoutConfirm(true)} className="size-9 items-center justify-center rounded-md active:bg-raised">
                   <LogOut size={18} color={subtle} />
                 </Pressable>
               )}
@@ -211,6 +213,18 @@ export default function AppLayout() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <ConfirmDialog
+        visible={logoutConfirm}
+        title="Cerrar sesión"
+        message="Vas a volver a la pantalla de inicio de sesión."
+        confirmLabel="Cerrar sesión"
+        onCancel={() => setLogoutConfirm(false)}
+        onConfirm={() => {
+          setLogoutConfirm(false);
+          void logout();
+        }}
+      />
     </View>
   );
 }
