@@ -1,6 +1,11 @@
+export type Rol = "admin" | "recepcionista" | "tecnico";
+
 export interface User {
   id: number;
   email: string;
+  nombre: string;
+  rol: Rol;
+  activo: boolean;
   creado_en: string;
 }
 
@@ -38,6 +43,7 @@ export interface OrdenTrabajo {
   id: number;
   cliente_id: number;
   moto_id: number;
+  tecnico_id: number | null;
   descripcion: string;
   diagnostico: string;
   estado: OrdenEstado;
@@ -106,6 +112,56 @@ export interface AlertaStock {
   nombre: string;
   stock: number;
   stock_minimo: number;
+}
+
+export interface ConteoEstado {
+  estado: OrdenEstado;
+  cantidad: number;
+}
+
+export interface SerieMensual {
+  mes: string;
+  total: number;
+}
+
+export interface TopRepuesto {
+  id: number;
+  codigo: string;
+  nombre: string;
+  unidades: number;
+  monto: number;
+}
+
+export interface RankingTecnico {
+  id: number;
+  nombre: string;
+  ordenes: number;
+  facturado: number;
+}
+
+export interface ResumenTablero {
+  ordenes_por_estado: ConteoEstado[];
+  facturacion_mensual: SerieMensual[];
+  ingresos_mensuales: SerieMensual[];
+  top_repuestos: TopRepuesto[];
+  ranking_tecnicos: RankingTecnico[];
+  saldo_por_cobrar: number;
+  facturas_sin_cobrar: number;
+}
+
+export type AuditoriaAccion = "crear" | "editar" | "borrar";
+
+export interface AuditoriaItem {
+  id: number;
+  usuario_id: number | null;
+  usuario_nombre: string;
+  usuario_email: string;
+  tabla: string;
+  registro_id: number;
+  accion: AuditoriaAccion;
+  datos_antes: Record<string, unknown> | null;
+  datos_despues: Record<string, unknown> | null;
+  fecha: string;
 }
 
 export const ORDEN_ESTADOS: OrdenEstado[] = [

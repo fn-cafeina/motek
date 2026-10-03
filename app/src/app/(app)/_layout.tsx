@@ -1,17 +1,19 @@
 import { Redirect, Slot, usePathname, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react-native";
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Modal, Pressable, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 import { useAuth } from "../../lib/auth";
-import { Bell, ClipboardList, FileText, LayoutDashboard, LogOut, Package, PanelLeftClose, PanelLeftOpen, TriangleAlert, Users } from "lucide-react-native";
+import type { Rol } from "../../lib/types";
+import { Bell, ClipboardList, FileText, History, LayoutDashboard, LogOut, Menu, Package, PanelLeftClose, PanelLeftOpen, TriangleAlert, UserCog, Users } from "lucide-react-native";
 
 type NavItem = {
   href: Href;
   label: string;
   icon: LucideIcon;
   exact?: boolean;
+  roles?: Rol[];
 };
 
 type NavGroup = {
@@ -25,15 +27,22 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/", label: "Inicio", icon: LayoutDashboard, exact: true },
       { href: "/ordenes", label: "Órdenes", icon: ClipboardList },
-      { href: "/clientes", label: "Clientes", icon: Users },
+      { href: "/clientes", label: "Clientes", icon: Users, roles: ["admin", "recepcionista"] },
       { href: "/repuestos", label: "Repuestos", icon: Package },
     ],
   },
   {
     label: "Administración",
     items: [
-      { href: "/facturas", label: "Facturas", icon: FileText },
+      { href: "/facturas", label: "Facturas", icon: FileText, roles: ["admin", "recepcionista"] },
       { href: "/alertas", label: "Alertas", icon: TriangleAlert },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [
+      { href: "/auditoria", label: "Historial", icon: History, roles: ["admin"] },
+      { href: "/usuarios", label: "Usuarios", icon: UserCog, roles: ["admin"] },
     ],
   },
 ];
@@ -56,13 +65,34 @@ export default function AppLayout() {
   const subtle = useCSSVariable("--color-subtle") as string;
   const desktop = width >= 900;
   const [collapsed, setCollapsed] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const collapsedDesktop = desktop && collapsed;
   const title = titles[pathname] ?? "Motek";
   const email = user?.email ?? "";
-  const initial = email.charAt(0).toUpperCase() || "?";
-  const activeHref = useMemo(() => allItems.find((item) => isActive(pathname, item.href, item.exact))?.href, [pathname]);
+  const initial = (user?.nombre || email).charAt(0).toUpperCase() || "?";
+
+  const allowedItems = useMemo(
+    () => allItems.filter((item) => !item.roles || (user ? item.roles.includes(user.rol) : false)),
+    [user]
+  );
+  const allowedGroups = useMemo(
+    () =>
+      navGroups
+        .map((group) => ({ ...group, items: group.items.filter((item) => allowedItems.includes(item)) }))
+        .filter((group) => group.items.length > 0),
+    [allowedItems]
+  );
+  const activeHref = useMemo(
+    () => allowedItems.find((item) => isActive(pathname, item.href, item.exact))?.href,
+    [allowedItems, pathname]
+  );
+  const mobilePrimary = allowedItems.slice(0, 5);
+  const mobileExtra = allowedItems.slice(5);
 
   if (!loading && !user) return <Redirect href="/login" />;
+  if (!loading && user && !allowedItems.some((item) => isActive(pathname, item.href, item.exact))) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <View className={`flex-1 min-h-screen bg-canvas ${desktop ? "flex-row" : ""}`}>
@@ -73,7 +103,7 @@ export default function AppLayout() {
             {collapsedDesktop && <Text className="text-xl font-bold tracking-tight text-fg">M</Text>}
           </View>
           <View className={`flex-1 gap-6 ${collapsedDesktop ? "px-2 py-4" : "p-3"}`}>
-            {navGroups.map((group) => (
+            {allowedGroups.map((group) => (
               <View key={group.label} className="gap-1">
                 {!collapsedDesktop && <Text className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-subtle">{group.label}</Text>}
                 {group.items.map((item) => {
@@ -94,7 +124,7 @@ export default function AppLayout() {
             ))}
           </View>
           <View className={`border-t border-border ${collapsedDesktop ? "items-center p-2" : "p-3"}`}>
-            {!collapsedDesktop && <View className="mb-2 flex-row items-center gap-2 px-2"><View className="size-7 items-center justify-center rounded-md bg-primary-soft"><Text className="text-xs font-semibold text-primary">{initial}</Text></View><Text className="flex-1 text-xs text-muted" numberOfLines={1}>{email}</Text></View>}
+            {!collapsedDesktop && <View className="mb-2 flex-row items-center gap-2 px-2"><View className="size-7 items-center justify-center rounded-md bg-primary-soft"><Text className="text-xs font-semibold text-primary">{initial}</Text></View><Text className="flex-1 text-xs text-muted" numberOfLines={1}>{user?.nombre || email}</Text></View>}
             <Pressable onPress={logout} className={`rounded-md active:bg-danger-soft ${collapsedDesktop ? "h-10 items-center justify-center" : "flex-row items-center gap-2 px-2 py-2"}`}>
               <LogOut size={17} className="text-danger" />
               {!collapsedDesktop && <Text className="text-sm font-medium text-danger">Cerrar sesión</Text>}
@@ -123,7 +153,7 @@ export default function AppLayout() {
         <View className="flex-1"><Slot /></View>
         {!desktop && (
           <View className="flex-row border-t border-border bg-surface px-1.5 pt-1" style={{ paddingBottom: Math.max(insets.bottom, 4) }}>
-            {allItems.map((item) => {
+            {mobilePrimary.map((item) => {
               const Icon = item.icon;
               const active = activeHref === item.href;
               return (
@@ -137,9 +167,40 @@ export default function AppLayout() {
                 </Pressable>
               );
             })}
+            {mobileExtra.length > 0 && (
+              <Pressable onPress={() => setMoreOpen(true)} className="flex-1 items-center gap-1 rounded-md px-1 py-1.5">
+                <Menu size={19} color={mobileExtra.some((item) => activeHref === item.href) ? primary : subtle} />
+                <Text className="text-[10px] font-medium text-subtle">Más</Text>
+              </Pressable>
+            )}
           </View>
         )}
       </View>
+
+      <Modal visible={moreOpen} transparent animationType="fade" onRequestClose={() => setMoreOpen(false)}>
+        <Pressable className="flex-1 justify-end bg-black/50 p-3" onPress={() => setMoreOpen(false)}>
+          <Pressable className="w-full overflow-hidden rounded-2xl border border-border bg-surface" onPress={(event) => event.stopPropagation()}>
+            <Text className="border-b border-border px-4 py-3 text-sm font-semibold uppercase tracking-wider text-subtle">Más secciones</Text>
+            {mobileExtra.map((item) => {
+              const Icon = item.icon;
+              const active = activeHref === item.href;
+              return (
+                <Pressable
+                  key={String(item.href)}
+                  onPress={() => {
+                    setMoreOpen(false);
+                    router.push(item.href);
+                  }}
+                  className="flex-row items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 active:bg-raised"
+                >
+                  <Icon size={20} color={active ? primary : subtle} />
+                  <Text className={`text-base font-medium ${active ? "text-primary" : "text-fg"}`}>{item.label}</Text>
+                </Pressable>
+              );
+            })}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }

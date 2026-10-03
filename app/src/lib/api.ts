@@ -81,6 +81,10 @@ export async function getToken(): Promise<string | null> {
   return storage.getItemAsync(TOKEN_KEY);
 }
 
+export function apiUrl(path: string): string {
+  return `${API_URL}${path}`;
+}
+
 export async function setToken(token: string): Promise<void> {
   await storage.setItemAsync(TOKEN_KEY, token);
 }

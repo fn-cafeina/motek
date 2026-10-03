@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
+import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
+import { puede } from "../../lib/permisos";
 import type { Cliente, Moto } from "../../lib/types";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -20,6 +22,8 @@ const emptyCliente: ClienteForm = { nombre: "", telefono: "", email: "", direcci
 const emptyMoto: MotoForm = { marca: "", modelo: "", anio: "", placa: "", color: "", vin: "", kilometraje: "" };
 
 export default function ClientesScreen() {
+  const { user } = useAuth();
+  const puedeEscribir = puede(user?.rol, "clientes.escribir");
   const clientes = useCollection<Cliente>("/api/clientes", "Error cargando clientes");
   const motos = useCollection<Moto>("/api/motos", "Error cargando motos");
   const [search, setSearch] = useState("");
@@ -170,7 +174,7 @@ export default function ClientesScreen() {
           <Text className="text-2xl font-semibold tracking-tight text-fg">Clientes</Text>
           <Text className="mt-1 text-sm text-muted">Directorio y motos del taller</Text>
         </View>
-        <Button size="sm" onPress={openCreateCliente}>+ Nuevo</Button>
+        {puedeEscribir && <Button size="sm" onPress={openCreateCliente}>+ Nuevo</Button>}
       </View>
       <Field label="" placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
       {(clientes.error || motos.error) && <Text className="text-sm text-danger">{clientes.error ?? motos.error}</Text>}
@@ -185,7 +189,7 @@ export default function ClientesScreen() {
         refreshControl={<RefreshControl refreshing={clientes.loading || motos.loading} onRefresh={async () => { await Promise.all([clientes.refresh(), motos.refresh()]); }} />}
         contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={header}
-        ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search ? <Button onPress={openCreateCliente}>+ Nuevo cliente</Button> : undefined} />}
+        ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search && puedeEscribir ? <Button onPress={openCreateCliente}>+ Nuevo cliente</Button> : undefined} />}
         renderItem={({ item: cliente }) => {
           const clienteMotos = motosPorCliente.get(cliente.id) ?? [];
           const expanded = expandedId === cliente.id;
@@ -205,7 +209,7 @@ export default function ClientesScreen() {
                 <View className="border-t border-border bg-raised/40 px-4 pb-3">
                   <View className="flex-row items-center justify-between py-3">
                     <Text className="text-sm font-semibold text-fg">Motos</Text>
-                    <Button size="sm" variant="secondary" onPress={() => openCreateMoto(cliente)}><Plus size={14} className="text-fg" /><Text className="text-fg font-semibold">Agregar</Text></Button>
+                    {puedeEscribir && <Button size="sm" variant="secondary" onPress={() => openCreateMoto(cliente)}><Plus size={14} className="text-fg" /><Text className="text-fg font-semibold">Agregar</Text></Button>}
                   </View>
                   {clienteMotos.length === 0 ? (
                     <Text className="pb-3 text-sm text-muted">Este cliente todavía no tiene motos cargadas.</Text>
@@ -216,14 +220,20 @@ export default function ClientesScreen() {
                         <Text className="font-medium text-fg">{moto.marca} {moto.modelo}</Text>
                         <Text className="text-xs text-muted">{[moto.placa, moto.color, moto.anio ? String(moto.anio) : ""].filter(Boolean).join(" · ")}</Text>
                       </View>
-                      <Pressable onPress={() => openEditMoto(moto)} className="p-2"><Pencil size={17} className="text-muted" /></Pressable>
-                      <Pressable onPress={() => confirmDeleteMoto(moto)} className="p-2"><Trash2 size={17} className="text-danger" /></Pressable>
+                      {puedeEscribir && (
+                        <>
+                          <Pressable onPress={() => openEditMoto(moto)} className="p-2"><Pencil size={17} className="text-muted" /></Pressable>
+                          <Pressable onPress={() => confirmDeleteMoto(moto)} className="p-2"><Trash2 size={17} className="text-danger" /></Pressable>
+                        </>
+                      )}
                     </View>
                   ))}
-                  <View className="flex-row justify-end gap-3 border-t border-border pt-3">
-                    <Pressable onPress={() => openEditCliente(cliente)} className="px-2 py-2"><Text className="text-sm font-medium text-primary">Editar cliente</Text></Pressable>
-                    <Pressable onPress={() => confirmDeleteCliente(cliente)} className="px-2 py-2"><Text className="text-sm font-medium text-danger">Eliminar cliente</Text></Pressable>
-                  </View>
+                  {puedeEscribir && (
+                    <View className="flex-row justify-end gap-3 border-t border-border pt-3">
+                      <Pressable onPress={() => openEditCliente(cliente)} className="px-2 py-2"><Text className="text-sm font-medium text-primary">Editar cliente</Text></Pressable>
+                      <Pressable onPress={() => confirmDeleteCliente(cliente)} className="px-2 py-2"><Text className="text-sm font-medium text-danger">Eliminar cliente</Text></Pressable>
+                    </View>
+                  )}
                 </View>
               )}
             </Card>

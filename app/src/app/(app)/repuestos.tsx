@@ -3,7 +3,9 @@ import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-na
 import { Package, PackagePlus, Pencil, Plus, RotateCw, Trash2 } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
+import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
+import { puede } from "../../lib/permisos";
 import { formatMoney } from "../../lib/format";
 import type { Repuesto } from "../../lib/types";
 import { Button } from "../../components/ui/Button";
@@ -39,6 +41,8 @@ const emptyForm: FormState = {
 };
 
 export default function RepuestosScreen() {
+  const { user } = useAuth();
+  const puedeGestionar = puede(user?.rol, "repuestos.escribir");
   const { items, loading, error, refresh } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos");
   const [search, setSearch] = useState("");
   const [soloBajo, setSoloBajo] = useState(false);
@@ -165,7 +169,7 @@ export default function RepuestosScreen() {
         ListHeaderComponent={
           <View className="gap-4">
             <View className="flex-row items-center justify-end">
-              <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>
+              {puedeGestionar && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>}
             </View>
             <Field label="" placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />
             <View className="flex-row items-center justify-between">
@@ -180,7 +184,7 @@ export default function RepuestosScreen() {
             {error && <Text className="text-sm text-danger">{error}</Text>}
           </View>
         }
-        ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? <Button onPress={openCreate}>+ Nuevo repuesto</Button> : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
+        ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>+ Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
         renderItem={({ item: repuesto }) => (
           <Card className="p-4">
             <View className="flex-row items-start gap-3">
@@ -192,9 +196,13 @@ export default function RepuestosScreen() {
                   <Text className={`text-sm font-semibold ${repuesto.stock <= repuesto.stock_minimo ? "text-accent" : "text-ok"}`}>Stock {repuesto.stock} / {repuesto.stock_minimo}</Text>
                 </View>
               </View>
-              <Pressable onPress={() => { setStockTarget(repuesto); setStockDelta(""); }} className="p-2"><PackagePlus size={19} className="text-primary" /></Pressable>
-              <Pressable onPress={() => openEdit(repuesto)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
-              <Pressable onPress={() => confirmDelete(repuesto)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
+              {puedeGestionar && (
+                <>
+                  <Pressable onPress={() => { setStockTarget(repuesto); setStockDelta(""); }} className="p-2"><PackagePlus size={19} className="text-primary" /></Pressable>
+                  <Pressable onPress={() => openEdit(repuesto)} className="p-2"><Pencil size={18} className="text-muted" /></Pressable>
+                  <Pressable onPress={() => confirmDelete(repuesto)} className="p-2"><Trash2 size={18} className="text-danger" /></Pressable>
+                </>
+              )}
             </View>
           </Card>
         )}

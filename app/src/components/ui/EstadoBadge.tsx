@@ -11,6 +11,7 @@ const estadoBadge: Record<string, { variant: "default" | "success" | "warning" |
   pendiente: { variant: "warning", label: "Pendiente" },
   parcial: { variant: "info", label: "Parcial" },
   pagada: { variant: "success", label: "Pagada" },
+  cancelada: { variant: "default", label: "Cancelada" },
 };
 
 interface EstadoBadgeProps {

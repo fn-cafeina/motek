@@ -6,7 +6,7 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, nombre?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -47,10 +47,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me);
   }
 
-  async function register(email: string, password: string) {
+  async function register(email: string, password: string, nombre?: string) {
     await api("/api/auth/register", {
       method: "POST",
-      body: { email, password },
+      body: { email, password, nombre },
     });
     await login(email, password);
   }

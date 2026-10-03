@@ -13,7 +13,8 @@ interface UseCollectionResult<T> {
 export function useCollection<T>(
   path: string,
   errorMessage: string,
-  params?: Record<string, string | undefined>
+  params?: Record<string, string | undefined>,
+  enabled = true
 ): UseCollectionResult<T> {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,10 @@ export function useCollection<T>(
     : "";
 
   const load = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -34,9 +39,10 @@ export function useCollection<T>(
     } finally {
       setLoading(false);
     }
-  }, [path, qs, errorMessage]);
+  }, [path, qs, errorMessage, enabled]);
 
   const refresh = useCallback(async () => {
+    if (!enabled) return;
     try {
       const data = await api<T[]>(`${path}${qs}`);
       setItems(data ?? []);
@@ -44,7 +50,7 @@ export function useCollection<T>(
     } catch (e) {
       setError(getErrorMessage(e, errorMessage));
     }
-  }, [path, qs, errorMessage]);
+  }, [path, qs, errorMessage, enabled]);
 
   useEffect(() => {
     void Promise.resolve().then(load);

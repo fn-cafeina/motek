@@ -3,7 +3,9 @@ import { FlatList, RefreshControl, Text, View } from "react-native";
 import { CheckCircle2, PackagePlus, RotateCw, TriangleAlert } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { api } from "../../lib/api";
+import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
+import { puede } from "../../lib/permisos";
 import type { AlertaStock } from "../../lib/types";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -14,6 +16,8 @@ import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
 
 export default function AlertasScreen() {
+  const { user } = useAuth();
+  const puedeSurtir = puede(user?.rol, "repuestos.stock");
   const { items, loading, error, refresh } = useCollection<AlertaStock>("/api/alertas/stock", "Error cargando alertas");
   const [search, setSearch] = useState("");
   const [target, setTarget] = useState<AlertaStock | null>(null);
@@ -92,7 +96,7 @@ export default function AlertasScreen() {
                 <Text className="font-semibold text-accent">{alerta.stock}</Text>
                 <Text className="text-xs text-subtle">de {alerta.stock_minimo} mín.</Text>
               </View>
-              <Button size="sm" variant="secondary" onPress={() => { setTarget(alerta); setDelta(""); }}><PackagePlus size={14} className="text-fg" /><Text className="text-fg font-semibold">Surtir</Text></Button>
+              {puedeSurtir && <Button size="sm" variant="secondary" onPress={() => { setTarget(alerta); setDelta(""); }}><PackagePlus size={14} className="text-fg" /><Text className="text-fg font-semibold">Surtir</Text></Button>}
             </View>
           </Card>
         )}

@@ -10,6 +10,7 @@ import { AuthCard } from "../../components/ui/AuthCard";
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +28,7 @@ export default function RegisterScreen() {
     setSaving(true);
     setError("");
     try {
-      await register(email, password);
+      await register(email, password, nombre.trim() || undefined);
     } catch (e) {
       setError(getErrorMessage(e, "Error al registrarse"));
     } finally {
@@ -40,6 +41,7 @@ export default function RegisterScreen() {
       <AuthCard title="Crear cuenta">
         <View className="gap-4">
           {error ? <Alert variant="danger" message={error} /> : null}
+          <Field label="Nombre" value={nombre} onChangeText={setNombre} placeholder="Tu nombre" />
           <Field label="Email" value={email} onChangeText={setEmail} placeholder="tu@email.com" autoCapitalize="none" keyboardType="email-address" />
           <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="Mínimo 6 caracteres" secureTextEntry />
           <Button onPress={handleSubmit} disabled={saving} className="w-full">
