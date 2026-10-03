@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { Alert as NativeAlert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
@@ -7,6 +7,7 @@ import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
 import type { Cliente, Moto } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
@@ -95,7 +96,7 @@ export default function ClientesScreen() {
 
   function confirmDeleteCliente(cliente: Cliente) {
     const motoCount = motosPorCliente.get(cliente.id)?.length ?? 0;
-    Alert.alert("Eliminar cliente", `Se eliminarán también sus datos y ${motoCount === 1 ? "su moto" : `sus ${motoCount} motos`}.`, [
+    NativeAlert.alert("Eliminar cliente", `Se eliminarán también sus datos y ${motoCount === 1 ? "su moto" : `sus ${motoCount} motos`}.`, [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => void handleDeleteCliente(cliente) },
     ]);
@@ -152,7 +153,7 @@ export default function ClientesScreen() {
   }
 
   function confirmDeleteMoto(moto: Moto) {
-    Alert.alert("Eliminar moto", "Se eliminará esta moto del cliente.", [
+    NativeAlert.alert("Eliminar moto", "Se eliminará esta moto del cliente.", [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => void handleDeleteMoto(moto) },
     ]);
@@ -181,7 +182,15 @@ export default function ClientesScreen() {
         {puedeEscribir && <Button size="sm" onPress={openCreateCliente}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo cliente</Text></Button>}
       </View>
       <Field label="" placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
-      {(clientes.error || motos.error) && <Text className="text-sm text-danger">{clientes.error ?? motos.error}</Text>}
+      {(clientes.error || motos.error) && (
+        <Alert
+          variant="danger"
+          message={clientes.error ?? motos.error ?? "Error cargando datos"}
+          onRetry={async () => {
+            await Promise.all([clientes.refresh(), motos.refresh()]);
+          }}
+        />
+      )}
     </View>
   );
 

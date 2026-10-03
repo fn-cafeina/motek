@@ -5,6 +5,7 @@ import { History, Pencil, Plus, Trash2, X } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { formatFecha, formatFechaHora } from "../../lib/format";
 import type { AuditoriaAccion, AuditoriaItem, User } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
 import { Card } from "../../components/ui/Card";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -137,7 +138,7 @@ export default function AuditoriaScreen() {
                 </Pressable>
               ))}
             </View>
-            {eventos.error && <Text className="text-sm text-danger">{eventos.error}</Text>}
+            {eventos.error && <Alert variant="danger" message={eventos.error} onRetry={() => void eventos.refresh()} />}
           </View>
         }
         ListEmptyComponent={<EmptyState icon={History} title="Sin movimientos" description="Cuando el equipo opere en el sistema, cada cambio va a quedar registrado acá." />}

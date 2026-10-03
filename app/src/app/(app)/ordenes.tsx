@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
+import { Alert as NativeAlert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ClipboardList, PackagePlus, Pencil, Plus, Trash2, X } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
@@ -11,6 +11,7 @@ import { buildMap, formatFecha, formatMoney } from "../../lib/format";
 import { puede, puedeOperarOrden } from "../../lib/permisos";
 import type { Cliente, Factura, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto, User } from "../../lib/types";
 import { ORDEN_ESTADOS, ORDEN_ESTADO_LABELS } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
@@ -193,10 +194,10 @@ export default function OrdenesScreen() {
 
   function confirmDelete(orden: OrdenTrabajo) {
     if (facturadasIds.has(orden.id)) {
-      Alert.alert("No se puede eliminar", "La orden tiene una factura emitida. Cancelá la factura primero si necesitás quitarla.");
+      NativeAlert.alert("No se puede eliminar", "La orden tiene una factura emitida. Cancelá la factura primero si necesitás quitarla.");
       return;
     }
-    Alert.alert("Eliminar orden", `Se eliminará “${orden.descripcion}”.`, [
+    NativeAlert.alert("Eliminar orden", `Se eliminará “${orden.descripcion}”.`, [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => void handleDelete(orden) },
     ]);
@@ -284,7 +285,7 @@ export default function OrdenesScreen() {
             <Text className={`text-xs font-medium ${soloMias ? "text-primary" : "text-muted"}`}>{soloMias ? "Mostrando mis órdenes" : "Mostrando todas"}</Text>
           </Pressable>
         )}
-        {ordenes.error && <Text className="text-sm text-danger">{ordenes.error}</Text>}
+        {ordenes.error && <Alert variant="danger" message={ordenes.error} onRetry={() => void ordenes.refresh()} />}
       </View>
 
       {vista === "tablero" ? (

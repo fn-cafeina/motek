@@ -8,6 +8,7 @@ import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
 import type { AlertaStock } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
@@ -82,7 +83,7 @@ export default function AlertasScreen() {
             <View className="flex-row justify-end">
               <Button size="sm" variant="secondary" onPress={() => void refresh()}><RotateCw size={14} className="text-fg" /><Text className="text-fg font-semibold">Actualizar</Text></Button>
             </View>
-            {error && <Text className="text-sm text-danger">{error}</Text>}
+            {error && <Alert variant="danger" message={error} onRetry={() => void refresh()} />}
           </View>
         }
         ListEmptyComponent={

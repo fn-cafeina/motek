@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
+import { Alert as NativeAlert, FlatList, Modal, Pressable, RefreshControl, Text, View } from "react-native";
 import { Banknote, Ban, FileDown, FileText, Pencil, Plus, Trash2, X } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
@@ -11,6 +11,7 @@ import { abrirFacturaPDF } from "../../lib/pdf";
 import { puede } from "../../lib/permisos";
 import type { Factura, FacturaEstado, OrdenTrabajo, Pago } from "../../lib/types";
 import { FACTURA_ESTADOS, FACTURA_ESTADO_LABELS } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
@@ -184,7 +185,7 @@ export default function FacturasScreen() {
 
   function confirmDeletePayment(pago: Pago) {
     if (!detail) return;
-    Alert.alert("Eliminar pago", `Se eliminará el pago de ${formatMoney(pago.monto)}.`, [
+    NativeAlert.alert("Eliminar pago", `Se eliminará el pago de ${formatMoney(pago.monto)}.`, [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => void deletePayment(pago) },
     ]);
@@ -230,8 +231,13 @@ export default function FacturasScreen() {
               <FilterButton label="Todas" active={!filter} onPress={() => setFilter("")} />
               {FACTURA_ESTADOS.map((estado) => <FilterButton key={estado} label={FACTURA_ESTADO_LABELS[estado]} active={filter === estado} onPress={() => setFilter(estado)} />)}
             </View>
-            {facturas.error && <Text className="text-sm text-danger">{facturas.error}</Text>}
-            {ordenesSinFactura.length > 0 && <View className="rounded-lg border border-primary-soft bg-primary-soft/50 p-3"><Text className="text-sm font-semibold text-fg">Órdenes listas para facturar</Text><Text className="mt-1 text-sm text-muted">{ordenesSinFactura.length} orden(es) entregadas sin factura.</Text></View>}
+            {facturas.error && <Alert variant="danger" message={facturas.error} onRetry={() => void facturas.refresh()} />}
+            {ordenesSinFactura.length > 0 && (
+              <Alert
+                variant="info"
+                message={`${ordenesSinFactura.length} ${ordenesSinFactura.length === 1 ? "orden entregada" : "órdenes entregadas"} sin factura, lista${ordenesSinFactura.length === 1 ? "" : "s"} para facturar.`}
+              />
+            )}
           </View>
         }
         ListEmptyComponent={<EmptyState icon={FileText} title={filter ? "Sin facturas en este estado" : "Aún no hay facturas"} description={filter ? "Probá con otro estado." : "Facturá una orden entregada para liquidar mano de obra y repuestos."} action={!filter && puedeEscribir && ordenesSinFactura.length > 0 ? <Button onPress={openCreate}>Nueva factura</Button> : undefined} />}

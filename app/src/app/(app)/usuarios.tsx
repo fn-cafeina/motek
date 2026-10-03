@@ -6,6 +6,7 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import type { Rol, User } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -106,7 +107,7 @@ export default function UsuariosScreen() {
               </Text>
               <Button size="sm" onPress={() => setDialogOpen(true)}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo usuario</Text></Button>
             </View>
-            {usuarios.error && <Text className="text-sm text-danger">{usuarios.error}</Text>}
+              {usuarios.error && <Alert variant="danger" message={usuarios.error} onRetry={() => void usuarios.refresh()} />}
           </View>
         }
         ListEmptyComponent={<EmptyState icon={UserCog} title="Sin usuarios" description="Creá la primera cuenta del taller." action={<Button onPress={() => setDialogOpen(true)}>Nuevo usuario</Button>} />}

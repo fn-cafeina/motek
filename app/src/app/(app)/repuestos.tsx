@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
+import { Alert as NativeAlert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { Package, PackagePlus, Pencil, Plus, RotateCw, Trash2 } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
 import { useBreakpoint } from "../../lib/breakpoints";
@@ -9,6 +9,7 @@ import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
 import { formatMoney } from "../../lib/format";
 import type { Repuesto } from "../../lib/types";
+import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
@@ -123,7 +124,7 @@ export default function RepuestosScreen() {
   }
 
   function confirmDelete(repuesto: Repuesto) {
-    Alert.alert("Eliminar repuesto", `Se eliminará “${repuesto.nombre}” del inventario.`, [
+    NativeAlert.alert("Eliminar repuesto", `Se eliminará “${repuesto.nombre}” del inventario.`, [
       { text: "Cancelar", style: "cancel" },
       { text: "Eliminar", style: "destructive", onPress: () => void handleDelete(repuesto) },
     ]);
@@ -189,7 +190,7 @@ export default function RepuestosScreen() {
               </Pressable>
               <Pressable onPress={() => void refresh()} className="flex-row items-center gap-1 rounded-md bg-raised px-3 py-2"><RotateCw size={14} className="text-muted" /><Text className="text-xs font-medium text-muted">Actualizar</Text></Pressable>
             </View>
-            {error && <Text className="text-sm text-danger">{error}</Text>}
+            {error && <Alert variant="danger" message={error} onRetry={() => void refresh()} />}
           </View>
         }
         ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
