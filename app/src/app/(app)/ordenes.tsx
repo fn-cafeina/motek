@@ -9,6 +9,7 @@ import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { buildMap, formatFecha, formatMoney } from "../../lib/format";
 import { puede, puedeOperarOrden } from "../../lib/permisos";
+import { matchesSearch, normalizeSearch } from "../../lib/search";
 import type { Cliente, Factura, Moto, OrdenEstado, OrdenRepuesto, OrdenTrabajo, Repuesto, User } from "../../lib/types";
 import { ORDEN_ESTADOS, ORDEN_ESTADO_LABELS } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
@@ -19,6 +20,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";
 import { Field } from "../../components/ui/Field";
 import { FilterChips } from "../../components/ui/FilterChips";
+import { SearchInput } from "../../components/ui/SearchInput";
 import { SelectField } from "../../components/ui/SelectField";
 import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
@@ -36,6 +38,7 @@ export default function OrdenesScreen() {
   const estadoInicial = (ORDEN_ESTADOS as string[]).includes(queryEstado ?? "") ? (queryEstado as OrdenEstado) : "";
   const { lg } = useBreakpoint();
   const [filter, setFilter] = useState<OrdenEstado | "">(estadoInicial);
+  const [search, setSearch] = useState("");
   const [vista, setVista] = useState<"lista" | "tablero">(queryVista === "tablero" ? "tablero" : "lista");
   const [preferenciaMias, setPreferenciaMias] = useState<boolean | null>(null);
 
@@ -75,7 +78,22 @@ export default function OrdenesScreen() {
     if (esTecnico && soloMias) return ordenes.items.filter((orden) => orden.tecnico_id === user?.id);
     return ordenes.items;
   }, [ordenes.items, esTecnico, soloMias, user?.id]);
-  const filtered = filter ? visibles.filter((orden) => orden.estado === filter) : visibles;
+  const filtered = useMemo(() => {
+    const base = filter ? visibles.filter((orden) => orden.estado === filter) : visibles;
+    if (!normalizeSearch(search)) return base;
+    return base.filter((orden) => {
+      const cliente = clienteMap.get(orden.cliente_id);
+      const moto = motoMap.get(orden.moto_id);
+      return matchesSearch(search, [
+        `#${orden.id}`,
+        cliente?.nombre,
+        moto?.marca,
+        moto?.modelo,
+        moto?.placa,
+        orden.descripcion,
+      ]);
+    });
+  }, [visibles, filter, search, clienteMap, motoMap]);
 
   const selectedMotos = form.cliente_id ? motos.items.filter((moto) => moto.cliente_id === Number(form.cliente_id)) : [];
   const selectedMoto = form.moto_id ? motoMap.get(Number(form.moto_id)) : null;
@@ -282,6 +300,12 @@ export default function OrdenesScreen() {
           </View>
           {puedeEscribir && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nueva orden</Text></Button>}
         </View>
+        <Text className="text-sm text-muted">
+          {normalizeSearch(search)
+            ? `${filtered.length} de ${visibles.length} resultados`
+            : `${filtered.length} ${filtered.length === 1 ? "orden visible" : "órdenes visibles"}`}
+        </Text>
+        <SearchInput placeholder="Buscar por cliente, moto o descripción" value={search} onChangeText={setSearch} />
         <FilterChips options={ORDEN_ESTADO_OPTIONS} value={filter} onChange={updateFilter} />
         {esTecnico && (
           <Pressable onPress={() => setPreferenciaMias(!soloMias)} className={`self-start rounded-md px-3 py-2 ${soloMias ? "bg-primary-soft" : "bg-raised"}`}>
@@ -306,7 +330,7 @@ export default function OrdenesScreen() {
           keyExtractor={(orden) => String(orden.id)}
           refreshControl={<RefreshControl refreshing={ordenes.loading} onRefresh={ordenes.refresh} />}
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
-          ListEmptyComponent={<EmptyState icon={ClipboardList} title={filter ? "Sin órdenes en este estado" : "Aún no hay órdenes"} description={filter ? "Probá con otro estado." : esTecnico ? "Cuando te asignen una orden la vas a ver acá." : "Elegí un cliente, su moto y el trabajo a realizar."} action={!filter && puedeEscribir ? <Button onPress={openCreate}>Nueva orden</Button> : filter ? <Button variant="secondary" onPress={() => updateFilter("")}>Limpiar filtro</Button> : undefined} />}
+          ListEmptyComponent={<EmptyState icon={ClipboardList} title={normalizeSearch(search) || filter ? "Sin resultados" : "Aún no hay órdenes"} description={normalizeSearch(search) || filter ? "Probá con otro término o quitá los filtros." : esTecnico ? "Cuando te asignen una orden la vas a ver acá." : "Elegí un cliente, su moto y el trabajo a realizar."} action={normalizeSearch(search) || filter ? <Button variant="secondary" onPress={() => { setSearch(""); updateFilter(""); }}>Limpiar filtros</Button> : puedeEscribir ? <Button onPress={openCreate}>Nueva orden</Button> : undefined} />}
           renderItem={({ item: orden }) => {
             const cliente = clienteMap.get(orden.cliente_id);
             const moto = motoMap.get(orden.moto_id);
