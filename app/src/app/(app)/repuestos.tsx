@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { Package, PackagePlus, Pencil, Plus, RotateCw, Trash2 } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
+import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
@@ -44,6 +45,8 @@ export default function RepuestosScreen() {
   const { user } = useAuth();
   const puedeGestionar = puede(user?.rol, "repuestos.escribir");
   const { items, loading, error, refresh } = useCollection<Repuesto>("/api/repuestos", "Error cargando repuestos");
+  const { md } = useBreakpoint();
+  const numColumns = md ? 2 : 1;
   const [search, setSearch] = useState("");
   const [soloBajo, setSoloBajo] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -164,8 +167,11 @@ export default function RepuestosScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(repuesto) => String(repuesto.id)}
+        key={String(numColumns)}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? { gap: 12 } : undefined}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
             <View className="flex-row items-center justify-end">
@@ -186,7 +192,7 @@ export default function RepuestosScreen() {
         }
         ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>+ Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
         renderItem={({ item: repuesto }) => (
-          <Card className="p-4">
+          <Card className={numColumns > 1 ? "flex-1 p-4" : "p-4"}>
             <View className="flex-row items-start gap-3">
               <View className="flex-1 min-w-0">
                 <Text className="font-semibold text-fg" numberOfLines={1}>{repuesto.nombre}</Text>

@@ -4,6 +4,7 @@ import { RefreshControl, ScrollView, Text, View } from "react-native";
 import { useCSSVariable } from "uniwind";
 import { ClipboardList, Wrench } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
+import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { buildMap, formatFecha, formatMoney } from "../../lib/format";
@@ -34,7 +35,7 @@ function StatCard({ label, value, hint, tone = "neutral", href }: {
 }) {
   const toneClass = tone === "primary" ? "text-primary" : tone === "accent" ? "text-accent" : "text-fg";
   const content = (
-    <View className="flex-1 min-w-[150px]">
+    <View className="flex-1">
       <Text className="text-xs font-medium text-muted">{label}</Text>
       <Text className={`text-2xl font-semibold leading-none mt-1 ${toneClass}`}>{value}</Text>
       {hint && <Text className="text-xs leading-5 text-subtle">{hint}</Text>}
@@ -42,10 +43,10 @@ function StatCard({ label, value, hint, tone = "neutral", href }: {
   );
 
   if (href) {
-    return <Link href={href as never} className="flex-1 min-w-[150px]">{content}</Link>;
+    return <Link href={href as never} className="flex-1">{content}</Link>;
   }
 
-  return <View className="flex-1 min-w-[150px]">{content}</View>;
+  return <View className="flex-1">{content}</View>;
 }
 
 function useResumenTablero(activo: boolean) {
@@ -74,6 +75,7 @@ function PanelGeneral() {
   const clientes = useCollection<Cliente>("/api/clientes", "Error cargando clientes");
   const { resumen, cargar: cargarResumen } = useResumenTablero(true);
 
+  const { lg } = useBreakpoint();
   const primary = useCSSVariable("--color-primary") as string;
   const ok = useCSSVariable("--color-ok") as string;
   const accent = useCSSVariable("--color-accent") as string;
@@ -123,7 +125,7 @@ function PanelGeneral() {
 
   if (sinMovimiento) {
     return (
-      <ScrollView className="flex-1 bg-canvas" contentContainerStyle={{ padding: 16 }}>
+      <ScrollView className="flex-1 bg-canvas" contentContainerStyle={{ paddingTop: 16 }}>
         <Card className="p-4">
           <EmptyState
             icon={ClipboardList}
@@ -140,20 +142,20 @@ function PanelGeneral() {
     <ScrollView
       className="flex-1 bg-canvas"
       refreshControl={<RefreshControl refreshing={loading} onRefresh={async () => { await Promise.all([ordenes.refresh(), facturas.refresh(), alertas.refresh(), clientes.refresh(), cargarResumen()]); }} />}
-      contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+      contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
     >
       <View className="gap-4">
-        <View className="flex-row flex-wrap gap-3">
-          <Card className="flex-1 min-w-[150px] p-4">
+        <View className="flex-row flex-wrap gap-2">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Órdenes activas" value={activas} tone="primary" hint={activas === 0 ? "No queda nada pendiente en el taller" : `${estados.en_progreso ?? 0} en progreso`} />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Stock crítico" value={alertas.items.length} tone={alertas.items.length > 0 ? "accent" : "neutral"} href="/alertas" hint={alertas.items.length > 0 ? "Repuestos en el mínimo o por debajo" : "Todo el stock está sobre el mínimo"} />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Facturado este mes" value={formatMoney(facturadoDelMes(facturas.items))} href="/facturas" hint="Sin contar las facturas canceladas" />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Saldo por cobrar" value={formatMoney(saldo)} tone={sinCobrar > 0 ? "accent" : "neutral"} href="/facturas" hint={sinCobrar > 0 ? `${sinCobrar} factura${sinCobrar === 1 ? "" : "s"} con saldo` : "Todas las facturas están cobradas"} />
           </Card>
         </View>
@@ -180,8 +182,8 @@ function PanelGeneral() {
               <Text className="py-10 text-center text-muted">Sin órdenes todavía.</Text>
             ) : (
               <View className="flex-row flex-wrap items-center gap-5">
-                <DonutChart data={donut} trackColor={border} centerColor={fg} centerMuted={muted} />
-                <View className="flex-1 gap-2 min-w-[150px]">
+                <DonutChart data={donut} trackColor={border} centerColor={fg} centerMuted={muted} size={lg ? 176 : 148} />
+                <View className="flex-1 gap-2 min-w-[132px]">
                   {donut.map((item) => (
                     <View key={item.label} className="flex-row items-center gap-2">
                       <View className="size-2.5 rounded-full" style={{ backgroundColor: item.color }} />
@@ -297,7 +299,7 @@ function PanelTaller() {
     <ScrollView
       className="flex-1 bg-canvas"
       refreshControl={<RefreshControl refreshing={loading} onRefresh={async () => { await Promise.all([ordenes.refresh(), alertas.refresh(), clientes.refresh()]); }} />}
-      contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+      contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
     >
       <View className="gap-4">
         <View>
@@ -305,17 +307,17 @@ function PanelTaller() {
           <Text className="mt-1 text-sm text-muted">{user?.nombre ? `Hola, ${user.nombre}` : "Tus órdenes asignadas"}</Text>
         </View>
 
-        <View className="flex-row flex-wrap gap-3">
-          <Card className="flex-1 min-w-[150px] p-4">
+        <View className="flex-row flex-wrap gap-2">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Mis órdenes activas" value={activas.length} tone="primary" hint="Asignadas a vos y sin entregar" />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="En progreso" value={enProgreso} />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Esperando repuestos" value={esperando} tone={esperando > 0 ? "accent" : "neutral"} />
           </Card>
-          <Card className="flex-1 min-w-[150px] p-4">
+          <Card className="flex-1 min-w-[132px] p-4">
             <StatCard label="Listas para entregar" value={terminadas} />
           </Card>
         </View>

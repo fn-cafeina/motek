@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, RefreshControl, Text, View } from "react-native";
 import { useCollection } from "../../hooks/useCollection";
+import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
@@ -26,6 +27,8 @@ export default function ClientesScreen() {
   const puedeEscribir = puede(user?.rol, "clientes.escribir");
   const clientes = useCollection<Cliente>("/api/clientes", "Error cargando clientes");
   const motos = useCollection<Moto>("/api/motos", "Error cargando motos");
+  const { md } = useBreakpoint();
+  const numColumns = md ? 2 : 1;
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [clienteDialog, setClienteDialog] = useState(false);
@@ -186,15 +189,18 @@ export default function ClientesScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(cliente) => String(cliente.id)}
+        key={String(numColumns)}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? { gap: 12 } : undefined}
         refreshControl={<RefreshControl refreshing={clientes.loading || motos.loading} onRefresh={async () => { await Promise.all([clientes.refresh(), motos.refresh()]); }} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={header}
         ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search && puedeEscribir ? <Button onPress={openCreateCliente}>+ Nuevo cliente</Button> : undefined} />}
         renderItem={({ item: cliente }) => {
           const clienteMotos = motosPorCliente.get(cliente.id) ?? [];
           const expanded = expandedId === cliente.id;
           return (
-            <Card className="overflow-hidden">
+            <Card className={numColumns > 1 ? "flex-1 overflow-hidden" : "overflow-hidden"}>
               <Pressable onPress={() => setExpandedId(expanded ? null : cliente.id)} className="flex-row items-center gap-3 p-4 active:bg-raised">
                 <View className="flex-1 min-w-0">
                   <Text className="text-base font-semibold text-fg" numberOfLines={1}>{cliente.nombre}</Text>

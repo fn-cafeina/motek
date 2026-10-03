@@ -97,7 +97,7 @@ export default function UsuariosScreen() {
         data={usuarios.items}
         keyExtractor={(usuario) => String(usuario.id)}
         refreshControl={<RefreshControl refreshing={usuarios.loading} onRefresh={usuarios.refresh} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
             <View className="flex-row items-center justify-between">

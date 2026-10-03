@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { FlatList, RefreshControl, Text, View } from "react-native";
 import { CheckCircle2, PackagePlus, RotateCw, TriangleAlert } from "lucide-react-native";
 import { useCollection } from "../../hooks/useCollection";
+import { useBreakpoint } from "../../lib/breakpoints";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
@@ -19,6 +20,8 @@ export default function AlertasScreen() {
   const { user } = useAuth();
   const puedeSurtir = puede(user?.rol, "repuestos.stock");
   const { items, loading, error, refresh } = useCollection<AlertaStock>("/api/alertas/stock", "Error cargando alertas");
+  const { md } = useBreakpoint();
+  const numColumns = md ? 2 : 1;
   const [search, setSearch] = useState("");
   const [target, setTarget] = useState<AlertaStock | null>(null);
   const [delta, setDelta] = useState("");
@@ -63,8 +66,11 @@ export default function AlertasScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => String(item.id ?? item.repuesto_id ?? item.codigo)}
+        key={String(numColumns)}
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? { gap: 12 } : undefined}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 12 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
             <View className="flex-row items-center justify-end">
@@ -86,7 +92,7 @@ export default function AlertasScreen() {
           )
         }
         renderItem={({ item: alerta }) => (
-          <Card className="p-4">
+          <Card className={numColumns > 1 ? "flex-1 p-4" : "p-4"}>
             <View className="flex-row items-center gap-3">
               <View className="flex-1 min-w-0">
                 <Text className="font-semibold text-fg" numberOfLines={1}>{alerta.nombre || alerta.codigo}</Text>

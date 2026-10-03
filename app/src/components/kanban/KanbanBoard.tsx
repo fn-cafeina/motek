@@ -11,7 +11,7 @@ import type { Cliente, OrdenEstado, OrdenTrabajo } from "../../lib/types";
 
 const COLUMN_WIDTH = 268;
 const COLUMN_GAP = 12;
-const BOARD_PADDING = 16;
+const BOARD_PADDING = 0;
 const COLUMN_PADDING = 10;
 const CARD_WIDTH = COLUMN_WIDTH - COLUMN_PADDING * 2;
 const STRIDE = COLUMN_WIDTH + COLUMN_GAP;

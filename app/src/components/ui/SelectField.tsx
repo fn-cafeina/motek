@@ -39,8 +39,8 @@ export function SelectField({ label, value, options, placeholder = "Seleccionar"
       </View>
 
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-        <Pressable className="flex-1 items-center justify-end bg-black/50 p-3" onPress={() => setVisible(false)}>
-          <Pressable className="w-full max-w-lg max-h-[75vh] overflow-hidden rounded-t-2xl border border-border bg-surface" onPress={(event) => event.stopPropagation()}>
+        <Pressable className="flex-1 items-center justify-end bg-black/50 p-3 lg:justify-center" onPress={() => setVisible(false)}>
+          <Pressable className="w-full max-w-lg max-h-[75vh] overflow-hidden rounded-t-2xl border border-border bg-surface lg:rounded-2xl" onPress={(event) => event.stopPropagation()}>
             <View className="border-b border-border px-4 py-3">
               <Text className="text-lg font-semibold text-fg">{label}</Text>
             </View>

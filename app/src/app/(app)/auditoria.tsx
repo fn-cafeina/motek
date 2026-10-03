@@ -116,7 +116,7 @@ export default function AuditoriaScreen() {
         data={filas}
         keyExtractor={(fila) => ("dia" in fila ? `dia-${fila.dia}` : `evento-${fila.id}`)}
         refreshControl={<RefreshControl refreshing={eventos.loading} onRefresh={eventos.refresh} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24, gap: 8 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 8 }}
         ListHeaderComponent={
           <View className="gap-4 pb-2">
             <View>
