@@ -5,6 +5,7 @@ import { Modal, Pressable, Text, View, useWindowDimensions } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 import { useAuth } from "../../lib/auth";
+import { BP } from "../../lib/breakpoints";
 import type { Rol } from "../../lib/types";
 import { Bell, ClipboardList, FileText, History, LayoutDashboard, LogOut, Menu, Package, PanelLeftClose, PanelLeftOpen, TriangleAlert, UserCog, Users } from "lucide-react-native";
 
@@ -63,7 +64,7 @@ export default function AppLayout() {
   const insets = useSafeAreaInsets();
   const primary = useCSSVariable("--color-primary") as string;
   const subtle = useCSSVariable("--color-subtle") as string;
-  const desktop = width >= 900;
+  const desktop = width >= BP.lg;
   const [collapsed, setCollapsed] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const collapsedDesktop = desktop && collapsed;
@@ -137,20 +138,26 @@ export default function AppLayout() {
       )}
 
       <View className="flex-1" style={{ paddingTop: insets.top }}>
-        <View className="h-[52px] flex-row items-center justify-between border-b border-border bg-surface px-4">
-          <Text className="text-xl font-semibold tracking-tight text-fg">{title}</Text>
-          <View className="flex-row items-center gap-1">
-            <Pressable onPress={() => router.push("/alertas")} className="size-9 items-center justify-center rounded-md active:bg-raised">
-              <Bell size={20} color={subtle} />
-            </Pressable>
-            {!desktop && (
-              <Pressable onPress={logout} className="size-9 items-center justify-center rounded-md active:bg-raised">
-                <LogOut size={18} color={subtle} />
+        <View className="h-[52px] flex-row justify-center border-b border-border bg-surface">
+          <View className="h-full w-full max-w-[1360px] flex-row items-center justify-between px-4 md:px-6 xl:px-8">
+            <Text className="text-xl font-semibold tracking-tight text-fg">{title}</Text>
+            <View className="flex-row items-center gap-1">
+              <Pressable onPress={() => router.push("/alertas")} className="size-9 items-center justify-center rounded-md active:bg-raised">
+                <Bell size={20} color={subtle} />
               </Pressable>
-            )}
+              {!desktop && (
+                <Pressable onPress={logout} className="size-9 items-center justify-center rounded-md active:bg-raised">
+                  <LogOut size={18} color={subtle} />
+                </Pressable>
+              )}
+            </View>
           </View>
         </View>
-        <View className="flex-1"><Slot /></View>
+        <View className="flex-1">
+          <View className="flex-1 w-full max-w-[1360px] self-center px-4 md:px-6 xl:px-8">
+            <Slot />
+          </View>
+        </View>
         {!desktop && (
           <View className="flex-row border-t border-border bg-surface px-1.5 pt-1" style={{ paddingBottom: Math.max(insets.bottom, 4) }}>
             {mobilePrimary.map((item) => {
@@ -163,14 +170,14 @@ export default function AppLayout() {
                   className="flex-1 items-center gap-1 rounded-md px-1 py-1.5"
                 >
                   <Icon size={19} color={active ? primary : subtle} />
-                  <Text className={`text-[10px] font-medium ${active ? "text-primary" : "text-subtle"}`}>{item.label}</Text>
+                  <Text numberOfLines={1} className={`text-[10px] font-medium ${active ? "text-primary" : "text-subtle"}`}>{item.label}</Text>
                 </Pressable>
               );
             })}
             {mobileExtra.length > 0 && (
               <Pressable onPress={() => setMoreOpen(true)} className="flex-1 items-center gap-1 rounded-md px-1 py-1.5">
                 <Menu size={19} color={mobileExtra.some((item) => activeHref === item.href) ? primary : subtle} />
-                <Text className="text-[10px] font-medium text-subtle">Más</Text>
+                <Text numberOfLines={1} className="text-[10px] font-medium text-subtle">Más</Text>
               </Pressable>
             )}
           </View>
