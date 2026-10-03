@@ -271,9 +271,15 @@ export default function FacturasScreen() {
         </View>
       </Dialog>
 
-      <Dialog visible={Boolean(cancelTarget)} onClose={() => !cancelSaving && setCancelTarget(null)} title="Cancelar factura">
-        <View className="gap-4"><Text className="text-sm text-muted">La factura #{cancelTarget?.id} quedará cancelada de forma irreversible.</Text><Button variant="danger" onPress={handleCancel} disabled={cancelSaving}>{cancelSaving ? "Cancelando..." : "Cancelar factura"}</Button></View>
-      </Dialog>
+      <ConfirmDialog
+        visible={Boolean(cancelTarget)}
+        title="Cancelar factura"
+        message={cancelTarget ? `La factura #${cancelTarget.id} quedará cancelada de forma irreversible.` : ""}
+        confirmLabel="Cancelar factura"
+        loading={cancelSaving}
+        onCancel={() => setCancelTarget(null)}
+        onConfirm={() => void handleCancel()}
+      />
 
       <ConfirmDialog
         visible={Boolean(deletePago)}
