@@ -18,11 +18,14 @@ import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { EstadoBadge } from "../../components/ui/EstadoBadge";
 import { Field } from "../../components/ui/Field";
+import { FilterChips } from "../../components/ui/FilterChips";
 import { SelectField } from "../../components/ui/SelectField";
 import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
 
 const paymentMethods = ["efectivo", "transferencia", "tarjeta"] as const;
+
+const FACTURA_ESTADO_OPTIONS = FACTURA_ESTADOS.map((estado) => ({ value: estado, label: FACTURA_ESTADO_LABELS[estado] }));
 
 function toApiDate(value: string) {
   return value ? new Date(`${value}T12:00:00`).toISOString() : null;
@@ -227,10 +230,7 @@ export default function FacturasScreen() {
               </Text>
               {puedeEscribir && <Button size="sm" onPress={openCreate} disabled={ordenesSinFactura.length === 0}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nueva factura</Text></Button>}
             </View>
-            <View className="flex-row flex-wrap gap-2">
-              <FilterButton label="Todas" active={!filter} onPress={() => setFilter("")} />
-              {FACTURA_ESTADOS.map((estado) => <FilterButton key={estado} label={FACTURA_ESTADO_LABELS[estado]} active={filter === estado} onPress={() => setFilter(estado)} />)}
-            </View>
+            <FilterChips options={FACTURA_ESTADO_OPTIONS} value={filter} onChange={setFilter} />
             {facturas.error && <Alert variant="danger" message={facturas.error} onRetry={() => void facturas.refresh()} />}
             {ordenesSinFactura.length > 0 && (
               <Alert
@@ -281,10 +281,6 @@ export default function FacturasScreen() {
       </Modal>
     </View>
   );
-}
-
-function FilterButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return <Pressable onPress={onPress} className={`rounded-md px-3 py-2 ${active ? "bg-primary-soft" : "bg-raised"}`}><Text className={`text-xs font-medium ${active ? "text-primary" : "text-muted"}`}>{label}</Text></Pressable>;
 }
 
 function AmountRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
