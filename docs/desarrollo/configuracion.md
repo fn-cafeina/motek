@@ -18,7 +18,7 @@ cp backend/.env.example backend/.env
 | `JWT_SECRET` | — | Secreto para firmar JWT; obligatorio para el proceso normal. |
 | `SERVER_PORT` | `8080` | Puerto del servidor HTTP. |
 
-El store hace `Ping` a la base configurada y luego ejecuta las ocho migraciones `CREATE TABLE IF NOT EXISTS`. El servidor usa timeouts de lectura de 10 s, escritura de 15 s e idle de 60 s, y se apaga con `SIGINT` o `SIGTERM` esperando hasta 10 s.
+El store hace `Ping` a la base configurada y luego aplica las migraciones versionadas (ver [Base de datos](base-de-datos.md)). El servidor usa timeouts de lectura de 10 s, escritura de 15 s e idle de 60 s, y se apaga con `SIGINT` o `SIGTERM` esperando hasta 10 s.
 
 ### CORS y salud
 
@@ -35,6 +35,17 @@ cp app/.env.example app/.env
 | `EXPO_PUBLIC_API_URL` | `http://localhost:8080` | URL absoluta de la API. |
 
 Para iOS Simulator, web y un backend local, `localhost` puede servir. En un teléfono físico o emulador Android, usá la IP LAN del equipo que corre la API. No hay proxy Vite ni una variable `VITE_API_URL`; la app llama directamente a la URL configurada.
+
+## Seed de desarrollo
+
+```bash
+cd backend
+go run ./cmd/seed                 # crea los usuarios demo si faltan
+go run ./cmd/seed -datos          # además genera datos de ejemplo
+go run ./cmd/seed -reset -datos   # borra los datos de negocio y los regenera
+```
+
+Usuarios demo: `admin@motek.local` / `admin123`, `recepcion@motek.local` / `recepcion123`, `tecnico@motek.local` / `tecnico123` y `tecnico2@motek.local` / `tecnico123`. `-reset` borra pagos, facturas, líneas, repuestos, órdenes, motos y clientes; no toca los usuarios. `-datos` solo inserta si la tabla de clientes está vacía.
 
 ## Scripts de la aplicación
 

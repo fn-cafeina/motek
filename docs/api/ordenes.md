@@ -2,7 +2,7 @@
 
 ## Órdenes
 
-Estados válidos: `recibido`, `en_progreso`, `esperando_repuestos`, `terminado` y `entregado`. Toda orden nace en `recibido`.
+Estados válidos: `recibido`, `en_progreso`, `esperando_repuestos`, `terminado` y `entregado`. Toda orden nace en `recibido`. `entregado` es terminal: una orden entregada no puede volver a otro estado (la base lo bloquea con un trigger y la API responde `409 "una orden entregada no puede cambiar de estado"`).
 
 | Método | Ruta | Comportamiento |
 |---|---|---|
@@ -11,11 +11,15 @@ Estados válidos: `recibido`, `en_progreso`, `esperando_repuestos`, `terminado` 
 | `GET` | `/api/ordenes/{id}` | Obtiene una orden. |
 | `PUT` | `/api/ordenes/{id}` | Actualiza descripción, diagnóstico, mano de obra y notas. |
 | `PATCH` | `/api/ordenes/{id}/estado` | Actualiza el estado con `{"estado":"en_progreso"}`. |
+| `PATCH` | `/api/ordenes/{id}/diagnostico` | Guarda el diagnóstico con `{"diagnostico":"..."}`. |
+| `PATCH` | `/api/ordenes/{id}/tecnico` | Asigna o quita el técnico con `{"tecnico_id":4}` o `{"tecnico_id":null}`. |
 | `DELETE` | `/api/ordenes/{id}` | Responde `204`; una factura asociada puede producir `409`. |
 
 El filtro `estado` no se valida contra una lista en el endpoint: un valor desconocido simplemente no encuentra coincidencias y devuelve `[]`.
 
-Crear una orden con un cliente o moto inexistente devuelve `404 "cliente o moto no encontrado"`. La respuesta de creación puede no recargar todos los timestamps de la base.
+Crear una orden con un cliente o moto inexistente devuelve `404 "cliente o moto no encontrado"`. La respuesta de creación puede no recargar todos los timestamps de la base. `POST` acepta un `tecnico_id` opcional; si se envía, tiene que ser una cuenta con rol `tecnico` (`400 "tecnico_id invalido"`).
+
+Permisos: crear, editar, asignar técnico y borrar corresponden a `admin` y `recepcionista`. El rol `tecnico` solo puede cambiar el estado, guardar el diagnóstico y operar los repuestos de **sus** órdenes asignadas; sobre las demás responde `403 "solo podes operar sobre tus ordenes"`. Ver [Usuarios y roles](usuarios.md).
 
 ```bash
 curl -X POST http://localhost:8080/api/ordenes \
@@ -30,7 +34,7 @@ Ejemplo de orden:
 {"id":16,"cliente_id":1,"moto_id":1,"descripcion":"Service 20.000 km","diagnostico":"","estado":"recibido","fecha_recibido":"2026-09-15T10:00:00Z","fecha_entrega":null,"total_mano_obra":78000,"notas":"","creado_en":"2026-09-15T10:00:00Z","actualizado_en":"2026-09-15T10:00:00Z"}
 ```
 
-`fecha_entrega` forma parte del esquema y del JSON, pero actualmente no tiene una ruta que la escriba. El estado se puede cambiar a cualquier valor válido, sin una máquina de transiciones. `PATCH` responde solo el nuevo estado:
+`fecha_entrega` forma parte del esquema y del JSON, pero actualmente no tiene una ruta que la escriba. El vocabulario de estados está reforzado con una restricción `CHECK` en la base, y `entregado` es terminal. Dentro de esos límites no hay una máquina de transiciones: cualquier estado válido puede pasar a cualquier otro. `PATCH` responde solo el nuevo estado:
 
 ```json
 {"estado":"en_progreso"}

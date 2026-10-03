@@ -10,9 +10,10 @@ Las facturas tienen estados `pendiente`, `parcial`, `pagada` y `cancelada`. No e
 | `POST` | `/api/facturas` | Crea una factura para `orden_id`. |
 | `GET` | `/api/facturas/{id}` | Obtiene una factura. |
 | `PUT` | `/api/facturas/{id}` | Actualiza `notas` y `fecha_vencimiento`. |
-| `PATCH` | `/api/facturas/{id}/cancelar` | Cambia el estado a `cancelada`. |
+| `PATCH` | `/api/facturas/{id}/cancelar` | Cambia el estado a `cancelada`. Solo `admin`. |
+| `GET` | `/api/facturas/{id}/pdf` | Devuelve la factura en PDF. |
 
-Al crear, el servidor suma la mano de obra de la orden y los subtotales de sus repuestos. La factura nace `pendiente`. El servidor comprueba que la orden exista y que no haya otra factura para ella; esa unicidad es un chequeo de aplicación y no una restricción `UNIQUE` de la base.
+Al crear, el servidor suma la mano de obra de la orden y los subtotales de sus repuestos. La factura nace `pendiente`. El servidor comprueba que la orden exista y que no haya otra factura para ella, y la base refuerza la misma regla con una restricción `UNIQUE` sobre `orden_id`: dos pedidos concurrentes no pueden crear facturas duplicadas.
 
 ```bash
 curl -X POST http://localhost:8080/api/facturas \
@@ -29,7 +30,20 @@ Ejemplo:
 
 Una segunda factura para la misma orden devuelve `409 "ya existe una factura para esta orden"`. Una factura con total cero queda `pendiente`; no puede recibir un pago positivo.
 
-`PUT` no cambia los importes. La implementación actual tampoco bloquea la edición por estado: una factura `cancelada` puede recibir cambios de notas o vencimiento. La interfaz ofrece la acción **Editar** para todos los estados.
+`PUT` no cambia los importes. La implementación actual tampoco bloquea la edición por estado: una factura `cancelada` puede recibir cambios de notas o vencimiento. La interfaz ofrece la acción **Editar** para admin y recepción en todos los estados.
+
+Crear facturas, editar notas y registrar pagos corresponde a `admin` y `recepcionista`. Cancelar facturas y eliminar pagos es solo para `admin` (`403 "no tenes permisos para esta accion"` para el resto de los roles).
+
+## PDF
+
+```http
+GET /api/facturas/{id}/pdf
+Authorization: Bearer <token>
+```
+
+Devuelve `application/pdf` con `Content-Disposition: inline; filename="factura-{id}.pdf"`. El documento incluye el encabezado del taller, los datos del cliente y la moto, la orden, una línea por concepto (mano de obra y repuestos actuales de la orden), los totales, lo pagado y el saldo. Si la factura está cancelada, el PDF lo indica.
+
+**Nota:** las líneas de repuestos del PDF son las líneas actuales de la orden, mientras que los subtotales y el total son los congelados al emitir la factura. Si la orden se modificó después de facturar, el detalle puede no coincidir con los totales; es el mismo comportamiento documentado en [Reglas](../desarrollo/reglas.md).
 
 ## Pagos
 

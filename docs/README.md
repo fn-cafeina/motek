@@ -10,7 +10,7 @@ Documentación para usar el sistema, consumir la API y trabajar en el código.
 
 ## Qué resuelve el sistema
 
-Motek acompaña una orden desde que entra la moto hasta que se factura y se cobra. El cliente, la moto, los repuestos consumidos y los pagos quedan relacionados; el stock se descuenta al agregar repuestos a una orden y los totales de la factura los calcula el servidor.
+Motek acompaña una orden desde que entra la moto hasta que se factura y se cobra. El cliente, la moto, los repuestos consumidos y los pagos quedan relacionados; el stock se descuenta al agregar repuestos a una orden y los totales de la factura los calcula el servidor. El acceso está separado por roles (admin, recepción y taller) y cada cambio en la base queda registrado en el historial de auditoría.
 
 ## Antes de empezar
 

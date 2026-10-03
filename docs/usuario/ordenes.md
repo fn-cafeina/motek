@@ -6,17 +6,21 @@ Una orden representa el trabajo de una moto en el taller y concentra el diagnós
 
 Tocá **Nueva orden**, elegí un cliente y después una de sus motos. La descripción es obligatoria; también podés cargar diagnóstico, total de mano de obra y notas. La orden nace en estado **Recibido** y la fecha de recepción la asigna el servidor.
 
+Crear órdenes, asignar técnico, editar y eliminar corresponde a **Admin** y **Recepción**. El rol **Taller** trabaja sobre sus órdenes asignadas: cambia el estado, guarda el diagnóstico y consume repuestos.
+
 La pantalla no ofrece cargar `fecha_entrega`; el campo existe en el modelo, pero no tiene un control de edición en la aplicación.
 
 ## Filtrar y editar
 
-La lista tiene filtros **Todas** y los cinco estados: **Recibido**, **En progreso**, **Esperando repuestos**, **Terminado** y **Entregado**. El filtro se refleja en la URL, por ejemplo `/ordenes?estado=terminado`.
+La lista tiene filtros **Todas** y los cinco estados: **Recibido**, **En progreso**, **Esperando repuestos**, **Terminado** y **Entregado**. El filtro se refleja en la URL, por ejemplo `/ordenes?estado=terminado`. Las cuentas de taller ven por defecto **Mostrando mis órdenes**; el botón cambia a **Mostrando todas**.
 
-Cada tarjeta permite abrir el detalle, **Editar** y **Eliminar**. El formulario de edición permite cambiar descripción, diagnóstico, mano de obra y notas; el cliente, la moto y el estado no se cambian desde ese formulario.
+El botón **Lista | Tablero** cambia la vista. El **Tablero** muestra cinco columnas, una por estado, y las órdenes se mueven arrastrando la tarjeta con una pulsación larga: el cambio se guarda al soltar y, si el servidor lo rechaza, la tarjeta vuelve a su lugar. El selector de estado de la ficha sigue disponible como alternativa.
+
+Cada tarjeta permite abrir el detalle, **Editar** y **Eliminar** (estas dos acciones no aparecen para el rol Taller). El formulario de edición permite cambiar descripción, diagnóstico, mano de obra y notas; el cliente, la moto y el estado no se cambian desde ese formulario.
 
 ## Ficha y estados
 
-Tocar una tarjeta abre una hoja modal desde abajo con la orden, el cliente, la moto, el diagnóstico, las notas y los repuestos. El estado se cambia desde un selector dentro de la ficha, no desde cada fila de la lista.
+Tocar una tarjeta abre una hoja modal desde abajo con la orden, el cliente, la moto, el diagnóstico, las notas y los repuestos. El estado se cambia desde un selector dentro de la ficha, no desde cada fila de la lista. Si tu rol puede operar la orden, el diagnóstico se edita ahí mismo con **Guardar diagnóstico** y los repuestos se agregan o quitan desde la ficha. La ficha también permite asignar un técnico (Admin y Recepción) y, para Admin, abrir **Ver historial de la orden**.
 
 | Estado | Significa |
 |---|---|
@@ -24,9 +28,9 @@ Tocar una tarjeta abre una hoja modal desde abajo con la orden, el cliente, la m
 | **En progreso** | Se está trabajando. |
 | **Esperando repuestos** | El trabajo está frenado por falta de un repuesto. |
 | **Terminado** | El trabajo está listo para entregar. |
-| **Entregado** | La moto fue devuelta. |
+| **Entregado** | La moto fue devuelta. Es un estado final: una orden entregada no puede volver a otro estado. |
 
-El estado puede cambiar directamente a cualquiera de los valores válidos; la aplicación no impone una progresión obligatoria.
+El estado puede cambiar a cualquiera de los valores válidos, salvo salir de **Entregado**, que la base bloquea. La aplicación no impone una progresión obligatoria.
 
 ## Agregar y quitar repuestos
 

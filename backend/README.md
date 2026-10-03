@@ -25,7 +25,21 @@ go run ./cmd/motek
 
 El servidor escucha en `SERVER_PORT`, que por defecto es `8080`. `GET /health` es público y responde `200 {"status":"ok"}`.
 
-El proceso carga `.env` con `godotenv`, abre la base configurada, ejecuta las ocho migraciones `CREATE TABLE IF NOT EXISTS`, configura timeouts HTTP y se apaga de forma controlada ante `SIGINT` o `SIGTERM`.
+El proceso carga `.env` con `godotenv`, abre la base configurada, aplica las migraciones versionadas, configura timeouts HTTP y se apaga de forma controlada ante `SIGINT` o `SIGTERM`.
+
+## Migraciones y seed
+
+`Store.Migrate()` aplica en orden los archivos SQL embebidos en `internal/store/migrations/` y registra cada versión en la tabla `schema_migrations`; re-arrancar no re-aplica nada. El detalle de versiones está en [Base de datos](../docs/desarrollo/base-de-datos.md).
+
+Para datos de demo:
+
+```bash
+go run ./cmd/seed                # crea los usuarios demo si faltan
+go run ./cmd/seed -datos         # además genera datos de ejemplo
+go run ./cmd/seed -reset -datos  # borra los datos de negocio y los regenera
+```
+
+Usuarios demo: `admin@motek.local` / `admin123`, `recepcion@motek.local` / `recepcion123`, `tecnico@motek.local` / `tecnico123`.
 
 ## Variables de entorno
 
@@ -33,7 +47,7 @@ El proceso carga `.env` con `godotenv`, abre la base configurada, ejecuta las oc
 
 ## API
 
-JWT se genera con HS256 y dura 24 horas. Todas las rutas bajo `/api/*` requieren `Authorization: Bearer <token>`, excepto `POST /api/auth/register` y `POST /api/auth/login`. `GET /api/auth/me` sí requiere token. CORS permite cualquier origen y los métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS`; los preflight responden `204`.
+JWT se genera con HS256 y dura 24 horas. Todas las rutas bajo `/api/*` requieren `Authorization: Bearer <token>`, excepto `POST /api/auth/register` y `POST /api/auth/login`. `GET /api/auth/me` sí requiere token. Cada cuenta tiene un rol (`admin`, `recepcionista`, `tecnico`) y las rutas verifican permisos; ver [Usuarios y roles](../docs/api/usuarios.md). CORS permite cualquier origen y los métodos `GET, POST, PUT, PATCH, DELETE, OPTIONS`; los preflight responden `204`.
 
 No existe logout en el servidor: el cliente borra el token. Las listas vacías se serializan como `[]` y los handlers usan errores JSON `{"error":"mensaje"}`; las respuestas 404, 405 o redirects del `ServeMux` pueden tener otro formato.
 
@@ -46,7 +60,7 @@ go test ./...
 go vet ./...
 ```
 
-La suite usa el router real y MySQL, no mocks ni SQLite. `TestMain` lee `backend/.env`, usa `TEST_DB_NAME` o `motek_test`, abre esa base y ejecuta migraciones. Los helpers ejecutan `DELETE` sobre las ocho tablas.
+La suite usa el router real y MySQL, no mocks ni SQLite. `TestMain` lee `backend/.env`, usa `TEST_DB_NAME` o `motek_test`, abre esa base y ejecuta las migraciones. Los helpers ejecutan `DELETE` sobre las nueve tablas (incluida `auditoria`, al final porque los DELETE disparan sus triggers).
 
 **No apuntes `TEST_DB_NAME` a una base de producción ni a datos que quieras conservar.** Los tests pueden modificar y limpiar el contenido de la base configurada.
 

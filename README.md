@@ -18,7 +18,7 @@ Sistema para administrar un taller mecánico especializado en motocicletas: clie
 
 ### Backend
 
-La base de datos debe existir antes de iniciar el servidor; las tablas se crean automáticamente.
+La base de datos debe existir antes de iniciar el servidor; las tablas y migraciones se aplican solas al arrancar.
 
 ```bash
 mysql -u root -p -e "CREATE DATABASE motek;"
@@ -33,6 +33,24 @@ go run ./cmd/motek
 ```
 
 La API queda disponible, por defecto, en `http://localhost:8080`. `GET /health` es público y devuelve `200 {"status":"ok"}`.
+
+### Datos de demo
+
+Con la base creada, el comando de seed carga usuarios de ejemplo y, si querés, datos para la demostración:
+
+```bash
+cd backend
+go run ./cmd/seed           # usuarios demo
+go run ./cmd/seed -datos    # además, clientes, órdenes, facturas y pagos
+```
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| Admin | `admin@motek.local` | `admin123` |
+| Recepción | `recepcion@motek.local` | `recepcion123` |
+| Taller | `tecnico@motek.local` | `tecnico123` |
+
+La primera cuenta registrada en una base vacía queda como admin; el registro público crea cuentas de recepción. Los roles y permisos están en [Roles y permisos](docs/usuario/roles.md).
 
 ### Aplicación
 

@@ -2,11 +2,13 @@
 
 ## Crear una cuenta
 
-En la pantalla de acceso, elegí **Registrate**. El formulario pide email y contraseña; la contraseña debe tener al menos 6 caracteres. Después de crear la cuenta, la aplicación inicia sesión automáticamente y entra al tablero.
+En la pantalla de acceso, elegí **Registrate**. El formulario pide email, contraseña y —opcional— tu nombre; la contraseña debe tener al menos 6 caracteres. Después de crear la cuenta, la aplicación inicia sesión automáticamente y entra al tablero. La primera cuenta de una base vacía queda como **Admin**; las siguientes se crean como **Recepción** y un admin puede cambiar el rol desde **Usuarios** ([Roles y permisos](roles.md)).
 
 ## Iniciar sesión
 
-Ingresá tu email y contraseña y tocá **Iniciar sesión**. Si faltan datos, la pantalla muestra un aviso. Si las credenciales no coinciden, aparece un error en el formulario.
+Ingresá tu email y contraseña y tocá **Iniciar sesión**. Si faltan datos, la pantalla muestra un aviso. Si las credenciales no coinciden, aparece un error en el formulario. Un usuario desactivado tampoco puede entrar.
+
+Para probar la aplicación sin crear cuentas, usá los botones de **Acceso rápido de demo** (Admin, Recepción y Taller); ver [Roles y permisos](roles.md).
 
 La sesión queda guardada para que no tengas que ingresar en cada visita. En iOS y Android el token se guarda en el almacenamiento seguro de la aplicación; en web se guarda en el almacenamiento local del navegador.
 

@@ -8,6 +8,7 @@ La API usa HTTP y JSON. La URL por defecto es `http://localhost:8080`; el puerto
 - `POST /api/auth/register` y `POST /api/auth/login` son públicos.
 - El resto de las rutas bajo `/api/*`, incluido `GET /api/auth/me`, requiere `Authorization: Bearer <token>`.
 - Un `OPTIONS` general pasa por CORS y responde `204` antes de la autenticación.
+- Cada cuenta tiene un rol (`admin`, `recepcionista`, `tecnico`). Las rutas verifican el rol y responden `403 "no tenes permisos para esta accion"` cuando no alcanza. Ver [Usuarios y roles](usuarios.md).
 
 ## Convenciones
 
@@ -26,7 +27,10 @@ La API usa HTTP y JSON. La URL por defecto es `http://localhost:8080`; el puerto
 3. [Órdenes y repuestos de orden](ordenes.md)
 4. [Inventario y alertas](inventario.md)
 5. [Facturas y pagos](facturas.md)
-6. [Errores](errores.md) — formato, códigos y mensajes.
+6. [Usuarios y roles](usuarios.md)
+7. [Auditoría](auditoria.md) — historial de cambios con triggers.
+8. [Reportes](reportes.md) — agregados y series del tablero.
+9. [Errores](errores.md) — formato, códigos y mensajes.
 
 ## Ejemplo mínimo
 

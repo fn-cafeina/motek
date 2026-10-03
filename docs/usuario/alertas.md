@@ -10,7 +10,7 @@ La campana del encabezado es un acceso directo a esta pantalla, pero no muestra 
 
 ## Ajustar desde una alerta
 
-En cada tarjeta, tocá **Surtir** para abrir el ajuste. Ingresá una cantidad distinta de cero:
+En cada tarjeta, tocá **Surtir** para abrir el ajuste (solo Admin; el resto de los roles ve las alertas en modo lectura). Ingresá una cantidad distinta de cero:
 
 - Positiva: agrega unidades al stock.
 - Negativa: descuenta unidades.

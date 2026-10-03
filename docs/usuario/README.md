@@ -12,12 +12,16 @@ Motek acompaña el trabajo diario de un taller de motocicletas: clientes, motos,
 6. [Repuestos](repuestos.md) — inventario, precios y ajustes.
 7. [Facturas y pagos](facturas.md) — emitir, cobrar y cancelar.
 8. [Alertas de stock](alertas.md) — reposición de repuestos.
+9. [Roles y permisos](roles.md) — qué ve y qué puede hacer cada cuenta.
+10. [Historial](historial.md) — quién hizo qué (solo admin).
 
 ## Navegación
 
-En computadora de escritorio aparece un sidebar con las secciones **Inicio**, **Órdenes**, **Clientes**, **Repuestos**, **Facturas** y **Alertas**. Puede contraerse con el botón del pie.
+Las secciones visibles dependen del rol: el **Taller** ve Inicio, Órdenes, Repuestos y Alertas; **Recepción** suma Clientes y Facturas; **Admin** ve además **Historial** y **Usuarios** en el grupo Sistema. El detalle está en [Roles y permisos](roles.md).
 
-En pantallas angostas, las mismas seis secciones aparecen en una barra inferior. El encabezado muestra el nombre de la sección y una campana que lleva a **Alertas**; la campana no muestra una cantidad de notificaciones.
+En computadora de escritorio aparece un sidebar con esas secciones agrupadas en **Taller**, **Administración** y **Sistema**. Puede contraerse con el botón del pie.
+
+En pantallas angostas, la barra inferior muestra hasta cinco secciones y un botón **Más** con el resto. El encabezado muestra el nombre de la sección y una campana que lleva a **Alertas**; la campana no muestra una cantidad de notificaciones.
 
 ## El recorrido típico
 

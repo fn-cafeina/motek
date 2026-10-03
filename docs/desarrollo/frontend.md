@@ -16,16 +16,18 @@ Las rutas viven en `app/src/app/`. Cada archivo dentro de `app/src/app/` es una 
 | `/repuestos` | Repuestos | Inventario, búsqueda, filtro de stock y ajustes. |
 | `/facturas` | Facturas | Filtro por estado, creación, edición y pagos. |
 | `/alertas` | Alertas | Repuestos en stock mínimo o por debajo. |
+| `/usuarios` | Usuarios | Cuentas, roles y activación (solo admin). |
+| `/auditoria` | Historial | Timeline de cambios con filtros (solo admin). |
 
-El layout de `(app)` no usa `ProtectedRoute`: `AuthProvider` vive en el layout raíz y `(app)/_layout.tsx` hace `Redirect` a `/login` cuando no hay usuario.
+El layout de `(app)` no usa `ProtectedRoute`: `AuthProvider` vive en el layout raíz y `(app)/_layout.tsx` hace `Redirect` a `/login` cuando no hay usuario. La navegación se filtra por rol (cada ítem declara sus roles), una ruta fuera del alcance redirige a Inicio y en móvil la barra inferior muestra hasta cinco secciones con un botón **Más** para el resto.
 
 ## Shell responsive
 
 El shell se define directamente en `app/src/app/(app)/_layout.tsx`.
 
-- Desde 900 px de ancho muestra un sidebar con grupos **Taller** y **Administración**.
+- Desde 900 px de ancho muestra un sidebar con grupos **Taller**, **Administración** y **Sistema** (Historial y Usuarios son solo para admin).
 - En escritorio muestra el email y la inicial del usuario en el pie, el cierre de sesión y un botón para contraer el menú.
-- En pantallas angostas muestra un encabezado con el título, un enlace de campana a `/alertas`, un icono de cierre de sesión y una barra inferior con las seis secciones.
+- En pantallas angostas muestra un encabezado con el título, un enlace de campana a `/alertas`, un icono de cierre de sesión y una barra inferior con hasta cinco secciones y un botón **Más** para las restantes.
 - El colapso del sidebar es estado local de la sesión de la pantalla; no se persiste.
 
 ## Datos y sesión
@@ -35,6 +37,11 @@ El shell se define directamente en `app/src/app/(app)/_layout.tsx`.
 - `lib/auth.tsx` — `AuthProvider` restaura la sesión con `GET /api/auth/me`, registra, inicia sesión y cierra sesión borrando el token.
 - `hooks/useCollection.ts` — carga listas, normaliza `null` a `[]` y ofrece `load` y `refresh`.
 - `lib/resumen.ts` — funciones puras para contar órdenes, calcular facturado del mes y agrupar facturas pendientes o parciales.
+- `lib/permisos.ts` — matriz de permisos espejo del backend (`puede(rol, permiso)`) y helper `puedeOperarOrden`.
+- `lib/pdf.ts` — abre la factura en PDF: en web descarga el blob autenticado y lo abre en una pestaña; en nativo lo descarga con `expo-file-system` y lo comparte con `expo-sharing`.
+- `components/charts/` — `BarChart`, `DonutChart` y `HBars`, en SVG puro sobre `react-native-svg`, con los colores de los tokens pasados por props.
+- `components/kanban/` — tablero con drag & drop por pulsación larga (`react-native-gesture-handler` + `react-native-reanimated`); el movimiento se confirma con `PATCH /estado` y el selector de estado del detalle queda como alternativa. `app/src/app/_layout.tsx` envuelve todo con `GestureHandlerRootView`.
+- `login.tsx` — además del formulario, ofrece botones de **Acceso rápido de demo** con las cuentas sembradas por `cmd/seed`.
 
 No existe `ResumenProvider`, `api/client.ts`, `ProtectedRoute`, `Table`, `MobileList`, `Drawer`, `ConfirmDialog`, `Menu` ni eventos globales `motek:*` en esta versión. Las pantallas son las que orquestan sus propias colecciones y refrescos.
 

@@ -16,7 +16,7 @@ Filtros de `GET`:
 - `categoria` compara la categoría exacta.
 - `bajo_stock=true` incluye únicamente `stock <= stock_minimo`. Otros valores no activan el filtro.
 
-El código es único. El backend exige únicamente `codigo`; la interfaz Expo también exige `nombre` al crear o editar.
+El código es único. El backend exige únicamente `codigo`; la interfaz Expo también exige `nombre` al crear o editar. La lectura de inventario está disponible para todos los roles; crear, editar y borrar repuestos, y ajustar stock, es solo para `admin` (`403 "no tenes permisos para esta accion"` para el resto).
 
 ```bash
 curl 'http://localhost:8080/api/repuestos?q=filtro&bajo_stock=true' \

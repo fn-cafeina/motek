@@ -2,7 +2,7 @@
 
 ## Registrar un cliente
 
-En **Clientes**, tocá **+ Nuevo**. El nombre es obligatorio. También podés cargar teléfono, email, dirección y notas; los campos no obligatorios pueden completarse o editarse más tarde.
+En **Clientes** (sección de Admin y Recepción), tocá **+ Nuevo**. El nombre es obligatorio. También podés cargar teléfono, email, dirección y notas; los campos no obligatorios pueden completarse o editarse más tarde.
 
 ## Buscar clientes
 

@@ -1,6 +1,6 @@
 # Repuestos
 
-La pantalla de repuestos administra el inventario, los precios y el control de stock.
+La pantalla de repuestos administra el inventario, los precios y el control de stock. **Admin** puede crear, editar, ajustar stock y eliminar; **Recepción** y **Taller** ven el inventario en modo lectura, sin botones de edición.
 
 ## Cargar o editar un repuesto
 
@@ -16,7 +16,7 @@ Cuando la búsqueda o el filtro deja la lista vacía, aparece **Limpiar filtros*
 
 ## Ajustar stock
 
-El ícono de paquete abre el ajuste de stock. Ingresá una cantidad distinta de cero:
+El ícono de paquete abre el ajuste de stock (solo Admin). Ingresá una cantidad distinta de cero:
 
 - Positiva: suma unidades.
 - Negativa: descuenta unidades.

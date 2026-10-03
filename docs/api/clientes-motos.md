@@ -1,6 +1,6 @@
 # Clientes y motos
 
-Todas las rutas de este capítulo requieren un token Bearer, salvo que se indique lo contrario.
+Todas las rutas de este capítulo requieren un token Bearer, salvo que se indique lo contrario. La lectura está disponible para todos los roles; crear, editar y borrar clientes y motos corresponde a `admin` y `recepcionista` (`403 "no tenes permisos para esta accion"` para el resto).
 
 ## Clientes
 
