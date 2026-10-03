@@ -174,7 +174,12 @@ export default function RepuestosScreen() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-end">
+            <View className="flex-row items-center justify-between gap-3">
+              <Text className="flex-1 text-sm text-muted" numberOfLines={1}>
+                {search.trim() || soloBajo
+                  ? `${filtered.length} de ${items.length} repuestos`
+                  : `${items.length} ${items.length === 1 ? "repuesto" : "repuestos"} en el inventario`}
+              </Text>
               {puedeGestionar && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>}
             </View>
             <Field label="" placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />
@@ -182,10 +187,7 @@ export default function RepuestosScreen() {
               <Pressable onPress={() => setSoloBajo((value) => !value)} className={`rounded-md px-3 py-2 ${soloBajo ? "bg-accent-soft" : "bg-raised"}`}>
                 <Text className={`text-xs font-medium ${soloBajo ? "text-accent" : "text-muted"}`}>Solo stock bajo</Text>
               </Pressable>
-              <View className="flex-row items-center gap-3">
-                <Text className="text-xs text-muted">{filtered.length} de {items.length}</Text>
-                <Pressable onPress={() => void refresh()} className="flex-row items-center gap-1 rounded-md bg-raised px-3 py-2"><RotateCw size={14} className="text-muted" /><Text className="text-xs font-medium text-muted">Actualizar</Text></Pressable>
-              </View>
+              <Pressable onPress={() => void refresh()} className="flex-row items-center gap-1 rounded-md bg-raised px-3 py-2"><RotateCw size={14} className="text-muted" /><Text className="text-xs font-medium text-muted">Actualizar</Text></Pressable>
             </View>
             {error && <Text className="text-sm text-danger">{error}</Text>}
           </View>

@@ -218,7 +218,12 @@ export default function FacturasScreen() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-end">
+            <View className="flex-row items-center justify-between gap-3">
+              <Text className="flex-1 text-sm text-muted" numberOfLines={1}>
+                {filter
+                  ? `${filtered.length} de ${facturas.items.length} facturas`
+                  : `${facturas.items.length} ${facturas.items.length === 1 ? "factura emitida" : "facturas emitidas"}`}
+              </Text>
               {puedeEscribir && <Button size="sm" onPress={openCreate} disabled={ordenesSinFactura.length === 0}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nueva factura</Text></Button>}
             </View>
             <View className="flex-row flex-wrap gap-2">

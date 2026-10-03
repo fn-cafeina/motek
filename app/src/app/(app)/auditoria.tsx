@@ -119,7 +119,9 @@ export default function AuditoriaScreen() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 8 }}
         ListHeaderComponent={
           <View className="gap-4 pb-2">
-            <Text className="text-sm text-muted">Quién hizo qué en el taller</Text>
+            <Text className="text-sm text-muted">
+              Quién hizo qué · {eventos.items.length} {eventos.items.length === 1 ? "movimiento" : "movimientos"}
+            </Text>
             {registroId ? (
               <Pressable onPress={() => setRegistroId("")} className="flex-row items-center gap-2 self-start rounded-full bg-primary-soft px-3 py-1.5">
                 <Text className="text-xs font-medium text-primary">Registro #{registroId} de {TABLA_LABELS[tabla] ?? tabla}</Text>

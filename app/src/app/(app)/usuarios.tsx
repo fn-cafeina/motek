@@ -101,7 +101,9 @@ export default function UsuariosScreen() {
         ListHeaderComponent={
           <View className="gap-4">
             <View className="flex-row items-center justify-between">
-              <Text className="text-sm text-muted">Cuentas del taller y sus permisos</Text>
+              <Text className="text-sm text-muted">
+                {usuarios.items.length} {usuarios.items.length === 1 ? "cuenta" : "cuentas"} en el taller
+              </Text>
               <Button size="sm" onPress={() => setDialogOpen(true)}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>
             </View>
             {usuarios.error && <Text className="text-sm text-danger">{usuarios.error}</Text>}

@@ -73,12 +73,13 @@ export default function AlertasScreen() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={
           <View className="gap-4">
-            <View className="flex-row items-center justify-end">
-              <Text className="text-sm text-muted">Repuestos que necesitan reposición</Text>
-            </View>
+            <Text className="text-sm text-muted">
+              {search.trim()
+                ? `${filtered.length} de ${items.length} resultados`
+                : `${items.length} ${items.length === 1 ? "repuesto necesita" : "repuestos necesitan"} reposición`}
+            </Text>
             <Field label="" placeholder="Buscar por código o nombre" value={search} onChangeText={setSearch} />
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xs text-muted">{search ? `${filtered.length} de ${items.length} resultados` : `${items.length} en alerta`}</Text>
+            <View className="flex-row justify-end">
               <Button size="sm" variant="secondary" onPress={() => void refresh()}><RotateCw size={14} className="text-fg" /><Text className="text-fg font-semibold">Actualizar</Text></Button>
             </View>
             {error && <Text className="text-sm text-danger">{error}</Text>}
