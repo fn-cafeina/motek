@@ -1,7 +1,7 @@
 import { Redirect, Slot, usePathname, useRouter, type Href } from "expo-router";
 import { useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react-native";
-import { Modal, Pressable, Text, View, useWindowDimensions } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 import { useAuth } from "../../lib/auth";
@@ -103,7 +103,10 @@ export default function AppLayout() {
             {!collapsedDesktop && <Text className="text-2xl font-bold tracking-tight text-fg">Motek</Text>}
             {collapsedDesktop && <Text className="text-xl font-bold tracking-tight text-fg">M</Text>}
           </View>
-          <View className={`flex-1 gap-6 ${collapsedDesktop ? "px-2 py-4" : "p-3"}`}>
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName={`gap-6 ${collapsedDesktop ? "px-2 py-4" : "p-3"}`}
+          >
             {allowedGroups.map((group) => (
               <View key={group.label} className="gap-1">
                 {!collapsedDesktop && <Text className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-subtle">{group.label}</Text>}
@@ -123,7 +126,7 @@ export default function AppLayout() {
                 })}
               </View>
             ))}
-          </View>
+          </ScrollView>
           <View className={`border-t border-border ${collapsedDesktop ? "items-center p-2" : "p-3"}`}>
             {!collapsedDesktop && <View className="mb-2 flex-row items-center gap-2 px-2"><View className="size-7 items-center justify-center rounded-md bg-primary-soft"><Text className="text-xs font-semibold text-primary">{initial}</Text></View><Text className="flex-1 text-xs text-muted" numberOfLines={1}>{user?.nombre || email}</Text></View>}
             <Pressable onPress={logout} className={`rounded-md active:bg-danger-soft ${collapsedDesktop ? "h-10 items-center justify-center" : "flex-row items-center gap-2 px-2 py-2"}`}>
