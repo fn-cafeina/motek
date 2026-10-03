@@ -104,12 +104,12 @@ export default function UsuariosScreen() {
               <Text className="text-sm text-muted">
                 {usuarios.items.length} {usuarios.items.length === 1 ? "cuenta" : "cuentas"} en el taller
               </Text>
-              <Button size="sm" onPress={() => setDialogOpen(true)}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>
+              <Button size="sm" onPress={() => setDialogOpen(true)}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo usuario</Text></Button>
             </View>
             {usuarios.error && <Text className="text-sm text-danger">{usuarios.error}</Text>}
           </View>
         }
-        ListEmptyComponent={<EmptyState icon={UserCog} title="Sin usuarios" description="Creá la primera cuenta del taller." action={<Button onPress={() => setDialogOpen(true)}>+ Nuevo usuario</Button>} />}
+        ListEmptyComponent={<EmptyState icon={UserCog} title="Sin usuarios" description="Creá la primera cuenta del taller." action={<Button onPress={() => setDialogOpen(true)}>Nuevo usuario</Button>} />}
         renderItem={({ item: usuario }) => (
           <Card className="p-4">
             <View className="flex-row items-center gap-3">

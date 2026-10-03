@@ -180,7 +180,7 @@ export default function RepuestosScreen() {
                   ? `${filtered.length} de ${items.length} repuestos`
                   : `${items.length} ${items.length === 1 ? "repuesto" : "repuestos"} en el inventario`}
               </Text>
-              {puedeGestionar && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo</Text></Button>}
+              {puedeGestionar && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo repuesto</Text></Button>}
             </View>
             <Field label="" placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />
             <View className="flex-row items-center justify-between">
@@ -192,7 +192,7 @@ export default function RepuestosScreen() {
             {error && <Text className="text-sm text-danger">{error}</Text>}
           </View>
         }
-        ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>+ Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
+        ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
         renderItem={({ item: repuesto }) => (
           <Card className={numColumns > 1 ? "flex-1 p-4" : "p-4"}>
             <View className="flex-row items-start gap-3">

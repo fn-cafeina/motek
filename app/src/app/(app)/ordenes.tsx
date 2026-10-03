@@ -302,7 +302,7 @@ export default function OrdenesScreen() {
           keyExtractor={(orden) => String(orden.id)}
           refreshControl={<RefreshControl refreshing={ordenes.loading} onRefresh={ordenes.refresh} />}
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
-          ListEmptyComponent={<EmptyState icon={ClipboardList} title={filter ? "Sin órdenes en este estado" : "Aún no hay órdenes"} description={filter ? "Probá con otro estado." : esTecnico ? "Cuando te asignen una orden la vas a ver acá." : "Elegí un cliente, su moto y el trabajo a realizar."} action={!filter && puedeEscribir ? <Button onPress={openCreate}>+ Nueva orden</Button> : filter ? <Button variant="secondary" onPress={() => updateFilter("")}>Limpiar filtro</Button> : undefined} />}
+          ListEmptyComponent={<EmptyState icon={ClipboardList} title={filter ? "Sin órdenes en este estado" : "Aún no hay órdenes"} description={filter ? "Probá con otro estado." : esTecnico ? "Cuando te asignen una orden la vas a ver acá." : "Elegí un cliente, su moto y el trabajo a realizar."} action={!filter && puedeEscribir ? <Button onPress={openCreate}>Nueva orden</Button> : filter ? <Button variant="secondary" onPress={() => updateFilter("")}>Limpiar filtro</Button> : undefined} />}
           renderItem={({ item: orden }) => {
             const cliente = clienteMap.get(orden.cliente_id);
             const moto = motoMap.get(orden.moto_id);

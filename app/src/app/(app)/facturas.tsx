@@ -234,7 +234,7 @@ export default function FacturasScreen() {
             {ordenesSinFactura.length > 0 && <View className="rounded-lg border border-primary-soft bg-primary-soft/50 p-3"><Text className="text-sm font-semibold text-fg">Órdenes listas para facturar</Text><Text className="mt-1 text-sm text-muted">{ordenesSinFactura.length} orden(es) entregadas sin factura.</Text></View>}
           </View>
         }
-        ListEmptyComponent={<EmptyState icon={FileText} title={filter ? "Sin facturas en este estado" : "Aún no hay facturas"} description={filter ? "Probá con otro estado." : "Facturá una orden entregada para liquidar mano de obra y repuestos."} action={!filter && puedeEscribir && ordenesSinFactura.length > 0 ? <Button onPress={openCreate}>+ Nueva factura</Button> : undefined} />}
+        ListEmptyComponent={<EmptyState icon={FileText} title={filter ? "Sin facturas en este estado" : "Aún no hay facturas"} description={filter ? "Probá con otro estado." : "Facturá una orden entregada para liquidar mano de obra y repuestos."} action={!filter && puedeEscribir && ordenesSinFactura.length > 0 ? <Button onPress={openCreate}>Nueva factura</Button> : undefined} />}
         renderItem={({ item: factura }) => (
           <Card className={numColumns > 1 ? "flex-1 p-4" : "p-4"}>
             <Pressable onPress={() => void openDetail(factura)} className="flex-row items-start justify-between gap-3">

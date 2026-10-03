@@ -178,7 +178,7 @@ export default function ClientesScreen() {
             ? `${filtered.length} de ${clientes.items.length} resultados`
             : `${clientes.items.length} ${clientes.items.length === 1 ? "cliente" : "clientes"} en el directorio`}
         </Text>
-        {puedeEscribir && <Button size="sm" onPress={openCreateCliente}>+ Nuevo</Button>}
+        {puedeEscribir && <Button size="sm" onPress={openCreateCliente}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo cliente</Text></Button>}
       </View>
       <Field label="" placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
       {(clientes.error || motos.error) && <Text className="text-sm text-danger">{clientes.error ?? motos.error}</Text>}
@@ -196,7 +196,7 @@ export default function ClientesScreen() {
         refreshControl={<RefreshControl refreshing={clientes.loading || motos.loading} onRefresh={async () => { await Promise.all([clientes.refresh(), motos.refresh()]); }} />}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={header}
-        ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search && puedeEscribir ? <Button onPress={openCreateCliente}>+ Nuevo cliente</Button> : undefined} />}
+        ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search && puedeEscribir ? <Button onPress={openCreateCliente}>Nuevo cliente</Button> : undefined} />}
         renderItem={({ item: cliente }) => {
           const clienteMotos = motosPorCliente.get(cliente.id) ?? [];
           const expanded = expandedId === cliente.id;
