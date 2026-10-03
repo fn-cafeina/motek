@@ -15,6 +15,7 @@ import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Field } from "../../components/ui/Field";
+import { SearchInput } from "../../components/ui/SearchInput";
 import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
 
@@ -183,7 +184,7 @@ export default function RepuestosScreen() {
               </Text>
               {puedeGestionar && <Button size="sm" onPress={openCreate}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo repuesto</Text></Button>}
             </View>
-            <Field label="" placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />
+            <SearchInput placeholder="Buscar por nombre, código o categoría" value={search} onChangeText={setSearch} />
             <View className="flex-row items-center justify-between">
               <Pressable onPress={() => setSoloBajo((value) => !value)} className={`rounded-md px-3 py-2 ${soloBajo ? "bg-accent-soft" : "bg-raised"}`}>
                 <Text className={`text-xs font-medium ${soloBajo ? "text-accent" : "text-muted"}`}>Solo stock bajo</Text>

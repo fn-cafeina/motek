@@ -14,6 +14,7 @@ import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Field } from "../../components/ui/Field";
+import { SearchInput } from "../../components/ui/SearchInput";
 import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
 
@@ -79,7 +80,7 @@ export default function AlertasScreen() {
                 ? `${filtered.length} de ${items.length} resultados`
                 : `${items.length} ${items.length === 1 ? "repuesto necesita" : "repuestos necesitan"} reposición`}
             </Text>
-            <Field label="" placeholder="Buscar por código o nombre" value={search} onChangeText={setSearch} />
+            <SearchInput placeholder="Buscar por código o nombre" value={search} onChangeText={setSearch} />
             <View className="flex-row justify-end">
               <Button size="sm" variant="secondary" onPress={() => void refresh()}><RotateCw size={14} className="text-fg" /><Text className="text-fg font-semibold">Actualizar</Text></Button>
             </View>

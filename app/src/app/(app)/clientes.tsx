@@ -13,6 +13,7 @@ import { Card } from "../../components/ui/Card";
 import { Dialog } from "../../components/ui/Dialog";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { Field } from "../../components/ui/Field";
+import { SearchInput } from "../../components/ui/SearchInput";
 import { Spinner } from "../../components/ui/Spinner";
 import { showToast } from "../../components/ui/Toast";
 import { Bike, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Users } from "lucide-react-native";
@@ -181,7 +182,7 @@ export default function ClientesScreen() {
         </Text>
         {puedeEscribir && <Button size="sm" onPress={openCreateCliente}><Plus size={16} className="text-primary-fg" /><Text className="text-primary-fg font-semibold">Nuevo cliente</Text></Button>}
       </View>
-      <Field label="" placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
+      <SearchInput placeholder="Buscar por nombre, teléfono o email" value={search} onChangeText={setSearch} />
       {(clientes.error || motos.error) && (
         <Alert
           variant="danger"
