@@ -7,6 +7,7 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
+import { matchesSearch, normalizeSearch } from "../../lib/search";
 import type { AlertaStock } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
@@ -29,11 +30,7 @@ export default function AlertasScreen() {
   const [delta, setDelta] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return items;
-    return items.filter((item) => [item.nombre, item.codigo].some((value) => value.toLowerCase().includes(term)));
-  }, [items, search]);
+  const filtered = useMemo(() => items.filter((item) => matchesSearch(search, [item.nombre, item.codigo])), [items, search]);
 
   async function handleSurtir() {
     if (!target) return;
@@ -76,7 +73,7 @@ export default function AlertasScreen() {
         ListHeaderComponent={
           <View className="gap-4">
             <Text className="text-sm text-muted">
-              {search.trim()
+              {normalizeSearch(search)
                 ? `${filtered.length} de ${items.length} resultados`
                 : `${items.length} ${items.length === 1 ? "repuesto necesita" : "repuestos necesitan"} reposición`}
             </Text>
@@ -88,7 +85,7 @@ export default function AlertasScreen() {
           </View>
         }
         ListEmptyComponent={
-          search ? (
+          normalizeSearch(search) ? (
             <EmptyState icon={TriangleAlert} title="Sin resultados" description="Probá con otro código o nombre." action={<Button variant="secondary" onPress={() => setSearch("")}>Limpiar búsqueda</Button>} />
           ) : (
             <Card className="p-4"><EmptyState icon={CheckCircle2} title="Todo en stock" description="No hay repuestos por debajo del mínimo." /></Card>

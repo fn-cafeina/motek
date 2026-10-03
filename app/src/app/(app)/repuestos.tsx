@@ -8,6 +8,7 @@ import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
 import { formatMoney } from "../../lib/format";
+import { matchesSearch, normalizeSearch } from "../../lib/search";
 import type { Repuesto } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
@@ -59,13 +60,10 @@ export default function RepuestosScreen() {
   const [stockDelta, setStockDelta] = useState("");
   const [stockSaving, setStockSaving] = useState(false);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return items.filter((repuesto) => {
-      const matchesSearch = !term || [repuesto.nombre, repuesto.codigo, repuesto.categoria].some((value) => value.toLowerCase().includes(term));
-      return matchesSearch && (!soloBajo || repuesto.stock <= repuesto.stock_minimo);
-    });
-  }, [items, search, soloBajo]);
+  const filtered = useMemo(
+    () => items.filter((repuesto) => matchesSearch(search, [repuesto.nombre, repuesto.codigo, repuesto.categoria]) && (!soloBajo || repuesto.stock <= repuesto.stock_minimo)),
+    [items, search, soloBajo],
+  );
 
   function openCreate() {
     setEditing(null);
@@ -178,7 +176,7 @@ export default function RepuestosScreen() {
           <View className="gap-4">
             <View className="flex-row items-center justify-between gap-3">
               <Text className="flex-1 text-sm text-muted" numberOfLines={1}>
-                {search.trim() || soloBajo
+                {normalizeSearch(search) || soloBajo
                   ? `${filtered.length} de ${items.length} repuestos`
                   : `${items.length} ${items.length === 1 ? "repuesto" : "repuestos"} en el inventario`}
               </Text>
@@ -194,7 +192,7 @@ export default function RepuestosScreen() {
             {error && <Alert variant="danger" message={error} onRetry={() => void refresh()} />}
           </View>
         }
-        ListEmptyComponent={<EmptyState icon={Package} title={search || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={search || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!search && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
+        ListEmptyComponent={<EmptyState icon={Package} title={normalizeSearch(search) || soloBajo ? "Sin resultados" : "Aún no hay repuestos"} description={normalizeSearch(search) || soloBajo ? "Probá con otra búsqueda o quitá el filtro de stock bajo." : "Cargá el primer repuesto para controlar el inventario."} action={!normalizeSearch(search) && !soloBajo ? (puedeGestionar ? <Button onPress={openCreate}>Nuevo repuesto</Button> : undefined) : <Button variant="secondary" onPress={() => { setSearch(""); setSoloBajo(false); }}>Limpiar filtros</Button>} />}
         renderItem={({ item: repuesto }) => (
           <Card className={numColumns > 1 ? "flex-1 p-4" : "p-4"}>
             <View className="flex-row items-start gap-3">

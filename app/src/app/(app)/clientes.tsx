@@ -6,6 +6,7 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { getErrorMessage } from "../../lib/errors";
 import { puede } from "../../lib/permisos";
+import { matchesSearch, normalizeSearch } from "../../lib/search";
 import type { Cliente, Moto } from "../../lib/types";
 import { Alert } from "../../components/ui/Alert";
 import { Button } from "../../components/ui/Button";
@@ -53,11 +54,10 @@ export default function ClientesScreen() {
     return grouped;
   }, [motos.items]);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return clientes.items;
-    return clientes.items.filter((cliente) => [cliente.nombre, cliente.telefono, cliente.email].some((value) => value.toLowerCase().includes(term)));
-  }, [clientes.items, search]);
+  const filtered = useMemo(
+    () => clientes.items.filter((cliente) => matchesSearch(search, [cliente.nombre, cliente.telefono, cliente.email])),
+    [clientes.items, search],
+  );
 
   function openCreateCliente() {
     setEditingCliente(null);
@@ -176,7 +176,7 @@ export default function ClientesScreen() {
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-sm text-muted">
-          {search.trim()
+          {normalizeSearch(search)
             ? `${filtered.length} de ${clientes.items.length} resultados`
             : `${clientes.items.length} ${clientes.items.length === 1 ? "cliente" : "clientes"} en el directorio`}
         </Text>
@@ -206,7 +206,7 @@ export default function ClientesScreen() {
         refreshControl={<RefreshControl refreshing={clientes.loading || motos.loading} onRefresh={async () => { await Promise.all([clientes.refresh(), motos.refresh()]); }} />}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 24, gap: 12 }}
         ListHeaderComponent={header}
-        ListEmptyComponent={<EmptyState icon={Users} title="Sin clientes" description={search ? "Probá con otro término de búsqueda." : "Agregá tu primer cliente para empezar a trabajar."} action={!search && puedeEscribir ? <Button onPress={openCreateCliente}>Nuevo cliente</Button> : undefined} />}
+        ListEmptyComponent={<EmptyState icon={Users} title={normalizeSearch(search) ? "Sin resultados" : "Sin clientes"} description={normalizeSearch(search) ? "Probá con otro nombre, teléfono o email." : "Agregá tu primer cliente para empezar a trabajar."} action={normalizeSearch(search) ? <Button variant="secondary" onPress={() => setSearch("")}>Limpiar búsqueda</Button> : puedeEscribir ? <Button onPress={openCreateCliente}>Nuevo cliente</Button> : undefined} />}
         renderItem={({ item: cliente }) => {
           const clienteMotos = motosPorCliente.get(cliente.id) ?? [];
           const expanded = expandedId === cliente.id;
